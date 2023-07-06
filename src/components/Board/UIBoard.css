@@ -1,0 +1,12 @@
+.game-board {
+  display: flex;
+  flex-direction: column;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+.table-container {
+  overflow-x: auto;
+}

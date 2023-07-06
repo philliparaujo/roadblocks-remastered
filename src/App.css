@@ -10,8 +10,3 @@
   justify-content: center;
   font-size: calc(10px + 2vmin);
 }
-
-.game-board {
-  display: flex;
-  flex-direction: column;
-}
