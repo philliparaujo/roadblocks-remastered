@@ -1,0 +1,25 @@
+.horizontal {
+  width: 80px;
+  height: 12px;
+}
+
+.vertical {
+  width: 12px;
+  height: 80px;
+}
+
+.gray {
+  background-color: #cccccc;
+}
+
+.red {
+  background-color: red;
+}
+
+.blue {
+  background-color: blue;
+}
+
+.black {
+  background-color: black;
+}
