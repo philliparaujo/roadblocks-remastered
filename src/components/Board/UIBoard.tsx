@@ -1,6 +1,7 @@
 import Cell from "./Cell";
 import Corner from "./Corner";
 import Edge from "./Edge";
+import { isCell, isCorner } from "../Board/Utils";
 
 interface UIBoardProps {
   height: number;
@@ -14,14 +15,14 @@ const UIBoard: React.FC<UIBoardProps> = ({ height, width }) => {
     for (let i = 0; i < 2 * height + 1; i++) {
       const row: JSX.Element[] = [];
       for (let j = 0; j < 2 * width + 1; j++) {
-        if (i % 2 === 0 && j % 2 === 0) {
+        if (isCorner({ row: i, col: j })) {
           let corner = (
             <td key={`${i},${j}`}>
               <Corner coord={{ row: i, col: j }} />
             </td>
           );
           row.push(corner);
-        } else if (i % 2 === 1 && j % 2 === 1) {
+        } else if (isCell({ row: i, col: j })) {
           let cell = (
             <td key={`${i},${j}`}>
               <Cell coord={{ row: i, col: j }} />
