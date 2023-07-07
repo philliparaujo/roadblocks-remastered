@@ -1,7 +1,8 @@
 import { Meta, StoryObj } from "@storybook/react";
 import Edge, { EdgeProps } from "./Edge";
-import instance from "../GameEngine/Game";
+import { GameInstance } from "../GameEngine/Game";
 import { useEffect } from "react";
+import SwitchTurnButton from "../GameEngine/SwitchTurnButton";
 
 const meta: Meta<typeof Edge> = {
   component: Edge,
@@ -17,21 +18,20 @@ const meta: Meta<typeof Edge> = {
 export default meta;
 type Story = StoryObj<typeof Edge>;
 
-const VerticalRender = (props: EdgeProps) => {
-  useEffect(() => {
-    instance.reset();
-  }, []);
+const NewForTesting = (isRedTurn: boolean) => {
+  const result = new GameInstance();
+  if (!isRedTurn) {
+    result.switchTurn();
+  }
+  return result;
+};
 
-  return <Edge {...props} />;
+const VerticalRender = (props: EdgeProps) => {
+  return <Edge {...props} game={NewForTesting(true)} />;
 };
 
 const HorizontalRender = (props: EdgeProps) => {
-  useEffect(() => {
-    instance.reset();
-    instance.switchTurn();
-  }, []);
-
-  return <Edge {...props} />;
+  return <Edge {...props} game={NewForTesting(false)} />;
 };
 
 // Vertical Edges
@@ -40,6 +40,7 @@ export const VerticalNormal: Story = {
   args: {
     orientation: "vertical",
     coord: { row: 1, col: 0 },
+    game: new GameInstance(),
   },
 };
 
@@ -134,8 +135,7 @@ export const HorizontalDisabledDebug: Story = {
 
 // All Edges
 export const AllVerticalEdges: Story = {
-  render: () => {
-    instance.reset();
+  render: ({ game = NewForTesting(true) }) => {
     return (
       <div style={{ display: "flex", gap: "10px" }}>
         <Edge
@@ -143,36 +143,42 @@ export const AllVerticalEdges: Story = {
           type="normal"
           debug={false}
           coord={{ row: 1, col: 0 }}
+          game={game}
         />
         <Edge
           orientation="vertical"
           type="normal"
           debug={true}
           coord={{ row: 1, col: 0 }}
+          game={game}
         />
         <Edge
           orientation="vertical"
           type="locked"
           debug={false}
           coord={{ row: 1, col: 0 }}
+          game={game}
         />
         <Edge
           orientation="vertical"
           type="locked"
           debug={true}
           coord={{ row: 1, col: 0 }}
+          game={game}
         />
         <Edge
           orientation="vertical"
           type="disabled"
           debug={false}
           coord={{ row: 1, col: 0 }}
+          game={game}
         />
         <Edge
           orientation="vertical"
           type="disabled"
           debug={true}
           coord={{ row: 1, col: 0 }}
+          game={game}
         />
       </div>
     );
@@ -180,9 +186,7 @@ export const AllVerticalEdges: Story = {
 };
 
 export const AllHorizontalEdges: Story = {
-  render: () => {
-    instance.reset();
-    instance.switchTurn();
+  render: ({ game = NewForTesting(false) }) => {
     return (
       <div style={{ display: "flex", gap: "10px" }}>
         <Edge
@@ -190,36 +194,42 @@ export const AllHorizontalEdges: Story = {
           type="normal"
           debug={false}
           coord={{ row: 0, col: 1 }}
+          game={game}
         />
         <Edge
           orientation="horizontal"
           type="normal"
           debug={true}
           coord={{ row: 0, col: 1 }}
+          game={game}
         />
         <Edge
           orientation="horizontal"
           type="locked"
           debug={false}
           coord={{ row: 0, col: 1 }}
+          game={game}
         />
         <Edge
           orientation="horizontal"
           type="locked"
           debug={true}
           coord={{ row: 0, col: 1 }}
+          game={game}
         />
         <Edge
           orientation="horizontal"
           type="disabled"
           debug={false}
           coord={{ row: 0, col: 1 }}
+          game={game}
         />
         <Edge
           orientation="horizontal"
           type="disabled"
           debug={true}
           coord={{ row: 0, col: 1 }}
+          game={game}
         />
       </div>
     );
@@ -227,83 +237,18 @@ export const AllHorizontalEdges: Story = {
 };
 
 export const AllEdges: Story = {
-  render: () => {
-    instance.reset();
-    return (
+  render: (args, ctx) => (
+    <>
       <div style={{ display: "flex", gap: "10px" }}>
-        <Edge
-          orientation="vertical"
-          type="normal"
-          debug={false}
-          coord={{ row: 1, col: 0 }}
-        />
-        <Edge
-          orientation="vertical"
-          type="normal"
-          debug={true}
-          coord={{ row: 1, col: 0 }}
-        />
-        <Edge
-          orientation="vertical"
-          type="locked"
-          debug={false}
-          coord={{ row: 1, col: 0 }}
-        />
-        <Edge
-          orientation="vertical"
-          type="locked"
-          debug={true}
-          coord={{ row: 1, col: 0 }}
-        />
-        <Edge
-          orientation="vertical"
-          type="disabled"
-          debug={false}
-          coord={{ row: 1, col: 0 }}
-        />
-        <Edge
-          orientation="vertical"
-          type="disabled"
-          debug={true}
-          coord={{ row: 1, col: 0 }}
-        />
-        <Edge
-          orientation="horizontal"
-          type="normal"
-          debug={false}
-          coord={{ row: 0, col: 1 }}
-        />
-        <Edge
-          orientation="horizontal"
-          type="normal"
-          debug={true}
-          coord={{ row: 0, col: 1 }}
-        />
-        <Edge
-          orientation="horizontal"
-          type="locked"
-          debug={false}
-          coord={{ row: 0, col: 1 }}
-        />
-        <Edge
-          orientation="horizontal"
-          type="locked"
-          debug={true}
-          coord={{ row: 0, col: 1 }}
-        />
-        <Edge
-          orientation="horizontal"
-          type="disabled"
-          debug={false}
-          coord={{ row: 0, col: 1 }}
-        />
-        <Edge
-          orientation="horizontal"
-          type="disabled"
-          debug={true}
-          coord={{ row: 0, col: 1 }}
-        />
+        {AllVerticalEdges.render && AllVerticalEdges.render(args, ctx)}
       </div>
-    );
+      {AllHorizontalEdges.render && AllHorizontalEdges.render(args, ctx)}
+      <div style={{ marginTop: "60px" }}>
+        <SwitchTurnButton game={args.game} />
+      </div>
+    </>
+  ),
+  args: {
+    game: NewForTesting(false),
   },
 };

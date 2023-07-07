@@ -1,6 +1,6 @@
 import "./Edge.css";
 import { Coord } from "./Coord";
-import Game from "../GameEngine/Game";
+import GameInstance, { Game } from "../GameEngine/Game";
 import { useEffect, useState } from "react";
 
 type EdgeColor = "gray" | "red" | "blue" | "black" | "lightblue" | "lightred";
@@ -12,6 +12,7 @@ export interface EdgeProps {
   orientation: Orientation;
   type?: EdgeType;
   debug?: boolean;
+  game?: Game;
 }
 
 /* Determine fill of edge based on given parameters */
@@ -49,6 +50,7 @@ const Edge: React.FC<EdgeProps> = ({
   orientation,
   type = "normal",
   debug = false,
+  game = GameInstance,
 }) => {
   const [toggled, setToggled] = useState<boolean>(false);
   const [fill, setFill] = useState<EdgeColor>(
@@ -66,7 +68,8 @@ const Edge: React.FC<EdgeProps> = ({
     }
 
     if (toggled) {
-      Game.removeEdge(coord)
+      game
+        .removeEdge(coord)
         .then((ok) => {
           setToggled(false);
         })
@@ -74,7 +77,8 @@ const Edge: React.FC<EdgeProps> = ({
           console.log(`NAY(${err})! edge: (${coord.row}, ${coord.col})`);
         });
     } else {
-      Game.addEdge(coord)
+      game
+        .addEdge(coord)
         .then((ok) => {
           setToggled(true);
         })

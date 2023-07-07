@@ -1,0 +1,16 @@
+.button {
+  color: white;
+  font-size: 24px;
+  border-radius: 5px;
+
+  width: 120px;
+  height: 50px;
+}
+
+.button.red {
+  background-color: rgb(255, 128, 128);
+}
+
+.button.blue {
+  background-color: rgb(128, 128, 255);
+}

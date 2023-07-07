@@ -7,18 +7,27 @@ interface GameState {
 interface EdgeResult {}
 interface EndTurnResult {}
 
-interface Game {
-  state: GameState;
+export interface Game {
   addEdge: (coord: Coord) => Promise<EdgeResult>;
   removeEdge: (coord: Coord) => Promise<EdgeResult>;
   switchTurn: () => Promise<EndTurnResult>;
+  isRedTurn: () => Promise<boolean>;
   reset: () => void;
 }
 
-class GameInstance implements Game {
+var id = 1;
+
+export class GameInstance implements Game {
   state = {
     redTurn: true,
+    id: id++,
   };
+
+  constructor() {
+    console.log("Created game object", this.state.id);
+  }
+
+  isRedTurn = (): Promise<boolean> => Promise.resolve(this.state.redTurn);
 
   addEdge = (coord: Coord): Promise<EdgeResult> => {
     if (isVerticalEdge(coord)) {
@@ -54,13 +63,13 @@ class GameInstance implements Game {
 
   switchTurn = (): Promise<EndTurnResult> => {
     this.state.redTurn = !this.state.redTurn;
-    console.log(`redTurn: ${this.state.redTurn}`);
+    // console.log(`redTurn: ${this.state.redTurn}`);
     return Promise.resolve({});
   };
 
   reset = (): void => {
     this.state.redTurn = true;
-    console.log(`redTurn: ${this.state.redTurn}`);
+    // console.log(`redTurn: ${this.state.redTurn}`);
   };
 }
 
