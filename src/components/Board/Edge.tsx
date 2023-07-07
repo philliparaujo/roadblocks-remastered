@@ -1,5 +1,5 @@
 import "./Edge.css";
-import { Coord } from "./Coord.tsx";
+import { Coord } from "./Coord";
 import Game from "../GameEngine/Game";
 import { useState } from "react";
 
@@ -7,13 +7,13 @@ type EdgeColor = "gray" | "red" | "blue" | "black";
 type Orientation = "horizontal" | "vertical";
 type EdgeType = "normal" | "locked";
 
-interface EdgeProps {
+export interface EdgeProps {
   coord: Coord;
   orientation: Orientation;
   type: EdgeType;
 }
 
-const Edge: React.FC<EdgeProps> = ({ coord, orientation, type }) => {
+export const Edge: React.FC<EdgeProps> = ({ coord, orientation, type }) => {
   const [toggled, setToggled] = useState<boolean>(false);
   const [fill, setFill] = useState<EdgeColor>(
     type === "locked" ? "black" : "gray"

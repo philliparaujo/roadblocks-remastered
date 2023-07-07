@@ -1,5 +1,5 @@
 import "./Cell.css";
-import { Coord } from "./Coord.tsx";
+import { Coord } from "./Coord";
 
 interface CellProps {
   coord: Coord;
