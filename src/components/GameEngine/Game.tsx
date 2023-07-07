@@ -12,6 +12,7 @@ interface Game {
   addEdge: (coord: Coord) => Promise<EdgeResult>;
   removeEdge: (coord: Coord) => Promise<EdgeResult>;
   switchTurn: () => Promise<EndTurnResult>;
+  reset: () => void;
 }
 
 class GameInstance implements Game {
@@ -32,7 +33,7 @@ class GameInstance implements Game {
         : Promise.reject("WRONG TURN");
     }
 
-    return Promise.reject("INVALID");
+    return Promise.reject("INVALID ADD");
   };
 
   removeEdge = (coord: Coord): Promise<EdgeResult> => {
@@ -48,13 +49,18 @@ class GameInstance implements Game {
         : Promise.reject("WRONG TURN");
     }
 
-    return Promise.reject("INVALID");
+    return Promise.reject("INVALID REMOVE");
   };
 
   switchTurn = (): Promise<EndTurnResult> => {
     this.state.redTurn = !this.state.redTurn;
     console.log(`redTurn: ${this.state.redTurn}`);
     return Promise.resolve({});
+  };
+
+  reset = (): void => {
+    this.state.redTurn = true;
+    console.log(`redTurn: ${this.state.redTurn}`);
   };
 }
 

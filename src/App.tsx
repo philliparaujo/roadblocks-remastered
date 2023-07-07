@@ -6,7 +6,7 @@ function App() {
   return (
     <div className="App">
       <h2>Game</h2>
-      <UIBoard height={7} width={7}></UIBoard>
+      <UIBoard height={7} width={7} debug={true}></UIBoard>
       {/* <button onClick={Game.switchTurn}>End turn</button> */}
     </div>
   );

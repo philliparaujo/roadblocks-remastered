@@ -1,33 +1,73 @@
 import "./Edge.css";
 import { Coord } from "./Coord";
 import Game from "../GameEngine/Game";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-type EdgeColor = "gray" | "red" | "blue" | "black";
-type Orientation = "horizontal" | "vertical";
-type EdgeType = "normal" | "locked";
+type EdgeColor = "gray" | "red" | "blue" | "black" | "lightblue" | "lightred";
+export type Orientation = "horizontal" | "vertical";
+export type EdgeType = "normal" | "locked" | "disabled";
 
 export interface EdgeProps {
   coord: Coord;
   orientation: Orientation;
-  type: EdgeType;
+  type?: EdgeType;
+  debug?: boolean;
 }
 
-export const Edge: React.FC<EdgeProps> = ({ coord, orientation, type }) => {
+/* Determine fill of edge based on given parameters */
+const getFill = (
+  orientation: Orientation,
+  type: EdgeType,
+  debug: boolean,
+  toggled: boolean
+) => {
+  return toggled
+    ? getToggledFill(orientation)
+    : getUntoggledFill(orientation, type, debug);
+};
+
+const getToggledFill = (orientation: Orientation) => {
+  return orientation === "horizontal" ? "blue" : "red";
+};
+
+const getUntoggledFill = (
+  orientation: Orientation,
+  type: EdgeType,
+  debug: boolean
+) => {
+  const untoggledUnlockedFill = debug
+    ? orientation === "horizontal"
+      ? "lightblue"
+      : "lightred"
+    : "gray";
+  return type === "locked" ? "black" : untoggledUnlockedFill;
+};
+
+/* Component */
+const Edge: React.FC<EdgeProps> = ({
+  coord,
+  orientation,
+  type = "normal",
+  debug = false,
+}) => {
   const [toggled, setToggled] = useState<boolean>(false);
   const [fill, setFill] = useState<EdgeColor>(
-    type === "locked" ? "black" : "gray"
+    getFill(orientation, type, debug, toggled)
   );
 
+  /* Updates color of edge whenever a change occurs */
+  useEffect(() => {
+    setFill(getFill(orientation, type, debug, toggled));
+  }, [orientation, type, debug, toggled]);
+
   const handleClick = () => {
-    if (type === "locked") {
+    if (type === "locked" || type === "disabled") {
       return;
     }
 
     if (toggled) {
       Game.removeEdge(coord)
         .then((ok) => {
-          setFill("gray");
           setToggled(false);
         })
         .catch((err) => {
@@ -36,7 +76,6 @@ export const Edge: React.FC<EdgeProps> = ({ coord, orientation, type }) => {
     } else {
       Game.addEdge(coord)
         .then((ok) => {
-          setFill(orientation === "horizontal" ? "blue" : "red");
           setToggled(true);
         })
         .catch((err) => {

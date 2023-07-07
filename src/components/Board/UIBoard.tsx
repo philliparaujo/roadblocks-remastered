@@ -6,9 +6,10 @@ import { isCell, isCorner } from "../Board/Utils";
 interface UIBoardProps {
   height: number;
   width: number;
+  debug?: boolean;
 }
 
-const UIBoard: React.FC<UIBoardProps> = ({ height, width }) => {
+const UIBoard: React.FC<UIBoardProps> = ({ height, width, debug = false }) => {
   const generateEmptyBoard = (): JSX.Element[] => {
     const board: JSX.Element[] = [];
 
@@ -36,6 +37,7 @@ const UIBoard: React.FC<UIBoardProps> = ({ height, width }) => {
                 coord={{ row: i, col: j }}
                 orientation={i % 2 === 0 ? "horizontal" : "vertical"}
                 type="normal"
+                debug={debug}
               />
             </td>
           );
