@@ -1,8 +1,8 @@
 import { Meta, StoryObj } from "@storybook/react";
 import Edge, { EdgeProps } from "./Edge";
-import { GameInstance } from "../GameEngine/Game";
+import { GameInstance } from "../../../GameEngine/Game";
 import { useEffect } from "react";
-import SwitchTurnButton from "../GameEngine/SwitchTurnButton";
+import SwitchTurnButton from "../SwitchTurnButton";
 
 const meta: Meta<typeof Edge> = {
   component: Edge,
@@ -18,7 +18,7 @@ const meta: Meta<typeof Edge> = {
 export default meta;
 type Story = StoryObj<typeof Edge>;
 
-const NewForTesting = (isRedTurn: boolean) => {
+const FakeGame = (isRedTurn: boolean) => {
   const result = new GameInstance();
   if (!isRedTurn) {
     result.switchTurn();
@@ -27,11 +27,11 @@ const NewForTesting = (isRedTurn: boolean) => {
 };
 
 const VerticalRender = (props: EdgeProps) => {
-  return <Edge {...props} game={NewForTesting(true)} />;
+  return <Edge {...props} game={FakeGame(true)} />;
 };
 
 const HorizontalRender = (props: EdgeProps) => {
-  return <Edge {...props} game={NewForTesting(false)} />;
+  return <Edge {...props} game={FakeGame(false)} />;
 };
 
 // Vertical Edges
@@ -135,7 +135,7 @@ export const HorizontalDisabledDebug: Story = {
 
 // All Edges
 export const AllVerticalEdges: Story = {
-  render: ({ game = NewForTesting(true) }) => {
+  render: ({ game = FakeGame(true) }) => {
     return (
       <div style={{ display: "flex", gap: "10px" }}>
         <Edge
@@ -186,7 +186,7 @@ export const AllVerticalEdges: Story = {
 };
 
 export const AllHorizontalEdges: Story = {
-  render: ({ game = NewForTesting(false) }) => {
+  render: ({ game = FakeGame(false) }) => {
     return (
       <div style={{ display: "flex", gap: "10px" }}>
         <Edge
@@ -249,6 +249,6 @@ export const AllEdges: Story = {
     </>
   ),
   args: {
-    game: NewForTesting(false),
+    game: FakeGame(false),
   },
 };

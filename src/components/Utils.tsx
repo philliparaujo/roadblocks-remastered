@@ -1,4 +1,4 @@
-import { Coord } from "./Coord";
+import { Coord } from "./UI/Board/Coord";
 
 export const isCorner = (coord: Coord): boolean =>
   coord.row % 2 === 0 && coord.col % 2 === 0;

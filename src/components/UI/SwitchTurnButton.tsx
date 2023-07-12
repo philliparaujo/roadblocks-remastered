@@ -1,6 +1,6 @@
 import "./SwitchTurnButton.css";
 import { useEffect, useState } from "react";
-import GameInstance, { Game } from "./Game";
+import GameInstance, { Game } from "../../GameEngine/Game";
 
 export interface SwitchTurnButtonProps {
   game?: Game;

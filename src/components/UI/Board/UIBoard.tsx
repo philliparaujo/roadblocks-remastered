@@ -1,15 +1,22 @@
 import Cell from "./Cell";
 import Corner from "./Corner";
 import Edge from "./Edge";
-import { isCell, isCorner } from "../Board/Utils";
+import { isCell, isCorner } from "../../Utils";
+import GameInstance, { Game } from "../../../GameEngine/Game";
 
-interface UIBoardProps {
+export interface UIBoardProps {
   height: number;
   width: number;
   debug?: boolean;
+  game?: Game;
 }
 
-const UIBoard: React.FC<UIBoardProps> = ({ height, width, debug = false }) => {
+const UIBoard: React.FC<UIBoardProps> = ({
+  height,
+  width,
+  debug = false,
+  game = GameInstance,
+}) => {
   const generateEmptyBoard = (): JSX.Element[] => {
     const board: JSX.Element[] = [];
 
@@ -19,14 +26,14 @@ const UIBoard: React.FC<UIBoardProps> = ({ height, width, debug = false }) => {
         if (isCorner({ row: i, col: j })) {
           let corner = (
             <td key={`${i},${j}`}>
-              <Corner coord={{ row: i, col: j }} />
+              <Corner coord={{ row: i, col: j }} game={game} />
             </td>
           );
           row.push(corner);
         } else if (isCell({ row: i, col: j })) {
           let cell = (
             <td key={`${i},${j}`}>
-              <Cell coord={{ row: i, col: j }} />
+              <Cell coord={{ row: i, col: j }} game={game} />
             </td>
           );
           row.push(cell);
@@ -38,6 +45,7 @@ const UIBoard: React.FC<UIBoardProps> = ({ height, width, debug = false }) => {
                 orientation={i % 2 === 0 ? "horizontal" : "vertical"}
                 type="normal"
                 debug={debug}
+                game={game}
               />
             </td>
           );

@@ -1,6 +1,6 @@
 import "./Edge.css";
 import { Coord } from "./Coord";
-import GameInstance, { Game } from "../GameEngine/Game";
+import GameInstance, { Game } from "../../../GameEngine/Game";
 import { useEffect, useState } from "react";
 
 type EdgeColor = "gray" | "red" | "blue" | "black" | "lightblue" | "lightred";

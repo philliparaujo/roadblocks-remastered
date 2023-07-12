@@ -1,7 +1,7 @@
 import "./App.css";
-import UIBoard from "./components/Board/UIBoard";
-import Game from "./components/GameEngine/Game";
-import SwitchTurnButton from "./components/GameEngine/SwitchTurnButton";
+import UIBoard from "./components/UI/Board/UIBoard";
+import Game from "./GameEngine/Game";
+import SwitchTurnButton from "./components/UI/SwitchTurnButton";
 
 function App() {
   return (

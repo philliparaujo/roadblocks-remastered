@@ -1,8 +1,10 @@
+import { Game } from "../../../GameEngine/Game";
 import "./Cell.css";
 import { Coord } from "./Coord";
 
 interface CellProps {
   coord: Coord;
+  game?: Game;
 }
 
 const Cell: React.FC<CellProps> = ({ coord }) => {
