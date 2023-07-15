@@ -21,37 +21,37 @@ type Story = StoryObj<typeof UIBoard>;
 export const Test: Story = {};
 
 export const Debug: Story = {
-  render: (args) => {
+  render: () => {
     return <UIBoard width={7} height={7} debug={true} />;
   },
 };
 
 export const Empty: Story = {
-  render: (args) => {
+  render: () => {
     return <UIBoard width={0} height={0} />;
   },
 };
 
 export const OneByOne: Story = {
-  render: (args) => {
+  render: () => {
     return <UIBoard width={1} height={1} />;
   },
 };
 
 export const TwoByTwo: Story = {
-  render: (args) => {
+  render: () => {
     return <UIBoard width={2} height={2} />;
   },
 };
 
 export const TwentyByTwenty: Story = {
-  render: (args) => {
+  render: () => {
     return <UIBoard width={20} height={20} />;
   },
 };
 
 export const NegativeOneByNegativeOne: Story = {
-  render: (args) => {
+  render: () => {
     return <UIBoard width={-1} height={-1} />;
   },
 };

@@ -14,3 +14,6 @@ export const isHorizontalEdge = (coord: Coord): boolean =>
 
 export const isEdge = (coord: Coord): boolean =>
   isVerticalEdge(coord) || isHorizontalEdge(coord);
+
+export const equalCoords = (coord1: Coord, coord2: Coord): boolean =>
+  coord1.row === coord2.row && coord1.col === coord2.col;

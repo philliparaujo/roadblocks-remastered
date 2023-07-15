@@ -1,6 +1,6 @@
 import "./SwitchTurnButton.css";
 import { useEffect, useState } from "react";
-import GameInstance, { Game } from "../../GameEngine/Game";
+import GameInstance, { Game, PlayerColor } from "../../GameEngine/Game";
 
 export interface SwitchTurnButtonProps {
   game?: Game;
@@ -10,6 +10,7 @@ const SwitchTurnButton: React.FC<SwitchTurnButtonProps> = ({
   game = GameInstance,
 }) => {
   const [redTurn, setRedTurn] = useState<boolean>(false);
+  const playerColor: PlayerColor = redTurn ? "red" : "blue";
 
   useEffect(() => {
     game.isRedTurn().then((isRed) => setRedTurn(isRed));
@@ -27,10 +28,7 @@ const SwitchTurnButton: React.FC<SwitchTurnButtonProps> = ({
   };
 
   return (
-    <button
-      onClick={handleClick}
-      className={`button ${redTurn ? "red" : "blue"}`}
-    >
+    <button onClick={handleClick} className={`button ${playerColor}`}>
       End turn
     </button>
   );
