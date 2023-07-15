@@ -1,8 +1,10 @@
-import Cell from "./Cell";
+import Cell, { CellElement } from "./Cell";
 import Corner from "./Corner";
 import Edge from "./Edge";
-import { isCell, isCorner } from "../../Utils";
-import GameInstance, { Game } from "../../../GameEngine/Game";
+import { equalCoords, isCell, isCorner } from "../../Utils";
+import GameInstance, { Game, PlayerColor } from "../../../GameEngine/Game";
+import { Coord } from "./Coord";
+import { useEffect, useState } from "react";
 
 export interface UIBoardProps {
   height: number;
@@ -17,6 +19,30 @@ const UIBoard: React.FC<UIBoardProps> = ({
   debug = false,
   game = GameInstance,
 }) => {
+  const [initialLocations, setInitialLocations] = useState<{
+    [key in CellElement]?: Coord;
+  }>({});
+  const [locationsFetched, setLocationsFetched] = useState(false);
+
+  const fetchInitialLocations = async () => {
+    const locations: { [key in CellElement]?: Coord } = {
+      redplayer: await game.getInitialLocation("redplayer"),
+      blueplayer: await game.getInitialLocation("blueplayer"),
+      redend: await game.getInitialLocation("redend"),
+      blueend: await game.getInitialLocation("blueend"),
+    };
+    setInitialLocations(locations);
+    setLocationsFetched(true);
+  };
+
+  useEffect(() => {
+    fetchInitialLocations();
+  }, [game]);
+
+  if (!locationsFetched) {
+    return <div>Loading...</div>;
+  }
+
   const generateEmptyBoard = (): JSX.Element[] => {
     const board: JSX.Element[] = [];
 
@@ -31,9 +57,26 @@ const UIBoard: React.FC<UIBoardProps> = ({
           );
           row.push(corner);
         } else if (isCell({ row: i, col: j })) {
+          let initialContents: CellElement[] = [];
+
+          for (const key in initialLocations) {
+            const cellElement = key as CellElement;
+            const cellElementCoord: Coord | undefined =
+              initialLocations[cellElement];
+            if (cellElementCoord) {
+              if (equalCoords({ row: i, col: j }, cellElementCoord)) {
+                initialContents.push(cellElement);
+              }
+            }
+          }
+
           let cell = (
             <td key={`${i},${j}`}>
-              <Cell coord={{ row: i, col: j }} game={game} />
+              <Cell
+                coord={{ row: i, col: j }}
+                game={game}
+                initialContents={initialContents}
+              />
             </td>
           );
           row.push(cell);

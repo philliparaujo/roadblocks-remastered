@@ -1,6 +1,6 @@
 import "./LockWallsButton.css";
 import GameInstance, { Game } from "../../GameEngine/Game";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export interface LockWallsButtonProps {
   game?: Game;
@@ -11,6 +11,13 @@ const LockWallsButton: React.FC<LockWallsButtonProps> = ({
 }) => {
   const [disabled, setDisabled] = useState<boolean>(false);
 
+  useEffect(() => {
+    const unsubscribe = game.switchTurnEventSubscription().subscribe((e) => {
+      setDisabled(false);
+    });
+    return () => unsubscribe();
+  }, [game]);
+
   const handleClick = () => {
     if (disabled) {
       return;
@@ -20,7 +27,6 @@ const LockWallsButton: React.FC<LockWallsButtonProps> = ({
       .lockWalls()
       .then((ok) => {
         setDisabled(true);
-        console.log("done");
       })
       .catch((error) => {
         console.error("Failed to lock walls:", error);
