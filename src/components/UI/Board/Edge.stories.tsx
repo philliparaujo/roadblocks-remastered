@@ -19,7 +19,7 @@ export default meta;
 type Story = StoryObj<typeof Edge>;
 
 const FakeGame = (isRedTurn: boolean) => {
-  const result = new GameInstance();
+  const result = new GameInstance(7, 7);
   if (!isRedTurn) {
     result.switchTurn();
   }
@@ -40,7 +40,7 @@ export const VerticalNormal: Story = {
   args: {
     orientation: "vertical",
     coord: { row: 1, col: 0 },
-    game: new GameInstance(),
+    game: new GameInstance(7, 7),
   },
 };
 

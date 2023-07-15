@@ -17,3 +17,13 @@ export const isEdge = (coord: Coord): boolean =>
 
 export const equalCoords = (coord1: Coord, coord2: Coord): boolean =>
   coord1.row === coord2.row && coord1.col === coord2.col;
+
+export const isBorderEdge = (
+  coord: Coord,
+  width: number,
+  height: number
+): boolean =>
+  coord.row == 0 ||
+  coord.col == 0 ||
+  coord.row == 2 * height ||
+  coord.col == 2 * width;

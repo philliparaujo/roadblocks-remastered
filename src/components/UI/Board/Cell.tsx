@@ -88,9 +88,9 @@ const Cell: React.FC<CellProps> = ({
       return;
     }
 
-    game
-      .setPlayerLocation(coord)
-      .catch((error) => console.error("Failed to set player location", error));
+    game.setPlayerLocation(coord).catch((err) => {
+      console.error(`NAY(${err})! cell: (${coord.row}, ${coord.col})`);
+    });
   };
 
   return (

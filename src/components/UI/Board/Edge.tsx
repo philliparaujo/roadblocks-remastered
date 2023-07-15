@@ -74,7 +74,7 @@ const Edge: React.FC<EdgeProps> = ({
           setToggled(false);
         })
         .catch((err) => {
-          console.log(`NAY(${err})! edge: (${coord.row}, ${coord.col})`);
+          console.error(`NAY(${err})! edge: (${coord.row}, ${coord.col})`);
         });
     } else {
       game
@@ -83,7 +83,7 @@ const Edge: React.FC<EdgeProps> = ({
           setToggled(true);
         })
         .catch((err) => {
-          console.log(`NAY(${err})! edge: (${coord.row}, ${coord.col})`);
+          console.error(`NAY(${err})! edge: (${coord.row}, ${coord.col})`);
         });
     }
   };

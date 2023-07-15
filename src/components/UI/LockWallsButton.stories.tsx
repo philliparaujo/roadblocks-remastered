@@ -10,7 +10,7 @@ const meta: Meta<typeof LockWallsButton> = {
 export default meta;
 type Story = StoryObj<typeof LockWallsButton>;
 
-const fakeGame: GameInstance = new GameInstance();
+const fakeGame: GameInstance = new GameInstance(7, 7);
 
 export const Default: Story = {};
 
@@ -21,7 +21,7 @@ export const WithBoard: Story = {
     return (
       <div>
         <LockWallsButton game={fakeGame} />
-        <UIBoard height={7} width={7} game={fakeGame} />
+        <UIBoard game={fakeGame} />
       </div>
     );
   },

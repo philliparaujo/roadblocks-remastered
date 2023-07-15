@@ -25,7 +25,7 @@ const GameStory: React.FC<GameProps> = ({
   initialBlueEndLocation,
   debug,
 }) => {
-  const gameInstance = new GameInstance();
+  const gameInstance = new GameInstance(height, width);
   gameInstance.state.playerLocations = {
     red: initialRedPlayerLocation,
     blue: initialBluePlayerLocation,
@@ -36,12 +36,7 @@ const GameStory: React.FC<GameProps> = ({
   };
   return (
     <div>
-      <UIBoard
-        height={height}
-        width={width}
-        debug={debug}
-        game={gameInstance}
-      />
+      <UIBoard debug={debug} game={gameInstance} />
       <LockWallsButton game={gameInstance} />
       <SwitchTurnButton game={gameInstance} />
     </div>

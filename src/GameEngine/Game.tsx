@@ -1,6 +1,11 @@
 import { CellElement } from "../components/UI/Board/Cell";
 import { Coord } from "../components/UI/Board/Coord";
-import { isHorizontalEdge, isVerticalEdge } from "../components/Utils";
+import {
+  isBorderEdge,
+  isEdge,
+  isHorizontalEdge,
+  isVerticalEdge,
+} from "../components/Utils";
 import {
   PlayerEventSubscription,
   PlayerMovedSubscriber,
@@ -9,14 +14,18 @@ import { SwitchTurnSubscriber } from "./SwitchTurnSubscriber";
 
 type TurnPhase = "placingWalls" | "movingPlayer";
 export type PlayerColor = "red" | "blue";
-type PlayerLocations = { [key in PlayerColor]: Coord };
+type CellLocations = { [key in PlayerColor]: Coord };
+type WallLocations = Coord[];
 
 interface GameState {
   redTurn: boolean;
   phase: TurnPhase;
+  width: number;
+  height: number;
   id: number;
-  playerLocations: PlayerLocations;
-  endLocations: PlayerLocations;
+  playerLocations: CellLocations;
+  endLocations: CellLocations;
+  wallLocations: WallLocations;
   playerMovedSubscriptions: PlayerMovedSubscriber;
   switchTurnSubscriptions: SwitchTurnSubscriber;
 }
@@ -35,7 +44,10 @@ export interface Game {
   reset: () => Promise<ResetResult>;
   playerLocation: () => Coord;
   setPlayerLocation: (coord: Coord) => Promise<PlayerMovedResult>;
-  getInitialLocation: (cellElement: CellElement) => Promise<Coord>;
+  getInitialCellLocation: (cellElement: CellElement) => Promise<Coord>;
+  getInitialWallLocations: () => Promise<WallLocations>;
+  getWidth: () => Promise<number>;
+  getHeight: () => Promise<number>;
   playerMovedEventSubscription: () => PlayerEventSubscription;
   switchTurnEventSubscription: () => SwitchTurnSubscriber;
 }
@@ -46,15 +58,21 @@ export class GameInstance implements Game {
   state: GameState = {
     redTurn: true,
     phase: "placingWalls",
+    width: 7,
+    height: 7,
     id: id++,
     playerLocations: { red: { row: 7, col: 1 }, blue: { row: 1, col: 7 } },
     endLocations: { red: { row: 7, col: 13 }, blue: { row: 13, col: 7 } },
+    wallLocations: [],
     playerMovedSubscriptions: new PlayerMovedSubscriber(),
     switchTurnSubscriptions: new SwitchTurnSubscriber(),
   };
 
-  constructor() {
+  constructor(width: number, height: number) {
+    this.state.width = width;
+    this.state.height = height;
     console.log("Created game object", this.state.id);
+    this.generateRandomWallLocations(this.state.width, this.state.height);
   }
 
   addEdge = (coord: Coord): Promise<EdgeResult> => {
@@ -62,19 +80,27 @@ export class GameInstance implements Game {
       return Promise.reject("NOT WALL PHASE");
     }
 
+    if (!isEdge(coord)) {
+      return Promise.reject("INVALID COORD");
+    }
+
     if (isVerticalEdge(coord)) {
-      return this.state.redTurn
-        ? Promise.resolve({})
-        : Promise.reject("WRONG TURN");
+      if (this.state.redTurn) {
+        this.state.wallLocations.push(coord);
+        console.log(this.state.wallLocations);
+        return Promise.resolve({});
+      } else {
+        return Promise.reject("WRONG TURN");
+      }
+    } else {
+      if (!this.state.redTurn) {
+        this.state.wallLocations.push(coord);
+        console.log(this.state.wallLocations);
+        return Promise.resolve({});
+      } else {
+        return Promise.reject("WRONG TURN");
+      }
     }
-
-    if (isHorizontalEdge(coord)) {
-      return !this.state.redTurn
-        ? Promise.resolve({})
-        : Promise.reject("WRONG TURN");
-    }
-
-    return Promise.reject("INVALID ADD");
   };
 
   removeEdge = (coord: Coord): Promise<EdgeResult> => {
@@ -82,19 +108,24 @@ export class GameInstance implements Game {
       return Promise.reject("NOT WALL PHASE");
     }
 
+    if (!isVerticalEdge(coord) && !isHorizontalEdge(coord)) {
+      return Promise.reject("INVALID ADD");
+    }
+
+    this.state.wallLocations = this.state.wallLocations.filter(
+      (wall) => wall !== coord
+    );
+    console.log(this.state.wallLocations);
+
     if (isVerticalEdge(coord)) {
       return this.state.redTurn
         ? Promise.resolve({})
         : Promise.reject("WRONG TURN");
-    }
-
-    if (isHorizontalEdge(coord)) {
+    } else {
       return !this.state.redTurn
         ? Promise.resolve({})
         : Promise.reject("WRONG TURN");
     }
-
-    return Promise.reject("INVALID REMOVE");
   };
 
   lockWalls = (): Promise<LockWallResult> => {
@@ -126,7 +157,7 @@ export class GameInstance implements Game {
 
   setPlayerLocation = (coord: Coord): Promise<PlayerMovedResult> => {
     if (this.state.phase !== "movingPlayer") {
-      return Promise.reject("NOT PLAYER MOVE PHASE");
+      return Promise.reject("NOT MOVE PHASE");
     }
 
     const player = this.state.redTurn ? "red" : "blue";
@@ -146,7 +177,7 @@ export class GameInstance implements Game {
     return Promise.resolve({});
   };
 
-  getInitialLocation = (cellElement: CellElement): Promise<Coord> => {
+  getInitialCellLocation = (cellElement: CellElement): Promise<Coord> => {
     switch (cellElement) {
       case "redplayer":
         return Promise.resolve(this.state.playerLocations.red);
@@ -159,13 +190,42 @@ export class GameInstance implements Game {
     }
   };
 
+  getInitialWallLocations = (): Promise<WallLocations> => {
+    return Promise.resolve(this.state.wallLocations);
+  };
+
+  getWidth = (): Promise<number> => {
+    return Promise.resolve(this.state.width);
+  };
+
+  getHeight = (): Promise<number> => {
+    return Promise.resolve(this.state.height);
+  };
+
   playerMovedEventSubscription = (): PlayerEventSubscription =>
     this.state.playerMovedSubscriptions;
 
   switchTurnEventSubscription = (): SwitchTurnSubscriber =>
     this.state.switchTurnSubscriptions;
+
+  generateRandomWallLocations = (width: number, height: number): void => {
+    for (let i = 0; i <= height * 2; i++) {
+      for (let j = 0; j <= width * 2; j++) {
+        const coord: Coord = { row: i, col: j };
+        const symmetricalCoord: Coord = { row: j, col: i };
+        if (isEdge(coord) && !isBorderEdge(coord, width, height)) {
+          if (!this.state.wallLocations.includes(coord)) {
+            if (Math.random() > 0.9) {
+              this.state.wallLocations.push(coord);
+              this.state.wallLocations.push(symmetricalCoord);
+            }
+          }
+        }
+      }
+    }
+  };
 }
 
-const instance = new GameInstance();
+const instance = new GameInstance(7, 7);
 
 export default instance;
