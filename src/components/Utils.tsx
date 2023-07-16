@@ -27,3 +27,35 @@ export const isBorderEdge = (
   coord.col == 0 ||
   coord.row == 2 * height ||
   coord.col == 2 * width;
+
+export const isAdjacent = (from: Coord, to: Coord): boolean => {
+  if (!isCell(from) || !isCell(to)) {
+    return false;
+  }
+
+  const rowDiff = Math.abs(from.row - to.row);
+  const colDiff = Math.abs(from.col - to.col);
+  return rowDiff + colDiff == 2;
+};
+
+export const averageCoord = (from: Coord, to: Coord): Coord => {
+  console.log({ row: (from.row + to.row) / 2, col: (from.col + to.col) / 2 });
+  return { row: (from.row + to.row) / 2, col: (from.col + to.col) / 2 };
+};
+
+export const isValidMove = (
+  from: Coord,
+  to: Coord,
+  walls: Coord[]
+): boolean => {
+  if (!isAdjacent(from, to)) return false;
+  const middleEdge: Coord = averageCoord(from, to);
+
+  for (let wall of walls) {
+    if (equalCoords(middleEdge, wall)) {
+      return false;
+    }
+  }
+
+  return true;
+};

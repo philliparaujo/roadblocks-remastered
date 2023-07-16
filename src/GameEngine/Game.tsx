@@ -1,9 +1,12 @@
 import { CellElement } from "../components/UI/Board/Cell";
 import { Coord } from "../components/UI/Board/Coord";
 import {
+  equalCoords,
+  isAdjacent,
   isBorderEdge,
   isEdge,
   isHorizontalEdge,
+  isValidMove,
   isVerticalEdge,
 } from "../components/Utils";
 import {
@@ -36,6 +39,9 @@ interface ResetResult {}
 interface PlayerMovedResult {}
 
 export interface Game {
+  // new(width, height)
+  // join(gid)
+  // watch(gid)
   addEdge: (coord: Coord) => Promise<EdgeResult>;
   removeEdge: (coord: Coord) => Promise<EdgeResult>;
   lockWalls: () => Promise<LockWallResult>;
@@ -163,8 +169,9 @@ export class GameInstance implements Game {
     const player = this.state.redTurn ? "red" : "blue";
     const oldLocation = this.state.playerLocations[player];
 
-    // TODO: Check if you can really move
-    // return Promise.reject if error
+    if (!isValidMove(oldLocation, coord, this.state.wallLocations)) {
+      return Promise.reject("NOT ADJACENT CELL");
+    }
 
     this.state.playerLocations[player] = coord;
 
@@ -173,6 +180,13 @@ export class GameInstance implements Game {
       from: oldLocation,
       to: coord,
     });
+
+    const end = this.state.redTurn
+      ? this.state.endLocations.red
+      : this.state.endLocations.blue;
+    if (equalCoords(coord, end)) {
+      this.winGame();
+    }
 
     return Promise.resolve({});
   };
@@ -223,6 +237,10 @@ export class GameInstance implements Game {
         }
       }
     }
+  };
+
+  winGame = (): void => {
+    alert((this.state.redTurn ? "Red" : "Blue") + " player won!");
   };
 }
 
