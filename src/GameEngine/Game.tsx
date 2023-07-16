@@ -14,6 +14,7 @@ import {
   PlayerMovedSubscriber,
 } from "./PlayerMovedSubscriber";
 import { SwitchTurnSubscriber } from "./SwitchTurnSubscriber";
+import { WallToggledSubscriber } from "./WallToggledSubscriber";
 
 type TurnPhase = "placingWalls" | "movingPlayer";
 export type PlayerColor = "red" | "blue";
@@ -31,6 +32,7 @@ interface GameState {
   wallLocations: WallLocations;
   playerMovedSubscriptions: PlayerMovedSubscriber;
   switchTurnSubscriptions: SwitchTurnSubscriber;
+  wallToggledSubscriptions: WallToggledSubscriber;
 }
 interface EdgeResult {}
 interface LockWallResult {}
@@ -56,6 +58,7 @@ export interface Game {
   getHeight: () => Promise<number>;
   playerMovedEventSubscription: () => PlayerEventSubscription;
   switchTurnEventSubscription: () => SwitchTurnSubscriber;
+  wallToggledEventSubscription: () => WallToggledSubscriber;
 }
 
 var id = 1;
@@ -72,6 +75,7 @@ export class GameInstance implements Game {
     wallLocations: [],
     playerMovedSubscriptions: new PlayerMovedSubscriber(),
     switchTurnSubscriptions: new SwitchTurnSubscriber(),
+    wallToggledSubscriptions: new WallToggledSubscriber(),
   };
 
   constructor(width: number, height: number) {
@@ -81,7 +85,7 @@ export class GameInstance implements Game {
     this.generateRandomWallLocations(this.state.width, this.state.height);
   }
 
-  addEdge = (coord: Coord): Promise<EdgeResult> => {
+  handleEdgeAction = (coord: Coord, placing: boolean): Promise<EdgeResult> => {
     if (this.state.phase !== "placingWalls") {
       return Promise.reject("NOT WALL PHASE");
     }
@@ -90,48 +94,38 @@ export class GameInstance implements Game {
       return Promise.reject("INVALID COORD");
     }
 
-    if (isVerticalEdge(coord)) {
-      if (this.state.redTurn) {
-        this.state.wallLocations.push(coord);
-        console.log(this.state.wallLocations);
-        return Promise.resolve({});
-      } else {
-        return Promise.reject("WRONG TURN");
-      }
+    const isVertical = isVerticalEdge(coord);
+    const isCorrectTurn = isVertical ? this.state.redTurn : !this.state.redTurn;
+
+    if (placing && isCorrectTurn) {
+      this.state.wallLocations.push(coord);
+      this.notifyWallToggled(coord, true);
+      return Promise.resolve({});
+    } else if (!placing && isCorrectTurn) {
+      this.state.wallLocations = this.state.wallLocations.filter(
+        (wall) => wall !== coord
+      );
+      this.notifyWallToggled(coord, false);
+      return Promise.resolve({});
     } else {
-      if (!this.state.redTurn) {
-        this.state.wallLocations.push(coord);
-        console.log(this.state.wallLocations);
-        return Promise.resolve({});
-      } else {
-        return Promise.reject("WRONG TURN");
-      }
+      return Promise.reject("WRONG TURN");
     }
   };
 
-  removeEdge = (coord: Coord): Promise<EdgeResult> => {
-    if (this.state.phase !== "placingWalls") {
-      return Promise.reject("NOT WALL PHASE");
-    }
-
-    if (!isVerticalEdge(coord) && !isHorizontalEdge(coord)) {
-      return Promise.reject("INVALID ADD");
-    }
-
-    this.state.wallLocations = this.state.wallLocations.filter(
-      (wall) => wall !== coord
-    );
+  notifyWallToggled = (coord: Coord, isToggled: boolean): void => {
+    this.state.wallToggledSubscriptions.notify({
+      wall: coord,
+      isToggled: isToggled,
+    });
     console.log(this.state.wallLocations);
+  };
 
-    if (isVerticalEdge(coord)) {
-      return this.state.redTurn
-        ? Promise.resolve({})
-        : Promise.reject("WRONG TURN");
-    } else {
-      return !this.state.redTurn
-        ? Promise.resolve({})
-        : Promise.reject("WRONG TURN");
-    }
+  addEdge = (coord: Coord): Promise<EdgeResult> => {
+    return this.handleEdgeAction(coord, true);
+  };
+
+  removeEdge = (coord: Coord): Promise<EdgeResult> => {
+    return this.handleEdgeAction(coord, false);
   };
 
   lockWalls = (): Promise<LockWallResult> => {
@@ -221,6 +215,9 @@ export class GameInstance implements Game {
 
   switchTurnEventSubscription = (): SwitchTurnSubscriber =>
     this.state.switchTurnSubscriptions;
+
+  wallToggledEventSubscription = (): WallToggledSubscriber =>
+    this.state.wallToggledSubscriptions;
 
   generateRandomWallLocations = (width: number, height: number): void => {
     for (let i = 0; i <= height * 2; i++) {
