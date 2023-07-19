@@ -8,6 +8,10 @@ import {
 } from "../components/Utils";
 import GameInstance, { Game } from "./Game";
 import {
+  PlayerMovedEvent,
+  PlayerMovedEventCallback,
+} from "./PlayerMovedSubscriber";
+import {
   WallToggledEvent,
   WallToggledEventCallback,
 } from "./WallToggledSubscriber";
@@ -17,7 +21,7 @@ type Row = BoardElement[];
 type BoardElement = CornerElement | EdgeElement | CellElement;
 type CornerElement = "+";
 type EdgeElement = " " | "|" | "-" | "#";
-type CellElement = " " | RedPlayer | BluePlayer | RedEnd | BlueEnd;
+type CellElement = Array<RedPlayer | BluePlayer | RedEnd | BlueEnd>;
 
 type RedPlayer = "r";
 type BluePlayer = "b";
@@ -27,30 +31,50 @@ type BlueEnd = "B";
 export class TextBoard {
   private game: Game;
   private board: Board = [];
-  private unsubscribe: (() => void) | undefined;
+  private unsubscribeToWallToggled: (() => void) | undefined;
+  private unsubscribeToPlayerMoved: (() => void) | undefined;
 
   private constructor(game: Game) {
     this.game = game;
-    this.unsubscribe = () => {
-      console.error("subscription not set up");
+    this.unsubscribeToWallToggled = () => {
+      console.error("wall toggled subscription not set up");
+    };
+    this.unsubscribeToPlayerMoved = () => {
+      console.error("player moved subscription not set up");
     };
   }
 
-  public static async create(game: Game = GameInstance) {
+  public static async create(game: Game = GameInstance): Promise<TextBoard> {
     console.log("creating");
     const textBoard = new TextBoard(game);
     await textBoard.initializeBoard();
     await textBoard.setInitialLocations();
+
+    /* Wall toggled subscription */
     const wallToggledCallback: WallToggledEventCallback = (
       event: WallToggledEvent
     ) => {
-      console.log("wall placed at", event.wall);
-      textBoard.updateBoard(event);
+      textBoard.updateWalls(event);
       console.log(textBoard.getBoard());
     };
     textBoard.subscribeToWallToggled(wallToggledCallback);
+
+    /* Player moved subscription */
+    const playerMovedCallback: PlayerMovedEventCallback = (
+      event: PlayerMovedEvent
+    ) => {
+      textBoard.updatePlayer(event);
+      console.log(textBoard.getBoard());
+    };
+    textBoard.subscribeToPlayerMoved(playerMovedCallback);
     return textBoard;
   }
+
+  public getBoard(): Board {
+    return this.board;
+  }
+
+  /* Private methods */
 
   private async initializeBoard(): Promise<void> {
     const height = await this.game.getHeight();
@@ -64,7 +88,7 @@ export class TextBoard {
           const corner: CornerElement = "+";
           row.push(corner);
         } else if (isCell(coord)) {
-          const cell: CellElement = " ";
+          const cell: CellElement = [];
           row.push(cell);
         } else {
           const edge: EdgeElement = " ";
@@ -79,22 +103,24 @@ export class TextBoard {
     const redPlayerCoord: Coord = await this.game.getInitialCellLocation(
       "redplayer"
     );
+    const redplayer: RedPlayer = "r";
+    this.modifyCell(redPlayerCoord, (cell) => cell.push(redplayer));
+
     const bluePlayerCoord: Coord = await this.game.getInitialCellLocation(
       "blueplayer"
     );
+    const blueplayer: BluePlayer = "b";
+    this.modifyCell(bluePlayerCoord, (cell) => cell.push(blueplayer));
+
     const redEndCoord: Coord = await this.game.getInitialCellLocation("redend");
+    const redend: RedEnd = "R";
+    this.modifyCell(redEndCoord, (cell) => cell.push(redend));
+
     const blueEndCoord: Coord = await this.game.getInitialCellLocation(
       "blueend"
     );
-
-    const redplayer: RedPlayer = "r";
-    this.board[redPlayerCoord.row][redPlayerCoord.col] = redplayer;
-    const blueplayer: BluePlayer = "b";
-    this.board[bluePlayerCoord.row][bluePlayerCoord.col] = blueplayer;
-    const redend: RedEnd = "R";
-    this.board[redEndCoord.row][redEndCoord.col] = redend;
     const blueend: BlueEnd = "B";
-    this.board[blueEndCoord.row][blueEndCoord.col] = blueend;
+    this.modifyCell(blueEndCoord, (cell) => cell.push(blueend));
 
     const wallLocations = await this.game.getInitialWallLocations();
     for (const wall of wallLocations) {
@@ -102,7 +128,7 @@ export class TextBoard {
     }
   }
 
-  public async updateBoard(callback: WallToggledEvent): Promise<void> {
+  private async updateWalls(callback: WallToggledEvent): Promise<void> {
     const coord: Coord = callback.wall;
     const wallValue: EdgeElement = !callback.isToggled
       ? " "
@@ -112,19 +138,58 @@ export class TextBoard {
     this.board[coord.row][coord.col] = wallValue;
   }
 
-  public getBoard(): Board {
-    return this.board;
+  private async updatePlayer(callback: PlayerMovedEvent): Promise<void> {
+    const prevCoord: Coord = callback.from;
+    const cell: CellElement = this.board[prevCoord.row][
+      prevCoord.col
+    ] as CellElement;
+
+    if (Array.isArray(cell)) {
+      const index = cell.indexOf(callback.player === "red" ? "r" : "b");
+      if (index > -1) {
+        cell.splice(index, 1);
+      }
+    }
+
+    const newCoord: Coord = callback.to;
+    const newCell: CellElement = this.board[newCoord.row][
+      newCoord.col
+    ] as CellElement;
+    if (Array.isArray(newCell)) {
+      newCell.push(callback.player === "red" ? "r" : "b");
+    }
   }
 
+  private modifyCell(
+    coord: Coord,
+    modifier: (cell: CellElement) => void
+  ): void {
+    const cell: CellElement = this.board[coord.row][coord.col] as CellElement;
+    if (Array.isArray(cell)) {
+      modifier(cell);
+    }
+  }
+
+  /* Subscription handling */
+
   private subscribeToWallToggled(callback: WallToggledEventCallback): void {
-    this.unsubscribe = this.game
+    this.unsubscribeToWallToggled = this.game
       .wallToggledEventSubscription()
       .subscribe(callback);
   }
 
+  private subscribeToPlayerMoved(callback: PlayerMovedEventCallback): void {
+    this.unsubscribeToPlayerMoved = this.game
+      .playerMovedEventSubscription()
+      .subscribe(callback);
+  }
+
   public dispose() {
-    if (this.unsubscribe) {
-      this.unsubscribe();
+    if (this.unsubscribeToWallToggled) {
+      this.unsubscribeToWallToggled();
+    }
+    if (this.unsubscribeToPlayerMoved) {
+      this.unsubscribeToPlayerMoved();
     }
   }
 }
