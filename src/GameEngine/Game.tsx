@@ -25,7 +25,7 @@ type CellLocations = { [key in PlayerColor]: Coord };
 type WallLocations = Coord[];
 
 interface GameState {
-  redTurn: boolean;
+  turn: PlayerColor;
   phase: TurnPhase;
   width: number;
   height: number;
@@ -51,12 +51,13 @@ export interface Game {
   removeEdge: (coord: Coord) => Promise<EdgeResult>;
   lockWalls: () => Promise<LockWallResult>;
   switchTurn: () => Promise<EndTurnResult>;
-  isRedTurn: () => Promise<boolean>;
+  getTurn: () => Promise<PlayerColor>;
   reset: () => Promise<ResetResult>;
-  playerLocation: () => Coord;
+  playerLocation: (player: PlayerColor) => Promise<Coord>;
+  endLocation: (player: PlayerColor) => Promise<Coord>;
   setPlayerLocation: (coord: Coord) => Promise<PlayerMovedResult>;
   getInitialCellLocation: (cellElement: CellElement) => Promise<Coord>;
-  getInitialWallLocations: () => Promise<WallLocations>;
+  getWallLocations: () => Promise<WallLocations>;
   getWidth: () => Promise<number>;
   getHeight: () => Promise<number>;
   playerMovedEventSubscription: () => PlayerEventSubscription;
@@ -68,7 +69,7 @@ var id = 1;
 
 export class GameImpl implements Game {
   state: GameState = {
-    redTurn: true,
+    turn: "red",
     phase: "placingWalls",
     width: 7,
     height: 7,
@@ -98,7 +99,9 @@ export class GameImpl implements Game {
     }
 
     const isVertical = isVerticalEdge(coord);
-    const isCorrectTurn = isVertical ? this.state.redTurn : !this.state.redTurn;
+    const isCorrectTurn = isVertical
+      ? this.state.turn === "red"
+      : this.state.turn === "blue";
 
     if (placing && isCorrectTurn) {
       this.state.wallLocations.push(coord);
@@ -120,7 +123,7 @@ export class GameImpl implements Game {
       wall: coord,
       isToggled: isToggled,
     });
-    console.log(this.state.wallLocations);
+    // console.log(this.state.wallLocations);
   };
 
   addEdge = (coord: Coord): Promise<EdgeResult> => {
@@ -137,33 +140,32 @@ export class GameImpl implements Game {
   };
 
   switchTurn = (): Promise<EndTurnResult> => {
-    this.state.redTurn = !this.state.redTurn;
+    this.state.turn = this.state.turn === "red" ? "blue" : "red";
     this.state.phase = "placingWalls";
-    this.state.switchTurnSubscriptions.notify({ redTurn: this.state.redTurn });
-    // console.log(`redTurn: ${this.state.redTurn}`);
+    this.state.switchTurnSubscriptions.notify({ turn: this.state.turn });
     return Promise.resolve({});
   };
 
-  isRedTurn = (): Promise<boolean> => Promise.resolve(this.state.redTurn);
+  getTurn = (): Promise<PlayerColor> => Promise.resolve(this.state.turn);
 
   reset = (): Promise<ResetResult> => {
-    this.state.redTurn = true;
+    this.state.turn = "red";
     this.state.phase = "placingWalls";
     return Promise.resolve({});
-    // console.log(`redTurn: ${this.state.redTurn}`);
   };
 
-  playerLocation = (): Coord =>
-    this.state.redTurn
-      ? this.state.playerLocations["red"]
-      : this.state.playerLocations["blue"];
+  playerLocation = (player: PlayerColor): Promise<Coord> =>
+    Promise.resolve(this.state.playerLocations[player]);
+
+  endLocation = (player: PlayerColor): Promise<Coord> =>
+    Promise.resolve(this.state.endLocations[player]);
 
   setPlayerLocation = (coord: Coord): Promise<PlayerMovedResult> => {
     if (this.state.phase !== "movingPlayer") {
       return Promise.reject("NOT MOVE PHASE");
     }
 
-    const player = this.state.redTurn ? "red" : "blue";
+    const player = this.state.turn;
     const oldLocation = this.state.playerLocations[player];
 
     if (!isValidMove(oldLocation, coord, this.state.wallLocations)) {
@@ -178,9 +180,10 @@ export class GameImpl implements Game {
       to: coord,
     });
 
-    const end = this.state.redTurn
-      ? this.state.endLocations.red
-      : this.state.endLocations.blue;
+    const end =
+      this.state.turn === "red"
+        ? this.state.endLocations.red
+        : this.state.endLocations.blue;
     if (equalCoords(coord, end)) {
       this.winGame();
     }
@@ -201,7 +204,7 @@ export class GameImpl implements Game {
     }
   };
 
-  getInitialWallLocations = (): Promise<WallLocations> => {
+  getWallLocations = (): Promise<WallLocations> => {
     return Promise.resolve(this.state.wallLocations);
   };
 
@@ -240,7 +243,7 @@ export class GameImpl implements Game {
   };
 
   winGame = (): void => {
-    alert((this.state.redTurn ? "Red" : "Blue") + " player won!");
+    alert((this.state.turn === "red" ? "Red" : "Blue") + " player won!");
   };
 }
 

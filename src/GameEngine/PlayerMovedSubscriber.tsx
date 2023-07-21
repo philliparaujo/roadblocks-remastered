@@ -25,7 +25,6 @@ export class PlayerMovedSubscriber implements PlayerEventSubscription {
     callback
   ) => {
     this.subscribers.push(callback);
-    // console.log("subscriptions", this.subscribers);
     return () => this.unsubscribe(callback);
   };
 
@@ -33,11 +32,9 @@ export class PlayerMovedSubscriber implements PlayerEventSubscription {
     this.subscribers = this.subscribers.filter(
       (subscriber) => subscriber !== callback
     );
-    // console.log("unsubscribe subscriptions", this.subscribers);
   };
 
   notify: (event: PlayerMovedEvent) => void = (event) => {
-    console.log("notifying");
     this.subscribers.forEach((callback) => callback(event));
   };
 }

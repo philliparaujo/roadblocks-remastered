@@ -29,11 +29,20 @@ export class TextBoard {
   private printer: Printer;
   private game: Game;
   private board: Board = [];
+  private width: number;
+  private height: number;
   private unsubscribeToWallToggled: (() => void) | undefined;
   private unsubscribeToPlayerMoved: (() => void) | undefined;
 
-  private constructor(game: Game, printer: Printer) {
+  private constructor(
+    game: Game,
+    printer: Printer,
+    width: number,
+    height: number
+  ) {
     this.game = game;
+    this.width = width;
+    this.height = height;
     this.printer = printer;
     this.updatePlayer = this.updatePlayer.bind(this);
     this.updateWalls = this.updateWalls.bind(this);
@@ -43,7 +52,10 @@ export class TextBoard {
     game: Game = GameInstance,
     printer: Printer
   ): Promise<TextBoard> {
-    const textBoard = new TextBoard(game, printer);
+    const height = await game.getHeight();
+    const width = await game.getWidth();
+
+    const textBoard = new TextBoard(game, printer, width, height);
     await textBoard.initializeBoard();
     await textBoard.setInitialLocations();
 
@@ -57,15 +69,29 @@ export class TextBoard {
     return this.board;
   }
 
+  public getWidth(): number {
+    return 2 * this.width + 1;
+  }
+
+  public getHeight(): number {
+    return 2 * this.height + 1;
+  }
+
+  public isWall(coord: Coord): boolean {
+    const element: BoardElement = this.board[coord.row][coord.col];
+    return element === "|" || element === "-" || element === "#";
+  }
+
+  public print() {
+    this.printer(this.getBoard());
+  }
+
   /* Private methods */
 
   private async initializeBoard(): Promise<void> {
-    const height = await this.game.getHeight();
-    const width = await this.game.getWidth();
-
-    for (let i = 0; i < 2 * height + 1; i++) {
+    for (let i = 0; i < 2 * this.height + 1; i++) {
       const row: Row = [];
-      for (let j = 0; j < 2 * width + 1; j++) {
+      for (let j = 0; j < 2 * this.width + 1; j++) {
         const coord: Coord = { row: i, col: j };
         if (isCorner(coord)) {
           const corner: CornerElement = "+";
@@ -105,7 +131,7 @@ export class TextBoard {
     const blueend: BlueEnd = "B";
     this.modifyCell(blueEndCoord, (cell) => cell.push(blueend));
 
-    const wallLocations = await this.game.getInitialWallLocations();
+    const wallLocations = await this.game.getWallLocations();
     for (const wall of wallLocations) {
       this.board[wall.row][wall.col] = "#";
     }
@@ -120,7 +146,7 @@ export class TextBoard {
       : "-";
     this.board[coord.row][coord.col] = wallValue;
 
-    this.print();
+    // this.print();
   }
 
   private async updatePlayer(e: PlayerMovedEvent): Promise<void> {
@@ -144,7 +170,7 @@ export class TextBoard {
       newCell.push(e.player === "red" ? "r" : "b");
     }
 
-    this.print();
+    // this.print();
   }
 
   private modifyCell(
@@ -178,9 +204,5 @@ export class TextBoard {
     if (this.unsubscribeToPlayerMoved) {
       this.unsubscribeToPlayerMoved();
     }
-  }
-
-  private print() {
-    this.printer(this.getBoard());
   }
 }

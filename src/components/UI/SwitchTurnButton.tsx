@@ -9,18 +9,18 @@ export interface SwitchTurnButtonProps {
 const SwitchTurnButton: React.FC<SwitchTurnButtonProps> = ({
   game = GameInstance,
 }) => {
-  const [redTurn, setRedTurn] = useState<boolean>(false);
-  const playerColor: PlayerColor = redTurn ? "red" : "blue";
+  const [player, setPlayer] = useState<PlayerColor>("red");
+  const playerColor: PlayerColor = player;
 
   useEffect(() => {
-    game.isRedTurn().then((isRed) => setRedTurn(isRed));
+    game.getTurn().then((player) => setPlayer(player));
   }, [game]);
 
   const handleClick = () => {
     game
       .switchTurn()
       .then((ok) => {
-        setRedTurn((oldRedTurn) => !oldRedTurn);
+        setPlayer((player) => (player === "red" ? "blue" : "red"));
       })
       .catch((error) => {
         console.error("Failed to switch turn:", error);

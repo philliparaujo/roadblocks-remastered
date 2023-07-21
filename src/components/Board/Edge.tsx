@@ -2,6 +2,7 @@ import "./Edge.css";
 import { Coord } from "../../Coord";
 import GameInstance, { Game } from "../../GameEngine/Game";
 import { useEffect, useState } from "react";
+import { equalCoords } from "../../Utils";
 
 type EdgeColor = "gray" | "red" | "blue" | "black" | "lightblue" | "lightred";
 export type Orientation = "horizontal" | "vertical";
@@ -56,6 +57,15 @@ const Edge: React.FC<EdgeProps> = ({
   const [fill, setFill] = useState<EdgeColor>(
     getFill(orientation, type, debug, toggled)
   );
+
+  useEffect(() => {
+    const unsubscribe = game.wallToggledEventSubscription().subscribe((e) => {
+      if (equalCoords(e.wall, coord)) {
+        setToggled(e.isToggled);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
 
   /* Updates color of edge whenever a change occurs */
   useEffect(() => {

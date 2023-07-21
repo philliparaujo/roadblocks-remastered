@@ -1,5 +1,7 @@
+import { PlayerColor } from "./Game";
+
 export interface SwitchTurnEvent {
-  redTurn: boolean;
+  turn: PlayerColor;
 }
 
 export interface SwitchTurnEventSubscription {

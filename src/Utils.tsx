@@ -28,6 +28,13 @@ export const isBorderEdge = (
   coord.row == 2 * height ||
   coord.col == 2 * width;
 
+export const isInBounds = (
+  coord: Coord,
+  width: number,
+  height: number
+): boolean =>
+  coord.row >= 0 && coord.row < height && coord.col >= 0 && coord.col < width;
+
 export const isAdjacent = (from: Coord, to: Coord): boolean => {
   if (!isCell(from) || !isCell(to)) {
     return false;
@@ -39,7 +46,6 @@ export const isAdjacent = (from: Coord, to: Coord): boolean => {
 };
 
 export const averageCoord = (from: Coord, to: Coord): Coord => {
-  console.log({ row: (from.row + to.row) / 2, col: (from.col + to.col) / 2 });
   return { row: (from.row + to.row) / 2, col: (from.col + to.col) / 2 };
 };
 

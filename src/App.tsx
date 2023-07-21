@@ -5,15 +5,11 @@ import SwitchTurnButton from "./components/UI/SwitchTurnButton";
 import LockWallsButton from "./components/UI/LockWallsButton";
 import { TextBoard } from "./GameEngine/TextBoard";
 import { useEffect, useState } from "react";
+import { NPCImpl } from "./GameEngine/NPC";
 
 function App() {
-  const [textBoard, setTextBoard] = useState<TextBoard | null>(null);
-
   useEffect(() => {
-    TextBoard.create(GameInstance, console.log).then((tb) => {
-      setTextBoard(tb);
-      console.log(tb.getBoard());
-    });
+    NPCImpl.create(GameInstance, "red");
   }, []);
 
   return (
