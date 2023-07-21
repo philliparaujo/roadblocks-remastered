@@ -1,5 +1,5 @@
 import { CellElement } from "../components/UI/Board/Cell";
-import { Coord } from "../components/UI/Board/Coord";
+import { Coord } from "../Coord";
 import {
   equalCoords,
   isAdjacent,
@@ -8,7 +8,7 @@ import {
   isHorizontalEdge,
   isValidMove,
   isVerticalEdge,
-} from "../components/Utils";
+} from "../Utils";
 import {
   PlayerEventSubscription,
   PlayerMovedSubscriber,

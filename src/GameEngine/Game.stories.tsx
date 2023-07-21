@@ -4,7 +4,7 @@ import UIBoard from "../components/UI/Board/UIBoard";
 import Game, { GameImpl } from "./Game";
 import SwitchTurnButton from "../components/UI/SwitchTurnButton";
 import LockWallsButton from "../components/UI/LockWallsButton";
-import { Coord } from "../components/UI/Board/Coord";
+import { Coord } from "../Coord";
 
 interface GameProps {
   height: number;

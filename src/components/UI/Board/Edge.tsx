@@ -1,5 +1,5 @@
 import "./Edge.css";
-import { Coord } from "./Coord";
+import { Coord } from "../../../Coord";
 import GameInstance, { Game } from "../../../GameEngine/Game";
 import { useEffect, useState } from "react";
 

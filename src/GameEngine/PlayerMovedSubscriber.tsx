@@ -1,4 +1,4 @@
-import { Coord } from "../components/UI/Board/Coord";
+import { Coord } from "../Coord";
 import { PlayerColor } from "./Game";
 
 export interface PlayerMovedEvent {

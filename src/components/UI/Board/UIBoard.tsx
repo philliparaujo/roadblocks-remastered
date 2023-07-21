@@ -1,9 +1,9 @@
 import Cell, { CellElement } from "./Cell";
 import Corner from "./Corner";
 import Edge, { EdgeType } from "./Edge";
-import { equalCoords, isCell, isCorner } from "../../Utils";
+import { equalCoords, isCell, isCorner } from "../../../Utils";
 import GameInstance, { Game, PlayerColor } from "../../../GameEngine/Game";
-import { Coord } from "./Coord";
+import { Coord } from "../../../Coord";
 import { useEffect, useState } from "react";
 
 export interface UIBoardProps {

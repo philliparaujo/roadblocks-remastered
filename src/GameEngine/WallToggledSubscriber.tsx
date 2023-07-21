@@ -1,4 +1,4 @@
-import { Coord } from "../components/UI/Board/Coord";
+import { Coord } from "../Coord";
 
 export interface WallToggledEvent {
   wall: Coord;
