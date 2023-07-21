@@ -1,5 +1,5 @@
 import "./App.css";
-import UIBoard from "./components/UI/Board/UIBoard";
+import UIBoard from "./components/Board/UIBoard";
 import GameInstance from "./GameEngine/Game";
 import SwitchTurnButton from "./components/UI/SwitchTurnButton";
 import LockWallsButton from "./components/UI/LockWallsButton";

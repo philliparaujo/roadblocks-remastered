@@ -1,5 +1,5 @@
 import { Coord } from "../Coord";
-import { EdgeType, Orientation } from "../components/UI/Board/Edge";
+import { EdgeType, Orientation } from "../components/Board/Edge";
 import { isCell, isCorner, isHorizontalEdge, isVerticalEdge } from "../Utils";
 import GameInstance, { Game } from "./Game";
 import {

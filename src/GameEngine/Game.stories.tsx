@@ -1,6 +1,6 @@
 // Game.stories.tsx
 import { Meta, StoryObj } from "@storybook/react";
-import UIBoard from "../components/UI/Board/UIBoard";
+import UIBoard from "../components/Board/UIBoard";
 import Game, { GameImpl } from "./Game";
 import SwitchTurnButton from "../components/UI/SwitchTurnButton";
 import LockWallsButton from "../components/UI/LockWallsButton";

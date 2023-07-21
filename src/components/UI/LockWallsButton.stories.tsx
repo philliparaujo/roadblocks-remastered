@@ -1,6 +1,6 @@
 import { Meta, StoryObj } from "@storybook/react";
 import LockWallsButton from "./LockWallsButton";
-import UIBoard from "../UI/Board/UIBoard";
+import UIBoard from "../Board/UIBoard";
 import { GameImpl } from "../../GameEngine/Game";
 
 const meta: Meta<typeof LockWallsButton> = {

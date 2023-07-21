@@ -1,4 +1,4 @@
-import { CellElement } from "../components/UI/Board/Cell";
+import { CellElement } from "../components/Board/Cell";
 import { Coord } from "../Coord";
 import {
   equalCoords,

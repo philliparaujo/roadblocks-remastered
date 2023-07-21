@@ -1,8 +1,8 @@
 import { Meta, StoryObj } from "@storybook/react";
 import Edge, { EdgeProps } from "./Edge";
-import { GameImpl } from "../../../GameEngine/Game";
+import { GameImpl } from "../../GameEngine/Game";
 import { useEffect } from "react";
-import SwitchTurnButton from "../SwitchTurnButton";
+import SwitchTurnButton from "../UI/SwitchTurnButton";
 
 const meta: Meta<typeof Edge> = {
   component: Edge,
