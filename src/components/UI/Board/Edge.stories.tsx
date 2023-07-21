@@ -1,6 +1,6 @@
 import { Meta, StoryObj } from "@storybook/react";
 import Edge, { EdgeProps } from "./Edge";
-import { GameInstance } from "../../../GameEngine/Game";
+import { GameImpl } from "../../../GameEngine/Game";
 import { useEffect } from "react";
 import SwitchTurnButton from "../SwitchTurnButton";
 
@@ -19,7 +19,7 @@ export default meta;
 type Story = StoryObj<typeof Edge>;
 
 const FakeGame = (isRedTurn: boolean) => {
-  const result = new GameInstance(7, 7);
+  const result = new GameImpl(7, 7);
   if (!isRedTurn) {
     result.switchTurn();
   }
@@ -40,7 +40,7 @@ export const VerticalNormal: Story = {
   args: {
     orientation: "vertical",
     coord: { row: 1, col: 0 },
-    game: new GameInstance(7, 7),
+    game: new GameImpl(7, 7),
   },
 };
 

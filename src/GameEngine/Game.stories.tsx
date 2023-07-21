@@ -1,7 +1,7 @@
 // Game.stories.tsx
 import { Meta, StoryObj } from "@storybook/react";
 import UIBoard from "../components/UI/Board/UIBoard";
-import Game, { GameInstance } from "./Game";
+import Game, { GameImpl } from "./Game";
 import SwitchTurnButton from "../components/UI/SwitchTurnButton";
 import LockWallsButton from "../components/UI/LockWallsButton";
 import { Coord } from "../components/UI/Board/Coord";
@@ -25,7 +25,7 @@ const GameStory: React.FC<GameProps> = ({
   initialBlueEndLocation,
   debug,
 }) => {
-  const gameInstance = new GameInstance(height, width);
+  const gameInstance = new GameImpl(height, width);
   gameInstance.state.playerLocations = {
     red: initialRedPlayerLocation,
     blue: initialBluePlayerLocation,

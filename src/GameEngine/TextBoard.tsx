@@ -28,45 +28,33 @@ type BluePlayer = "b";
 type RedEnd = "R";
 type BlueEnd = "B";
 
+export type Printer = (message?: any, ...optionalParams: any[]) => void;
+
 export class TextBoard {
+  private printer: Printer;
   private game: Game;
   private board: Board = [];
   private unsubscribeToWallToggled: (() => void) | undefined;
   private unsubscribeToPlayerMoved: (() => void) | undefined;
 
-  private constructor(game: Game) {
+  private constructor(game: Game, printer: Printer) {
     this.game = game;
-    this.unsubscribeToWallToggled = () => {
-      console.error("wall toggled subscription not set up");
-    };
-    this.unsubscribeToPlayerMoved = () => {
-      console.error("player moved subscription not set up");
-    };
+    this.printer = printer;
+    this.updatePlayer = this.updatePlayer.bind(this);
+    this.updateWalls = this.updateWalls.bind(this);
   }
 
-  public static async create(game: Game = GameInstance): Promise<TextBoard> {
-    console.log("creating");
-    const textBoard = new TextBoard(game);
+  public static async create(
+    game: Game = GameInstance,
+    printer: Printer
+  ): Promise<TextBoard> {
+    const textBoard = new TextBoard(game, printer);
     await textBoard.initializeBoard();
     await textBoard.setInitialLocations();
 
-    /* Wall toggled subscription */
-    const wallToggledCallback: WallToggledEventCallback = (
-      event: WallToggledEvent
-    ) => {
-      textBoard.updateWalls(event);
-      console.log(textBoard.getBoard());
-    };
-    textBoard.subscribeToWallToggled(wallToggledCallback);
+    textBoard.subscribeToPlayerMoved(textBoard.updatePlayer);
+    textBoard.subscribeToWallToggled(textBoard.updateWalls);
 
-    /* Player moved subscription */
-    const playerMovedCallback: PlayerMovedEventCallback = (
-      event: PlayerMovedEvent
-    ) => {
-      textBoard.updatePlayer(event);
-      console.log(textBoard.getBoard());
-    };
-    textBoard.subscribeToPlayerMoved(playerMovedCallback);
     return textBoard;
   }
 
@@ -128,36 +116,40 @@ export class TextBoard {
     }
   }
 
-  private async updateWalls(callback: WallToggledEvent): Promise<void> {
-    const coord: Coord = callback.wall;
-    const wallValue: EdgeElement = !callback.isToggled
+  private async updateWalls(e: WallToggledEvent): Promise<void> {
+    const coord: Coord = e.wall;
+    const wallValue: EdgeElement = !e.isToggled
       ? " "
       : isVerticalEdge(coord)
       ? "|"
       : "-";
     this.board[coord.row][coord.col] = wallValue;
+
+    this.print();
   }
 
-  private async updatePlayer(callback: PlayerMovedEvent): Promise<void> {
-    const prevCoord: Coord = callback.from;
+  private async updatePlayer(e: PlayerMovedEvent): Promise<void> {
+    const prevCoord: Coord = e.from;
     const cell: CellElement = this.board[prevCoord.row][
       prevCoord.col
     ] as CellElement;
 
     if (Array.isArray(cell)) {
-      const index = cell.indexOf(callback.player === "red" ? "r" : "b");
+      const index = cell.indexOf(e.player === "red" ? "r" : "b");
       if (index > -1) {
         cell.splice(index, 1);
       }
     }
 
-    const newCoord: Coord = callback.to;
+    const newCoord: Coord = e.to;
     const newCell: CellElement = this.board[newCoord.row][
       newCoord.col
     ] as CellElement;
     if (Array.isArray(newCell)) {
-      newCell.push(callback.player === "red" ? "r" : "b");
+      newCell.push(e.player === "red" ? "r" : "b");
     }
+
+    this.print();
   }
 
   private modifyCell(
@@ -191,5 +183,9 @@ export class TextBoard {
     if (this.unsubscribeToPlayerMoved) {
       this.unsubscribeToPlayerMoved();
     }
+  }
+
+  private print() {
+    this.printer(this.getBoard());
   }
 }

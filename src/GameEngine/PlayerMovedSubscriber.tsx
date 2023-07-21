@@ -7,8 +7,12 @@ export interface PlayerMovedEvent {
   to: Coord;
 }
 
+export type SubscribePlayerEvent = (
+  callback: PlayerMovedEventCallback
+) => UnsubscribePlayerMoved;
+
 export interface PlayerEventSubscription {
-  subscribe: (callback: PlayerMovedEventCallback) => UnsubscribePlayerMoved;
+  subscribe: SubscribePlayerEvent;
 }
 
 export type PlayerMovedEventCallback = (callback: PlayerMovedEvent) => void;
@@ -33,6 +37,7 @@ export class PlayerMovedSubscriber implements PlayerEventSubscription {
   };
 
   notify: (event: PlayerMovedEvent) => void = (event) => {
+    console.log("notifying");
     this.subscribers.forEach((callback) => callback(event));
   };
 }

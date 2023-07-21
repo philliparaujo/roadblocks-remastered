@@ -14,7 +14,10 @@ import {
   PlayerMovedSubscriber,
 } from "./PlayerMovedSubscriber";
 import { SwitchTurnSubscriber } from "./SwitchTurnSubscriber";
-import { WallToggledSubscriber } from "./WallToggledSubscriber";
+import {
+  WallToggledEventSubscription,
+  WallToggledSubscriber,
+} from "./WallToggledSubscriber";
 
 type TurnPhase = "placingWalls" | "movingPlayer";
 export type PlayerColor = "red" | "blue";
@@ -58,12 +61,12 @@ export interface Game {
   getHeight: () => Promise<number>;
   playerMovedEventSubscription: () => PlayerEventSubscription;
   switchTurnEventSubscription: () => SwitchTurnSubscriber;
-  wallToggledEventSubscription: () => WallToggledSubscriber;
+  wallToggledEventSubscription: () => WallToggledEventSubscription;
 }
 
 var id = 1;
 
-export class GameInstance implements Game {
+export class GameImpl implements Game {
   state: GameState = {
     redTurn: true,
     phase: "placingWalls",
@@ -241,6 +244,6 @@ export class GameInstance implements Game {
   };
 }
 
-const instance = new GameInstance(7, 7);
+const instance = new GameImpl(7, 7);
 
 export default instance;

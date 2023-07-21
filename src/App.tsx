@@ -10,8 +10,7 @@ function App() {
   const [textBoard, setTextBoard] = useState<TextBoard | null>(null);
 
   useEffect(() => {
-    console.log("??");
-    TextBoard.create(GameInstance).then((tb) => {
+    TextBoard.create(GameInstance, console.log).then((tb) => {
       setTextBoard(tb);
       console.log(tb.getBoard());
     });

@@ -1,7 +1,7 @@
 import { Meta, StoryObj } from "@storybook/react";
 import SwitchTurnButton from "./SwitchTurnButton";
 import UIBoard from "../UI/Board/UIBoard";
-import { GameInstance } from "../../GameEngine/Game";
+import { GameImpl } from "../../GameEngine/Game";
 
 const meta: Meta<typeof SwitchTurnButton> = {
   component: SwitchTurnButton,
@@ -10,7 +10,7 @@ const meta: Meta<typeof SwitchTurnButton> = {
 export default meta;
 type Story = StoryObj<typeof SwitchTurnButton>;
 
-const fakeGame: GameInstance = new GameInstance(7, 7);
+const fakeGame: GameImpl = new GameImpl(7, 7);
 
 export const Default: Story = {};
 

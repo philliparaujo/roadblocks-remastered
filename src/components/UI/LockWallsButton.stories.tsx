@@ -1,7 +1,7 @@
 import { Meta, StoryObj } from "@storybook/react";
 import LockWallsButton from "./LockWallsButton";
 import UIBoard from "../UI/Board/UIBoard";
-import { GameInstance } from "../../GameEngine/Game";
+import { GameImpl } from "../../GameEngine/Game";
 
 const meta: Meta<typeof LockWallsButton> = {
   component: LockWallsButton,
@@ -10,7 +10,7 @@ const meta: Meta<typeof LockWallsButton> = {
 export default meta;
 type Story = StoryObj<typeof LockWallsButton>;
 
-const fakeGame: GameInstance = new GameInstance(7, 7);
+const fakeGame: GameImpl = new GameImpl(7, 7);
 
 export const Default: Story = {};
 

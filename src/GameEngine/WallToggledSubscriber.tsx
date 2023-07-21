@@ -5,8 +5,12 @@ export interface WallToggledEvent {
   isToggled: boolean;
 }
 
+export type SubscribeWallEvent = (
+  callback: WallToggledEventCallback
+) => UnsubscribeWallToggled;
+
 export interface WallToggledEventSubscription {
-  subscribe: (callback: WallToggledEventCallback) => UnsubscribeWallToggled;
+  subscribe: SubscribeWallEvent;
 }
 
 export type WallToggledEventCallback = (callback: WallToggledEvent) => void;
