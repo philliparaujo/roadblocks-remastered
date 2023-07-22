@@ -15,7 +15,7 @@ type Board = Row[];
 type Row = BoardElement[];
 type BoardElement = CornerElement | EdgeElement | CellElement;
 type CornerElement = "+";
-type EdgeElement = " " | "|" | "-" | "#";
+export type EdgeElement = " " | "|" | "-" | "#";
 type CellElement = Array<RedPlayer | BluePlayer | RedEnd | BlueEnd>;
 
 type RedPlayer = "r";
@@ -69,6 +69,24 @@ export class TextBoard {
     return this.board;
   }
 
+  public copyBoard(): Board {
+    return JSON.parse(JSON.stringify(this.board));
+  }
+
+  public clone(): TextBoard {
+    const clonedBoard = new TextBoard(
+      this.game,
+      this.printer,
+      this.width,
+      this.height
+    );
+    clonedBoard.board = this.copyBoard();
+    clonedBoard.unsubscribeToWallToggled = this.unsubscribeToWallToggled;
+    clonedBoard.unsubscribeToPlayerMoved = this.unsubscribeToPlayerMoved;
+
+    return clonedBoard;
+  }
+
   public getWidth(): number {
     return 2 * this.width + 1;
   }
@@ -84,6 +102,10 @@ export class TextBoard {
 
   public print() {
     this.printer(this.getBoard());
+  }
+
+  public modifyEdge(coord: Coord, edge: EdgeElement): void {
+    this.board[coord.row][coord.col] = edge;
   }
 
   /* Private methods */
@@ -169,8 +191,6 @@ export class TextBoard {
     if (Array.isArray(newCell)) {
       newCell.push(e.player === "red" ? "r" : "b");
     }
-
-    // this.print();
   }
 
   private modifyCell(

@@ -24,7 +24,7 @@ export type PlayerColor = "red" | "blue";
 type CellLocations = { [key in PlayerColor]: Coord };
 export type WallLocations = { [key in PlayerColor | "locked"]: Coord[] };
 
-interface GameState {
+export interface GameState {
   turn: PlayerColor;
   phase: TurnPhase;
   width: number;
@@ -181,10 +181,7 @@ export class GameImpl implements Game {
       to: coord,
     });
 
-    const end =
-      this.state.turn === "red"
-        ? this.state.endLocations.red
-        : this.state.endLocations.blue;
+    const end = this.state.endLocations[player];
     if (equalCoords(coord, end)) {
       this.winGame();
     }

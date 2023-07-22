@@ -1,6 +1,6 @@
 import { Coord } from "../Coord";
 import { Game, PlayerColor } from "./Game";
-import { TextBoard } from "./TextBoard";
+import { EdgeElement, TextBoard } from "./TextBoard";
 import { PathfinderImpl } from "./Pathfinder";
 import { isHorizontalEdge, isVerticalEdge } from "../Utils";
 
@@ -19,6 +19,7 @@ export class NPCImpl implements NPC {
   player: PlayerColor;
   textBoard: TextBoard;
   pathfinder: PathfinderImpl;
+  weightFn: (i: number) => number;
 
   private unsubscribeWall: () => void;
   private unsubscribePlayer: () => void;
@@ -28,8 +29,9 @@ export class NPCImpl implements NPC {
     this.player = player;
     this.textBoard = textBoard;
     this.pathfinder = new PathfinderImpl(this.textBoard);
+    this.weightFn = (i: number) => 1 / (i + 1);
 
-    this.printShortestPath();
+    // this.printShortestPath();
 
     this.unsubscribeWall = game
       .wallToggledEventSubscription()
@@ -68,7 +70,8 @@ export class NPCImpl implements NPC {
   /* Public methods */
 
   public updateWalls = async (): Promise<Coord[]> => {
-    let validWallPositions: Coord[] = [];
+    let wallPositions: Coord[] = [];
+    let bestScore: number = -Infinity;
 
     for (let row = 0; row < this.textBoard.getHeight(); row++) {
       for (let col = 0; col < this.textBoard.getWidth(); col++) {
@@ -79,19 +82,30 @@ export class NPCImpl implements NPC {
             ? isVerticalEdge(coord)
             : isHorizontalEdge(coord)
         ) {
-          if (!this.textBoard.isWall(coord)) {
-            validWallPositions.push(coord);
+          if (this.textBoard.getBoard()[row][col] !== "#") {
+            let wallType = this.player === "red" ? "|" : "-";
+            let tempBoard = this.textBoard.clone();
+
+            this.textBoard.isWall(coord)
+              ? tempBoard.modifyEdge(coord, " ")
+              : tempBoard.modifyEdge(coord, wallType as EdgeElement);
+
+            let score: score = await this.calculateScore(tempBoard);
+            if (score > bestScore) {
+              bestScore = score;
+              wallPositions = [coord];
+            } else if (score === bestScore) {
+              wallPositions.push(coord);
+            }
           }
         }
       }
     }
 
-    if (validWallPositions.length === 0) {
+    if (wallPositions.length === 0) {
       return Promise.reject("No valid positions for a wall.");
     }
-    const chosenWallPosition =
-      validWallPositions[Math.floor(Math.random() * validWallPositions.length)];
-    return Promise.resolve([chosenWallPosition]);
+    return Promise.resolve(this.shuffle(wallPositions));
   };
 
   public updatePlayer = async (): Promise<Coord[]> => {
@@ -110,36 +124,127 @@ export class NPCImpl implements NPC {
     return turn === this.player;
   };
 
-  public calculateScore = async (): Promise<score> => {
+  public calculateScore = async (
+    board: TextBoard = this.textBoard
+  ): Promise<score> => {
     const opponentColor = this.player === "red" ? "blue" : "red";
+    const scoreVariations: score[] = [];
 
-    const myPath = await this.getShortestPathOf(this.player);
-    const opponentPath = await this.getShortestPathOf(opponentColor);
+    for (let i = 0; i < 4; i++) {
+      const myPath = await this.getShortestPathMinusXWalls(
+        i,
+        this.player,
+        board
+      );
+      const opponentPath = await this.getShortestPathMinusXWalls(
+        i,
+        opponentColor,
+        board
+      );
 
-    if (myPath && opponentPath) {
-      return Promise.resolve(opponentPath.length - myPath.length);
-    } else {
-      return Promise.reject("one of the two players has no valid path");
+      if (myPath && opponentPath) {
+        const difference: score = opponentPath.length - myPath.length;
+        scoreVariations.push(difference);
+      } else {
+        return Promise.reject("one of the two players has no valid path");
+      }
     }
+
+    let finalScore: number = 0;
+    for (let i = 0; i < scoreVariations.length; i++) {
+      let weight: number = this.weightFn(i);
+      finalScore += scoreVariations[i] * weight;
+    }
+
+    return Promise.resolve(finalScore);
   };
 
   /* Private methods */
+  private getShortestPathMinusXWalls = async (
+    x: number,
+    player: PlayerColor,
+    board: TextBoard
+  ): Promise<Coord[] | null> => {
+    if (x < 0) {
+      return Promise.reject("x less than 0 somehow");
+    }
+    if (x == 0) {
+      return this.getShortestPathOf(player, board);
+    }
+
+    const allWalls = await this.game.getWallLocations();
+    const walls = allWalls[player];
+    if (x > walls.length) {
+      return this.getShortestPathMinusXWalls(x - 1, player, board);
+    }
+
+    let boardCopy: TextBoard = board.clone();
+    const wallCombinations: Coord[][] = this.generateWallCombinations(walls, x);
+
+    let bestPathLength: number = Infinity;
+    let bestPath: Coord[] | null = null;
+
+    for (let combination of wallCombinations) {
+      for (let wall of combination) {
+        boardCopy.modifyEdge(wall, " ");
+      }
+
+      const path: Coord[] | null = await this.getShortestPathOf(
+        player,
+        boardCopy
+      );
+      if (path && path.length < bestPathLength) {
+        bestPathLength = path.length;
+        bestPath = path;
+      }
+
+      boardCopy = board.clone();
+    }
+    return bestPath;
+  };
 
   private getShortestPathOf = async (
-    player: PlayerColor
+    player: PlayerColor,
+    board: TextBoard = this.textBoard
   ): Promise<Coord[] | null> => {
     const playerLocation = await this.game.playerLocation(player);
     const endLocation = await this.game.endLocation(player);
-    return this.pathfinder.shortestPath(
-      playerLocation,
-      endLocation,
-      this.textBoard
-    );
+    return this.pathfinder.shortestPath(playerLocation, endLocation, board);
   };
 
   private printShortestPath = async () => {
     this.getShortestPathOf(this.player).then((result) => console.log(result));
   };
+
+  private generateWallCombinations = (walls: Coord[], x: number): Coord[][] => {
+    if (x === 0) return [[]];
+    if (x > walls.length) return [];
+
+    const [first, ...rest] = walls;
+    const withFirst: Coord[][] = this.generateWallCombinations(rest, x - 1).map(
+      (walls) => [first, ...walls]
+    );
+    const withoutFirst: Coord[][] = this.generateWallCombinations(rest, x);
+
+    let combinations: Coord[][] = [...withFirst, ...withoutFirst];
+    return this.shuffle(combinations);
+  };
+
+  private shuffle<T>(array: T[]): T[] {
+    let currentIndex: number = array.length;
+    let randomIndex: number;
+
+    while (currentIndex !== 0) {
+      randomIndex = Math.floor(Math.random() * currentIndex);
+      currentIndex--;
+
+      [array[currentIndex], array[randomIndex]] = [
+        array[randomIndex],
+        array[currentIndex],
+      ];
+    }
+    return array;
+  }
 
   dispose() {
     this.unsubscribePlayer();
