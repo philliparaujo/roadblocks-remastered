@@ -45,7 +45,7 @@ const factory = (): {
         }
       }),
       getWallLocations: jest.fn(() => {
-        return Promise.resolve([]);
+        return Promise.resolve({ red: [], blue: [], locked: [] });
       }),
       playerMovedEventSubscription: (): PlayerEventSubscription => {
         return {

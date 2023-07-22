@@ -22,7 +22,7 @@ import {
 type TurnPhase = "placingWalls" | "movingPlayer";
 export type PlayerColor = "red" | "blue";
 type CellLocations = { [key in PlayerColor]: Coord };
-type WallLocations = Coord[];
+export type WallLocations = { [key in PlayerColor | "locked"]: Coord[] };
 
 interface GameState {
   turn: PlayerColor;
@@ -76,7 +76,7 @@ export class GameImpl implements Game {
     id: id++,
     playerLocations: { red: { row: 7, col: 1 }, blue: { row: 1, col: 7 } },
     endLocations: { red: { row: 7, col: 13 }, blue: { row: 13, col: 7 } },
-    wallLocations: [],
+    wallLocations: { red: [], blue: [], locked: [] },
     playerMovedSubscriptions: new PlayerMovedSubscriber(),
     switchTurnSubscriptions: new SwitchTurnSubscriber(),
     wallToggledSubscriptions: new WallToggledSubscriber(),
@@ -104,13 +104,14 @@ export class GameImpl implements Game {
       : this.state.turn === "blue";
 
     if (placing && isCorrectTurn) {
-      this.state.wallLocations.push(coord);
+      this.state.wallLocations[this.state.turn].push(coord);
       this.notifyWallToggled(coord, true);
+      console.log(this.state.wallLocations);
       return Promise.resolve({});
     } else if (!placing && isCorrectTurn) {
-      this.state.wallLocations = this.state.wallLocations.filter(
-        (wall) => wall !== coord
-      );
+      this.state.wallLocations[this.state.turn] = this.state.wallLocations[
+        this.state.turn
+      ].filter((wall) => !equalCoords(wall, coord));
       this.notifyWallToggled(coord, false);
       return Promise.resolve({});
     } else {
@@ -231,10 +232,10 @@ export class GameImpl implements Game {
         const coord: Coord = { row: i, col: j };
         const symmetricalCoord: Coord = { row: j, col: i };
         if (isEdge(coord) && !isBorderEdge(coord, width, height)) {
-          if (!this.state.wallLocations.includes(coord)) {
+          if (!this.state.wallLocations.locked.includes(coord)) {
             if (Math.random() > 0.9) {
-              this.state.wallLocations.push(coord);
-              this.state.wallLocations.push(symmetricalCoord);
+              this.state.wallLocations.locked.push(coord);
+              this.state.wallLocations.locked.push(symmetricalCoord);
             }
           }
         }

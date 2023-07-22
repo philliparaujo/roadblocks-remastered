@@ -6,6 +6,7 @@ import { isHorizontalEdge, isVerticalEdge } from "../Utils";
 
 type score = number;
 
+/* eventually remove */
 interface NPC {
   updateWalls: () => Promise<Coord[]>;
   updatePlayer: () => Promise<Coord[]>;
@@ -34,34 +35,29 @@ export class NPCImpl implements NPC {
       .wallToggledEventSubscription()
       .subscribe(async (e) => {
         if (await this.isMyTurn()) {
-          // this.printShortestPath();
-          this.calculateScore()
-            .then((score) => console.log(score))
-            .catch((err) => console.error(err));
-          this.updatePlayer()
-            .then((move) => console.log(move[0]))
-            .catch((err) => console.error(err));
-          this.updateWalls()
-            .then((wall) => console.log(wall[0]))
-            .catch((err) => console.error(err));
+          this.printHelper();
         }
       });
     this.unsubscribePlayer = game
       .playerMovedEventSubscription()
       .subscribe(async (e) => {
         if (await this.isMyTurn()) {
-          // this.printShortestPath();
-          this.calculateScore()
-            .then((score) => console.log(score))
-            .catch((err) => console.error(err));
-          this.updatePlayer()
-            .then((move) => console.log(move[0]))
-            .catch((err) => console.error(err));
-          this.updateWalls()
-            .then((wall) => console.log(wall[0]))
-            .catch((err) => console.error(err));
+          this.printHelper();
         }
       });
+  }
+
+  private printHelper(): void {
+    // this.printShortestPath();
+    this.calculateScore()
+      .then((score) => console.log("score:", score))
+      .catch((err) => console.error(err));
+    this.updatePlayer()
+      .then((move) => console.log("move:", move[0]))
+      .catch((err) => console.error(err));
+    this.updateWalls()
+      .then((wall) => console.log("wall addition", wall[0]))
+      .catch((err) => console.error(err));
   }
 
   static async create(game: Game, player: PlayerColor): Promise<NPCImpl> {

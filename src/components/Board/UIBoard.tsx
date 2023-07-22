@@ -54,7 +54,7 @@ const useInitialLocations = (game: Game) => {
       setInitialCellLocations(cellLocations);
 
       const wallLocations = await game.getWallLocations();
-      setInitialWallLocations(wallLocations);
+      setInitialWallLocations(wallLocations.locked);
 
       setLocationsFetched(true);
     };

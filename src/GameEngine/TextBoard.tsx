@@ -132,7 +132,7 @@ export class TextBoard {
     this.modifyCell(blueEndCoord, (cell) => cell.push(blueend));
 
     const wallLocations = await this.game.getWallLocations();
-    for (const wall of wallLocations) {
+    for (const wall of wallLocations.locked) {
       this.board[wall.row][wall.col] = "#";
     }
   }

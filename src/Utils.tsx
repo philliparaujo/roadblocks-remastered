@@ -1,4 +1,5 @@
 import { Coord } from "./Coord";
+import { WallLocations } from "./GameEngine/Game";
 
 export const isCorner = (coord: Coord): boolean =>
   coord.row % 2 === 0 && coord.col % 2 === 0;
@@ -52,12 +53,13 @@ export const averageCoord = (from: Coord, to: Coord): Coord => {
 export const isValidMove = (
   from: Coord,
   to: Coord,
-  walls: Coord[]
+  walls: WallLocations
 ): boolean => {
   if (!isAdjacent(from, to)) return false;
   const middleEdge: Coord = averageCoord(from, to);
+  const allWalls = [...walls.red, ...walls.blue, ...walls.locked];
 
-  for (let wall of walls) {
+  for (let wall of allWalls) {
     if (equalCoords(middleEdge, wall)) {
       return false;
     }
