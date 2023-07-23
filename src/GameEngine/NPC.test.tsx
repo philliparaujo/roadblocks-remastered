@@ -7,6 +7,7 @@ import {
   PlayerEventSubscription,
   PlayerMovedSubscriber,
 } from "./PlayerMovedSubscriber";
+import { SwitchTurnEventSubscription } from "./SwitchTurnSubscriber";
 import { WallToggledEventSubscription } from "./WallToggledSubscriber";
 
 interface TestGame extends Game {
@@ -16,11 +17,12 @@ interface TestGame extends Game {
 
 describe("NPC", () => {
   let game: Partial<TestGame>;
-  let NPC: NPCImpl;
+  let npc: NPCImpl;
 
   beforeEach(async () => {
     let subPlayer = jest.fn();
     let subWalls = jest.fn();
+    let subTurn = jest.fn();
 
     game = {
       state: {
@@ -57,6 +59,11 @@ describe("NPC", () => {
       wallToggledEventSubscription: (): WallToggledEventSubscription => {
         return {
           subscribe: subWalls,
+        };
+      },
+      switchTurnEventSubscription: (): SwitchTurnEventSubscription => {
+        return {
+          subscribe: subTurn,
         };
       },
 
@@ -111,14 +118,22 @@ describe("NPC", () => {
         return Promise.resolve({});
       }),
 
+      getTurn: jest.fn(() => {
+        if (game.state && game.state.turn) {
+          return Promise.resolve(game.state.turn);
+        } else {
+          return Promise.reject("Game state or turn is undefined");
+        }
+      }),
+
       winGame: jest.fn(),
     };
 
-    NPC = await NPCImpl.create(game as TestGame, "red");
+    npc = await NPCImpl.create(game as TestGame, "red");
   });
 
   test("Score starts at 0", async () => {
-    expect(await NPC.calculateScore()).toBe(0);
+    expect(await npc.calculateScore()).toBe(0);
   });
 
   test("Score is positive when close to winning", async () => {
@@ -128,7 +143,7 @@ describe("NPC", () => {
       await game.setPlayerLocation({ row: 7, col: 7 });
       await game.setPlayerLocation({ row: 7, col: 9 });
       await game.setPlayerLocation({ row: 7, col: 11 });
-      expect(await NPC.calculateScore()).toBeGreaterThan(0);
+      expect(await npc.calculateScore()).toBeGreaterThan(0);
     }
   });
 
@@ -137,7 +152,7 @@ describe("NPC", () => {
       await game.setPlayerLocation({ row: 5, col: 1 });
       await game.setPlayerLocation({ row: 3, col: 1 });
       await game.setPlayerLocation({ row: 1, col: 1 });
-      expect(await NPC.calculateScore()).toBeLessThan(0);
+      expect(await npc.calculateScore()).toBeLessThan(0);
     }
   });
 
@@ -146,7 +161,7 @@ describe("NPC", () => {
       await game.addEdge({ row: 7, col: 2 });
       await game.addEdge({ row: 5, col: 2 });
       await game.addEdge({ row: 9, col: 2 });
-      expect(await NPC.calculateScore()).toBeLessThan(0);
+      expect(await npc.calculateScore()).toBeLessThan(0);
     }
   });
 
@@ -158,7 +173,7 @@ describe("NPC", () => {
       await game.setPlayerLocation({ row: 7, col: 7 });
       await game.setPlayerLocation({ row: 9, col: 7 });
       await game.setPlayerLocation({ row: 11, col: 7 });
-      expect(await NPC.calculateScore()).toBeLessThan(0);
+      expect(npc.calculateScore()).resolves.toBeLessThan(0);
     }
   });
 
@@ -170,10 +185,10 @@ describe("NPC", () => {
       await game.setPlayerLocation({ row: 7, col: 7 });
       await game.setPlayerLocation({ row: 9, col: 7 });
       await game.setPlayerLocation({ row: 11, col: 7 });
-      const directPathScore = await NPC.calculateScore();
+      const directPathScore = await npc.calculateScore();
 
       await game.addEdge({ row: 12, col: 7 });
-      const newPathScore = await NPC.calculateScore();
+      const newPathScore = await npc.calculateScore();
 
       expect(newPathScore).tobeGreaterThan(directPathScore);
     }

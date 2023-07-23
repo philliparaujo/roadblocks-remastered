@@ -13,7 +13,10 @@ import {
   PlayerEventSubscription,
   PlayerMovedSubscriber,
 } from "./PlayerMovedSubscriber";
-import { SwitchTurnSubscriber } from "./SwitchTurnSubscriber";
+import {
+  SwitchTurnEventSubscription,
+  SwitchTurnSubscriber,
+} from "./SwitchTurnSubscriber";
 import {
   WallToggledEventSubscription,
   WallToggledSubscriber,
@@ -61,14 +64,19 @@ export interface Game {
   getWidth: () => Promise<number>;
   getHeight: () => Promise<number>;
   playerMovedEventSubscription: () => PlayerEventSubscription;
-  switchTurnEventSubscription: () => SwitchTurnSubscriber;
+  switchTurnEventSubscription: () => SwitchTurnEventSubscription;
   wallToggledEventSubscription: () => WallToggledEventSubscription;
 }
 
 var id = 1;
 
+type OverridesForTesting = {
+  walls: WallLocations;
+  playerLocations: CellLocations;
+};
+
 export class GameImpl implements Game {
-  state: GameState = {
+  private state: GameState = {
     turn: "red",
     phase: "placingWalls",
     width: 7,
@@ -87,6 +95,26 @@ export class GameImpl implements Game {
     this.state.height = height;
     console.log("Created game object", this.state.id);
     this.generateRandomWallLocations(this.state.width, this.state.height);
+  }
+
+  static createForTesting(
+    width: number,
+    height: number,
+    overrides: OverridesForTesting
+  ) {
+    const result = new GameImpl(width, height);
+    result.state.playerLocations = overrides.playerLocations;
+    result.state.wallLocations = overrides.walls;
+    return result;
+  }
+
+  getStateForTesting(): GameState {
+    return {
+      ...this.state,
+      playerMovedSubscriptions: new PlayerMovedSubscriber(),
+      switchTurnSubscriptions: new SwitchTurnSubscriber(),
+      wallToggledSubscriptions: new WallToggledSubscriber(),
+    };
   }
 
   handleEdgeAction = (coord: Coord, placing: boolean): Promise<EdgeResult> => {

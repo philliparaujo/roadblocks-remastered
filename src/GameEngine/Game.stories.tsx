@@ -26,11 +26,11 @@ const GameStory: React.FC<GameProps> = ({
   debug,
 }) => {
   const gameInstance = new GameImpl(height, width);
-  gameInstance.state.playerLocations = {
+  gameInstance.getStateForTesting().playerLocations = {
     red: initialRedPlayerLocation,
     blue: initialBluePlayerLocation,
   };
-  gameInstance.state.endLocations = {
+  gameInstance.getStateForTesting().endLocations = {
     red: initialRedEndLocation,
     blue: initialBlueEndLocation,
   };

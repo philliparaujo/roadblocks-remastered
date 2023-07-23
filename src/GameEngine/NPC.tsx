@@ -1,8 +1,9 @@
 import { Coord } from "../Coord";
 import { Game, PlayerColor } from "./Game";
-import { EdgeElement, TextBoard } from "./TextBoard";
 import { PathfinderImpl } from "./Pathfinder";
 import { isHorizontalEdge, isVerticalEdge } from "../Utils";
+import Board, { EdgeElement } from "./Board";
+import { TextBoard } from "./TextBoard";
 
 type score = number;
 
@@ -23,12 +24,13 @@ export class NPCImpl implements NPC {
 
   private unsubscribeWall: () => void;
   private unsubscribePlayer: () => void;
+  private unsubscribeSwitchTurn: () => void;
 
   private constructor(game: Game, player: PlayerColor, textBoard: TextBoard) {
     this.game = game;
     this.player = player;
     this.textBoard = textBoard;
-    this.pathfinder = new PathfinderImpl(this.textBoard);
+    this.pathfinder = new PathfinderImpl();
     this.weightFn = (i: number) => 1 / (i + 1);
 
     // this.printShortestPath();
@@ -47,6 +49,19 @@ export class NPCImpl implements NPC {
           this.printHelper();
         }
       });
+    this.unsubscribeSwitchTurn = game
+      .switchTurnEventSubscription()
+      .subscribe((e) => {
+        if (e.turn === player) {
+          this.play();
+        }
+      });
+
+    // this.game.getTurn().then((result) => {
+    //   if (result == this.player) {
+    //     this.play();
+    //   }
+    // });
   }
 
   private printHelper(): void {
@@ -63,11 +78,15 @@ export class NPCImpl implements NPC {
   }
 
   static async create(game: Game, player: PlayerColor): Promise<NPCImpl> {
-    const textBoard = await TextBoard.create(game, console.log);
-    return new NPCImpl(game, player, textBoard);
+    const textBoard: TextBoard = await TextBoard.create(game, console.log);
+    return Promise.resolve(new NPCImpl(game, player, textBoard));
   }
 
   /* Public methods */
+
+  private play = (): void => {
+    console.log("playing");
+  };
 
   public updateWalls = async (): Promise<Coord[]> => {
     let wallPositions: Coord[] = [];
@@ -82,13 +101,16 @@ export class NPCImpl implements NPC {
             ? isVerticalEdge(coord)
             : isHorizontalEdge(coord)
         ) {
-          if (this.textBoard.getBoard()[row][col] !== "#") {
-            let wallType = this.player === "red" ? "|" : "-";
-            let tempBoard = this.textBoard.clone();
+          const board: Board = this.textBoard.getBoardForTesting();
 
-            this.textBoard.isWall(coord)
-              ? tempBoard.modifyEdge(coord, " ")
-              : tempBoard.modifyEdge(coord, wallType as EdgeElement);
+          if (board.getByCoord({ row: row, col: col }) !== "#") {
+            let wallType = this.player === "red" ? "|" : "-";
+            let tempBoard: Board = board.copy();
+
+            board.getByCoord(coord) === "#" ||
+            board.getByCoord(coord) === wallType
+              ? tempBoard.setByCoord(coord, " ")
+              : tempBoard.setByCoord(coord, wallType as EdgeElement);
 
             let score: score = await this.calculateScore(tempBoard);
             if (score > bestScore) {
@@ -125,7 +147,7 @@ export class NPCImpl implements NPC {
   };
 
   public calculateScore = async (
-    board: TextBoard = this.textBoard
+    board: Board = this.textBoard.getBoardForTesting()
   ): Promise<score> => {
     const opponentColor = this.player === "red" ? "blue" : "red";
     const scoreVariations: score[] = [];
@@ -163,7 +185,7 @@ export class NPCImpl implements NPC {
   private getShortestPathMinusXWalls = async (
     x: number,
     player: PlayerColor,
-    board: TextBoard
+    board: Board
   ): Promise<Coord[] | null> => {
     if (x < 0) {
       return Promise.reject("x less than 0 somehow");
@@ -178,7 +200,7 @@ export class NPCImpl implements NPC {
       return this.getShortestPathMinusXWalls(x - 1, player, board);
     }
 
-    let boardCopy: TextBoard = board.clone();
+    let boardCopy: Board = board.copy();
     const wallCombinations: Coord[][] = this.generateWallCombinations(walls, x);
 
     let bestPathLength: number = Infinity;
@@ -186,7 +208,7 @@ export class NPCImpl implements NPC {
 
     for (let combination of wallCombinations) {
       for (let wall of combination) {
-        boardCopy.modifyEdge(wall, " ");
+        boardCopy.setByCoord(wall, " ");
       }
 
       const path: Coord[] | null = await this.getShortestPathOf(
@@ -198,17 +220,18 @@ export class NPCImpl implements NPC {
         bestPath = path;
       }
 
-      boardCopy = board.clone();
+      boardCopy = board.copy();
     }
     return bestPath;
   };
 
   private getShortestPathOf = async (
     player: PlayerColor,
-    board: TextBoard = this.textBoard
+    board: Board = this.textBoard.getBoardForTesting()
   ): Promise<Coord[] | null> => {
     const playerLocation = await this.game.playerLocation(player);
     const endLocation = await this.game.endLocation(player);
+
     return this.pathfinder.shortestPath(playerLocation, endLocation, board);
   };
 

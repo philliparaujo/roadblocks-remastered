@@ -1,25 +1,23 @@
 import { Coord } from "../Coord";
 import { averageCoord, equalCoords, isInBounds } from "../Utils";
+import Board from "./Board";
 import { TextBoard } from "./TextBoard";
 
 type direction = Coord;
 type CoordString = String;
 
 interface Pathfinder {
-  board: TextBoard;
   directions: direction[];
   visited: Set<CoordString>;
-  hasPath: (start: Coord, end: Coord, board: TextBoard) => boolean;
-  shortestPath: (start: Coord, end: Coord, board: TextBoard) => Coord[] | null;
+  hasPath: (start: Coord, end: Coord, board: Board) => boolean;
+  shortestPath: (start: Coord, end: Coord, board: Board) => Coord[] | null;
 }
 
 export class PathfinderImpl implements Pathfinder {
-  board: TextBoard;
   directions: direction[];
   visited: Set<CoordString>;
 
-  constructor(board: TextBoard) {
-    this.board = board;
+  constructor() {
     this.directions = [
       { row: -2, col: 0 },
       { row: 0, col: 2 },
@@ -29,19 +27,16 @@ export class PathfinderImpl implements Pathfinder {
     this.visited = new Set();
   }
 
-  isObstacle(coord: Coord, board: TextBoard) {
-    return board.isWall(coord);
+  isObstacle(coord: Coord, board: Board) {
+    const element = board.getByCoord(coord);
+    return element === "#" || element === "|" || element === "-";
   }
 
-  hasPath = (start: Coord, end: Coord, board: TextBoard): boolean => {
+  hasPath = (start: Coord, end: Coord, board: Board): boolean => {
     return this.shortestPath(start, end, board) !== null;
   };
 
-  shortestPath = (
-    start: Coord,
-    end: Coord,
-    board: TextBoard
-  ): Coord[] | null => {
+  shortestPath = (start: Coord, end: Coord, board: Board): Coord[] | null => {
     // setup queue, Map, visisted
     let queue: Coord[] = [];
     let cameFrom: Map<Coord, Coord | undefined> = new Map();
@@ -81,7 +76,11 @@ export class PathfinderImpl implements Pathfinder {
         let midPoint: Coord = averageCoord(current, newCoord);
 
         if (
-          isInBounds(newCoord, board.getWidth(), board.getHeight()) &&
+          isInBounds(
+            newCoord,
+            2 * board.getWidth() + 1,
+            2 * board.getHeight() + 1
+          ) &&
           !this.isObstacle(midPoint, board) &&
           !this.visited.has(JSON.stringify(newCoord))
         ) {

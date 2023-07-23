@@ -10,25 +10,22 @@ import {
   WallToggledEvent,
   WallToggledEventCallback,
 } from "./WallToggledSubscriber";
-
-type Board = Row[];
-type Row = BoardElement[];
-type BoardElement = CornerElement | EdgeElement | CellElement;
-type CornerElement = "+";
-export type EdgeElement = " " | "|" | "-" | "#";
-type CellElement = Array<RedPlayer | BluePlayer | RedEnd | BlueEnd>;
-
-type RedPlayer = "r";
-type BluePlayer = "b";
-type RedEnd = "R";
-type BlueEnd = "B";
+import Board, {
+  BlueEnd,
+  BluePlayer,
+  BoardElement,
+  CellElement,
+  EdgeElement,
+  RedEnd,
+  RedPlayer,
+} from "./Board";
 
 export type Printer = (message?: any, ...optionalParams: any[]) => void;
 
 export class TextBoard {
   private printer: Printer;
   private game: Game;
-  private board: Board = [];
+  private board: Board;
   private width: number;
   private height: number;
   private unsubscribeToWallToggled: (() => void) | undefined;
@@ -44,6 +41,7 @@ export class TextBoard {
     this.width = width;
     this.height = height;
     this.printer = printer;
+    this.board = new Board(width, height);
     this.updatePlayer = this.updatePlayer.bind(this);
     this.updateWalls = this.updateWalls.bind(this);
   }
@@ -56,8 +54,8 @@ export class TextBoard {
     const width = await game.getWidth();
 
     const textBoard = new TextBoard(game, printer, width, height);
-    await textBoard.initializeBoard();
-    await textBoard.setInitialLocations();
+
+    await textBoard.board.initFromGame(game);
 
     textBoard.subscribeToPlayerMoved(textBoard.updatePlayer);
     textBoard.subscribeToWallToggled(textBoard.updateWalls);
@@ -65,100 +63,23 @@ export class TextBoard {
     return textBoard;
   }
 
-  public getBoard(): Board {
+  public getBoardForTesting(): Board {
     return this.board;
   }
 
-  public copyBoard(): Board {
-    return JSON.parse(JSON.stringify(this.board));
-  }
-
-  public clone(): TextBoard {
-    const clonedBoard = new TextBoard(
-      this.game,
-      this.printer,
-      this.width,
-      this.height
-    );
-    clonedBoard.board = this.copyBoard();
-    clonedBoard.unsubscribeToWallToggled = this.unsubscribeToWallToggled;
-    clonedBoard.unsubscribeToPlayerMoved = this.unsubscribeToPlayerMoved;
-
-    return clonedBoard;
-  }
-
   public getWidth(): number {
-    return 2 * this.width + 1;
+    return this.width;
   }
 
   public getHeight(): number {
-    return 2 * this.height + 1;
-  }
-
-  public isWall(coord: Coord): boolean {
-    const element: BoardElement = this.board[coord.row][coord.col];
-    return element === "|" || element === "-" || element === "#";
+    return this.height;
   }
 
   public print() {
-    this.printer(this.getBoard());
-  }
-
-  public modifyEdge(coord: Coord, edge: EdgeElement): void {
-    this.board[coord.row][coord.col] = edge;
+    this.printer(this.getBoardForTesting());
   }
 
   /* Private methods */
-
-  private async initializeBoard(): Promise<void> {
-    for (let i = 0; i < 2 * this.height + 1; i++) {
-      const row: Row = [];
-      for (let j = 0; j < 2 * this.width + 1; j++) {
-        const coord: Coord = { row: i, col: j };
-        if (isCorner(coord)) {
-          const corner: CornerElement = "+";
-          row.push(corner);
-        } else if (isCell(coord)) {
-          const cell: CellElement = [];
-          row.push(cell);
-        } else {
-          const edge: EdgeElement = " ";
-          row.push(edge);
-        }
-      }
-      this.board.push(row);
-    }
-  }
-
-  private async setInitialLocations(): Promise<void> {
-    const redPlayerCoord: Coord = await this.game.getInitialCellLocation(
-      "redplayer"
-    );
-    const redplayer: RedPlayer = "r";
-    this.modifyCell(redPlayerCoord, (cell) => cell.push(redplayer));
-
-    const bluePlayerCoord: Coord = await this.game.getInitialCellLocation(
-      "blueplayer"
-    );
-    const blueplayer: BluePlayer = "b";
-    this.modifyCell(bluePlayerCoord, (cell) => cell.push(blueplayer));
-
-    const redEndCoord: Coord = await this.game.getInitialCellLocation("redend");
-    const redend: RedEnd = "R";
-    this.modifyCell(redEndCoord, (cell) => cell.push(redend));
-
-    const blueEndCoord: Coord = await this.game.getInitialCellLocation(
-      "blueend"
-    );
-    const blueend: BlueEnd = "B";
-    this.modifyCell(blueEndCoord, (cell) => cell.push(blueend));
-
-    const wallLocations = await this.game.getWallLocations();
-    for (const wall of wallLocations.locked) {
-      this.board[wall.row][wall.col] = "#";
-    }
-  }
-
   private async updateWalls(e: WallToggledEvent): Promise<void> {
     const coord: Coord = e.wall;
     const wallValue: EdgeElement = !e.isToggled
@@ -166,40 +87,30 @@ export class TextBoard {
       : isVerticalEdge(coord)
       ? "|"
       : "-";
-    this.board[coord.row][coord.col] = wallValue;
-
-    // this.print();
+    this.board.setByCoord(coord, wallValue);
   }
 
   private async updatePlayer(e: PlayerMovedEvent): Promise<void> {
     const prevCoord: Coord = e.from;
-    const cell: CellElement = this.board[prevCoord.row][
-      prevCoord.col
-    ] as CellElement;
+    const prevElement: CellElement = this.board.getByCoord(
+      prevCoord
+    ) as CellElement;
 
-    if (Array.isArray(cell)) {
-      const index = cell.indexOf(e.player === "red" ? "r" : "b");
+    if (Array.isArray(prevElement)) {
+      console.log("IN HERE 1");
+      const index = prevElement.indexOf(e.player === "red" ? "r" : "b");
       if (index > -1) {
-        cell.splice(index, 1);
+        console.log("IN HERE 2");
+        prevElement.splice(index, 1);
       }
+    } else {
+      this.board.setByCoord(prevCoord, " ");
     }
 
     const newCoord: Coord = e.to;
-    const newCell: CellElement = this.board[newCoord.row][
-      newCoord.col
-    ] as CellElement;
+    const newCell: CellElement = this.board.getByCoord(newCoord) as CellElement;
     if (Array.isArray(newCell)) {
       newCell.push(e.player === "red" ? "r" : "b");
-    }
-  }
-
-  private modifyCell(
-    coord: Coord,
-    modifier: (cell: CellElement) => void
-  ): void {
-    const cell: CellElement = this.board[coord.row][coord.col] as CellElement;
-    if (Array.isArray(cell)) {
-      modifier(cell);
     }
   }
 

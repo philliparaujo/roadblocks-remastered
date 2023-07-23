@@ -1,4 +1,5 @@
 import { CellElement } from "../components/Board/Cell";
+import Board from "./Board";
 import { Game } from "./Game";
 import {
   PlayerEventSubscription,
@@ -116,7 +117,14 @@ describe("TextBoard", () => {
   // });
 
   test("TextBoard updates its internal board based on player move", async () => {
+    // const b : Board = Board.newBuilder()
+    //   .witdth(7)
+    //   .height(3)
+    //   .walls()
+    //   .build()
+
     // player moves
+
     subPlayer.mock.calls[0][0]({
       from: { row: 7, col: 1 },
       to: { row: 7, col: 3 },
@@ -124,9 +132,10 @@ describe("TextBoard", () => {
     });
 
     // check if player has moved on the internal board
-    let board = sut.getBoard();
-    expect(board[7][3]).toContain("r");
-    expect(board[7][1]).not.toContain("r");
+    let board = sut.getBoardForTesting();
+
+    expect(board.getByCoord({ row: 7, col: 3 })).toContain("r");
+    expect(board.getByCoord({ row: 7, col: 1 })).not.toContain("r");
   });
 
   test("TextBoard updates its internal board based on wall ", async () => {
@@ -137,7 +146,7 @@ describe("TextBoard", () => {
     });
 
     // check if wall is added on the internal board
-    let board = sut.getBoard();
-    expect(board[7][2]).toBe("|");
+    let board = sut.getBoardForTesting();
+    expect(board.getByCoord({ row: 7, col: 2 })).toBe("|");
   });
 });
