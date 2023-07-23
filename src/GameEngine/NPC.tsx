@@ -103,14 +103,13 @@ export class NPCImpl implements NPC {
         ) {
           const board: Board = this.textBoard.getBoardForTesting();
 
-          if (board.getByCoord({ row: row, col: col }) !== "#") {
+          if (board.get({ row: row, col: col }) !== "#") {
             let wallType = this.player === "red" ? "|" : "-";
             let tempBoard: Board = board.copy();
 
-            board.getByCoord(coord) === "#" ||
-            board.getByCoord(coord) === wallType
-              ? tempBoard.setByCoord(coord, " ")
-              : tempBoard.setByCoord(coord, wallType as EdgeElement);
+            board.get(coord) === "#" || board.get(coord) === wallType
+              ? tempBoard.set(coord, " ")
+              : tempBoard.set(coord, wallType as EdgeElement);
 
             let score: score = await this.calculateScore(tempBoard);
             if (score > bestScore) {
@@ -208,7 +207,7 @@ export class NPCImpl implements NPC {
 
     for (let combination of wallCombinations) {
       for (let wall of combination) {
-        boardCopy.setByCoord(wall, " ");
+        boardCopy.set(wall, " ");
       }
 
       const path: Coord[] | null = await this.getShortestPathOf(

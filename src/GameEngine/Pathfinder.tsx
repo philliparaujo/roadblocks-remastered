@@ -28,7 +28,7 @@ export class PathfinderImpl implements Pathfinder {
   }
 
   isObstacle(coord: Coord, board: Board) {
-    const element = board.getByCoord(coord);
+    const element = board.get(coord);
     return element === "#" || element === "|" || element === "-";
   }
 

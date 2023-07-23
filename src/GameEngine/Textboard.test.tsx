@@ -134,8 +134,8 @@ describe("TextBoard", () => {
     // check if player has moved on the internal board
     let board = sut.getBoardForTesting();
 
-    expect(board.getByCoord({ row: 7, col: 3 })).toContain("r");
-    expect(board.getByCoord({ row: 7, col: 1 })).not.toContain("r");
+    expect(board.get({ row: 7, col: 3 })).toContain("r");
+    expect(board.get({ row: 7, col: 1 })).not.toContain("r");
   });
 
   test("TextBoard updates its internal board based on wall ", async () => {
@@ -147,6 +147,6 @@ describe("TextBoard", () => {
 
     // check if wall is added on the internal board
     let board = sut.getBoardForTesting();
-    expect(board.getByCoord({ row: 7, col: 2 })).toBe("|");
+    expect(board.get({ row: 7, col: 2 })).toBe("|");
   });
 });

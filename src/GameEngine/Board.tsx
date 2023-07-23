@@ -41,24 +41,16 @@ export default class Board {
     }
   }
 
-  get(row: number, col: number): BoardElement {
-    return this.items[row][col];
+  get(coord: Coord) {
+    return this.items[coord.row][coord.col];
   }
 
-  getByCoord(coord: Coord) {
-    return this.get(coord.row, coord.col);
-  }
-
-  set(row: number, col: number, value: BoardElement) {
-    this.items[row][col] = value;
-  }
-
-  setByCoord(coord: Coord, value: BoardElement) {
-    this.set(coord.row, coord.col, value);
+  set(coord: Coord, value: BoardElement) {
+    this.items[coord.row][coord.col] = value;
   }
 
   addToCell(coord: Coord, value: RedPlayer | BluePlayer | RedEnd | BlueEnd) {
-    const cellElement = this.get(coord.row, coord.col);
+    const cellElement = this.get(coord);
 
     if (!(cellElement instanceof Array)) {
       throw new Error(
@@ -66,14 +58,14 @@ export default class Board {
       );
     }
 
-    this.set(coord.row, coord.col, [...cellElement, value]);
+    this.set(coord, [...cellElement, value]);
   }
 
   removeFromCell(
     coord: Coord,
     value: RedPlayer | BluePlayer | RedEnd | BlueEnd
   ) {
-    const cellElement = this.get(coord.row, coord.col);
+    const cellElement = this.get(coord);
 
     if (!(cellElement instanceof Array)) {
       throw new Error(
@@ -82,8 +74,7 @@ export default class Board {
     }
 
     this.set(
-      coord.row,
-      coord.col,
+      coord,
       cellElement.filter((element) => element !== value)
     );
   }
@@ -125,7 +116,7 @@ export default class Board {
 
     const wallLocations = await game.getWallLocations();
     for (const wall of wallLocations.locked) {
-      this.setByCoord(wall, "#");
+      this.set(wall, "#");
     }
   }
 }

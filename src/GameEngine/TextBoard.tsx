@@ -87,14 +87,12 @@ export class TextBoard {
       : isVerticalEdge(coord)
       ? "|"
       : "-";
-    this.board.setByCoord(coord, wallValue);
+    this.board.set(coord, wallValue);
   }
 
   private async updatePlayer(e: PlayerMovedEvent): Promise<void> {
     const prevCoord: Coord = e.from;
-    const prevElement: CellElement = this.board.getByCoord(
-      prevCoord
-    ) as CellElement;
+    const prevElement: CellElement = this.board.get(prevCoord) as CellElement;
 
     if (Array.isArray(prevElement)) {
       console.log("IN HERE 1");
@@ -104,11 +102,11 @@ export class TextBoard {
         prevElement.splice(index, 1);
       }
     } else {
-      this.board.setByCoord(prevCoord, " ");
+      this.board.set(prevCoord, " ");
     }
 
     const newCoord: Coord = e.to;
-    const newCell: CellElement = this.board.getByCoord(newCoord) as CellElement;
+    const newCell: CellElement = this.board.get(newCoord) as CellElement;
     if (Array.isArray(newCell)) {
       newCell.push(e.player === "red" ? "r" : "b");
     }
