@@ -18,11 +18,14 @@ type UnsubscribeWallToggled = () => void;
 
 export class WallToggledSubscriber implements WallToggledEventSubscription {
   subscribers: WallToggledEventCallback[] = [];
+  pastEvents: WallToggledEvent[] = [];
 
   subscribe: (callback: WallToggledEventCallback) => UnsubscribeWallToggled = (
     callback
   ) => {
+    // console.log("Subscribing to WallToggledSubscriber");
     this.subscribers.push(callback);
+    this.pastEvents.forEach((e) => callback(e));
     return () => this.unsubscribe(callback);
   };
 
@@ -33,6 +36,8 @@ export class WallToggledSubscriber implements WallToggledEventSubscription {
   };
 
   notify: (event: WallToggledEvent) => void = (event) => {
+    this.pastEvents.push(event);
+    // console.log("Sending subscriptions", this.subscribers.length);
     this.subscribers.forEach((callback) => callback(event));
   };
 }

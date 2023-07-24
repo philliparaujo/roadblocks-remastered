@@ -18,19 +18,21 @@ const LockWallsButton: React.FC<LockWallsButtonProps> = ({
     return () => unsubscribe();
   }, [game]);
 
+  useEffect(() => {
+    const unsubscribe = game.lockWallEventSubscription().subscribe((e) => {
+      setDisabled(true);
+    });
+    return () => unsubscribe();
+  }, [game]);
+
   const handleClick = () => {
     if (disabled) {
       return;
     }
 
-    game
-      .lockWalls()
-      .then((ok) => {
-        setDisabled(true);
-      })
-      .catch((error) => {
-        console.error("Failed to lock walls:", error);
-      });
+    game.lockWalls().catch((error) => {
+      console.error("Failed to lock walls:", error);
+    });
   };
 
   return (

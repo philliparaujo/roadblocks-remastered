@@ -13,18 +13,24 @@ const SwitchTurnButton: React.FC<SwitchTurnButtonProps> = ({
   const playerColor: PlayerColor = player;
 
   useEffect(() => {
-    game.getTurn().then((player) => setPlayer(player));
+    game.getTurn().then((player) => {
+      setPlayer(player);
+      console.log("first", player);
+    });
+  }, [game]);
+
+  useEffect(() => {
+    const unsubscribe = game.switchTurnEventSubscription().subscribe((e) => {
+      setPlayer(e.turn);
+      console.log("received event", e);
+    });
+    return () => unsubscribe();
   }, [game]);
 
   const handleClick = () => {
-    game
-      .switchTurn()
-      .then((ok) => {
-        setPlayer((player) => (player === "red" ? "blue" : "red"));
-      })
-      .catch((error) => {
-        console.error("Failed to switch turn:", error);
-      });
+    game.switchTurn().catch((error) => {
+      console.error("Failed to switch turn:", error);
+    });
   };
 
   return (

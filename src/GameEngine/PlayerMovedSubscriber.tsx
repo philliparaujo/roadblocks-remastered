@@ -20,11 +20,13 @@ type UnsubscribePlayerMoved = () => void;
 
 export class PlayerMovedSubscriber implements PlayerEventSubscription {
   subscribers: PlayerMovedEventCallback[] = [];
+  pastEvents: PlayerMovedEvent[] = [];
 
   subscribe: (callback: PlayerMovedEventCallback) => UnsubscribePlayerMoved = (
     callback
   ) => {
     this.subscribers.push(callback);
+    this.pastEvents.forEach((e) => callback(e));
     return () => this.unsubscribe(callback);
   };
 
@@ -35,6 +37,7 @@ export class PlayerMovedSubscriber implements PlayerEventSubscription {
   };
 
   notify: (event: PlayerMovedEvent) => void = (event) => {
+    this.pastEvents.push(event);
     this.subscribers.forEach((callback) => callback(event));
   };
 }

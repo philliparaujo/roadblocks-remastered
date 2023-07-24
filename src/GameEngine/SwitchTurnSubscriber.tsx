@@ -13,11 +13,13 @@ type UnsubscribeSwitchTurn = () => void;
 
 export class SwitchTurnSubscriber implements SwitchTurnEventSubscription {
   subscribers: SwitchTurnEventCallback[] = [];
+  pastEvents: SwitchTurnEvent[] = [];
 
   subscribe: (callback: SwitchTurnEventCallback) => UnsubscribeSwitchTurn = (
     callback
   ) => {
     this.subscribers.push(callback);
+    this.pastEvents.forEach((e) => callback(e));
     return () => this.unsubscribe(callback);
   };
 
@@ -28,6 +30,7 @@ export class SwitchTurnSubscriber implements SwitchTurnEventSubscription {
   };
 
   notify: (event: SwitchTurnEvent) => void = (event) => {
+    this.pastEvents.push(event);
     this.subscribers.forEach((callback) => callback(event));
   };
 }

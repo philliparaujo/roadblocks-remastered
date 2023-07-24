@@ -10,6 +10,7 @@ import { NPCImpl } from "./GameEngine/NPC";
 function App() {
   useEffect(() => {
     NPCImpl.create(GameInstance, "red");
+    NPCImpl.create(GameInstance, "blue");
   }, []);
 
   return (

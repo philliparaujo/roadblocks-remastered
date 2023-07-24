@@ -60,12 +60,13 @@ const Edge: React.FC<EdgeProps> = ({
 
   useEffect(() => {
     const unsubscribe = game.wallToggledEventSubscription().subscribe((e) => {
+      // console.log("RECEIVED EDGE EVENT", e);
       if (equalCoords(e.wall, coord)) {
         setToggled(e.isToggled);
       }
     });
     return () => unsubscribe();
-  }, []);
+  }, [game]);
 
   /* Updates color of edge whenever a change occurs */
   useEffect(() => {

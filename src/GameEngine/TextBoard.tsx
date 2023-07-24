@@ -64,7 +64,9 @@ export class TextBoard {
   }
 
   public getBoardForTesting(): Board {
-    return this.board;
+    const board: Board = this.board.copy();
+    // console.log(board);
+    return board;
   }
 
   public getWidth(): number {
@@ -95,10 +97,8 @@ export class TextBoard {
     const prevElement: CellElement = this.board.get(prevCoord) as CellElement;
 
     if (Array.isArray(prevElement)) {
-      console.log("IN HERE 1");
       const index = prevElement.indexOf(e.player === "red" ? "r" : "b");
       if (index > -1) {
-        console.log("IN HERE 2");
         prevElement.splice(index, 1);
       }
     } else {

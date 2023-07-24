@@ -10,6 +10,10 @@ import {
   isVerticalEdge,
 } from "../Utils";
 import {
+  LockWallEventSubscription,
+  LockWallSubscriber,
+} from "./LockWallSubscriber";
+import {
   PlayerEventSubscription,
   PlayerMovedSubscriber,
 } from "./PlayerMovedSubscriber";
@@ -39,6 +43,7 @@ export interface GameState {
   playerMovedSubscriptions: PlayerMovedSubscriber;
   switchTurnSubscriptions: SwitchTurnSubscriber;
   wallToggledSubscriptions: WallToggledSubscriber;
+  lockWallSubscriptions: LockWallSubscriber;
 }
 interface EdgeResult {}
 interface LockWallResult {}
@@ -66,6 +71,7 @@ export interface Game {
   playerMovedEventSubscription: () => PlayerEventSubscription;
   switchTurnEventSubscription: () => SwitchTurnEventSubscription;
   wallToggledEventSubscription: () => WallToggledEventSubscription;
+  lockWallEventSubscription: () => LockWallEventSubscription;
 }
 
 var id = 1;
@@ -84,17 +90,36 @@ export class GameImpl implements Game {
     id: id++,
     playerLocations: { red: { row: 7, col: 1 }, blue: { row: 1, col: 7 } },
     endLocations: { red: { row: 7, col: 13 }, blue: { row: 13, col: 7 } },
-    wallLocations: { red: [], blue: [], locked: [] },
+    wallLocations: {
+      red: [],
+      blue: [],
+      locked: [
+        { row: 1, col: 10 },
+        { row: 2, col: 1 },
+        { row: 2, col: 7 },
+        { row: 2, col: 11 },
+        { row: 3, col: 12 },
+        { row: 4, col: 5 },
+        { row: 4, col: 9 },
+        { row: 4, col: 13 },
+        { row: 6, col: 7 },
+        { row: 7, col: 12 },
+        { row: 9, col: 10 },
+        { row: 12, col: 13 },
+      ],
+    },
     playerMovedSubscriptions: new PlayerMovedSubscriber(),
     switchTurnSubscriptions: new SwitchTurnSubscriber(),
     wallToggledSubscriptions: new WallToggledSubscriber(),
+    lockWallSubscriptions: new LockWallSubscriber(),
   };
 
   constructor(width: number, height: number) {
     this.state.width = width;
     this.state.height = height;
     console.log("Created game object", this.state.id);
-    this.generateRandomWallLocations(this.state.width, this.state.height);
+    // this.generateRandomWallLocations(this.state.width, this.state.height);
+    this.mirrorLockedWallLocations();
   }
 
   static createForTesting(
@@ -165,6 +190,7 @@ export class GameImpl implements Game {
 
   lockWalls = (): Promise<LockWallResult> => {
     this.state.phase = "movingPlayer";
+    this.state.lockWallSubscriptions.notify({});
     return Promise.resolve({});
   };
 
@@ -220,18 +246,28 @@ export class GameImpl implements Game {
   getInitialCellLocation = (cellElement: CellElement): Promise<Coord> => {
     switch (cellElement) {
       case "redplayer":
-        return Promise.resolve(this.state.playerLocations.red);
+        return Promise.resolve(
+          JSON.parse(JSON.stringify(this.state.playerLocations.red))
+        );
       case "blueplayer":
-        return Promise.resolve(this.state.playerLocations.blue);
+        return Promise.resolve(
+          JSON.parse(JSON.stringify(this.state.playerLocations.blue))
+        );
       case "redend":
-        return Promise.resolve(this.state.endLocations.red);
+        return Promise.resolve(
+          JSON.parse(JSON.stringify(this.state.endLocations.red))
+        );
       case "blueend":
-        return Promise.resolve(this.state.endLocations.blue);
+        return Promise.resolve(
+          JSON.parse(JSON.stringify(this.state.endLocations.blue))
+        );
     }
   };
 
   getWallLocations = (): Promise<WallLocations> => {
-    return Promise.resolve(this.state.wallLocations);
+    return Promise.resolve(
+      JSON.parse(JSON.stringify(this.state.wallLocations))
+    );
   };
 
   getWidth = (): Promise<number> => {
@@ -251,6 +287,9 @@ export class GameImpl implements Game {
   wallToggledEventSubscription = (): WallToggledSubscriber =>
     this.state.wallToggledSubscriptions;
 
+  lockWallEventSubscription = (): LockWallEventSubscription =>
+    this.state.lockWallSubscriptions;
+
   generateRandomWallLocations = (width: number, height: number): void => {
     for (let i = 0; i <= height * 2; i++) {
       for (let j = 0; j <= width * 2; j++) {
@@ -266,6 +305,14 @@ export class GameImpl implements Game {
         }
       }
     }
+  };
+
+  mirrorLockedWallLocations = (): void => {
+    const wallLocationCopy: Coord[] = [...this.state.wallLocations.locked];
+    for (const coord of this.state.wallLocations.locked) {
+      wallLocationCopy.push({ row: coord.col, col: coord.row });
+    }
+    this.state.wallLocations.locked = wallLocationCopy;
   };
 
   winGame = (): void => {
