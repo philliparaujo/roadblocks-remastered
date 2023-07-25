@@ -12,8 +12,8 @@ import { TextBoard } from "./TextBoard";
 
 type score = number;
 
-//const ActionSleepTimeMs = 500;
-const ActionSleepTimeMs = 0;
+const ActionSleepTimeMs = 500;
+// const ActionSleepTimeMs = 0;
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 

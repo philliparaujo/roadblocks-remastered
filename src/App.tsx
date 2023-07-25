@@ -11,7 +11,7 @@ import Dice from "./components/UI/Dice";
 function App() {
   useEffect(() => {
     NPCImpl.create(GameInstance, "red");
-    NPCImpl.create(GameInstance, "blue");
+    // NPCImpl.create(GameInstance, "blue");
   }, []);
 
   return (

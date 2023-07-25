@@ -1,4 +1,4 @@
-import { blue, bold, dim, green, red, white } from "../Colors";
+import { bgWhite, black, blue, bold, dim, green, red, white } from "../Colors";
 import { Coord } from "../Coord";
 import { isCell, isCorner, isEdge } from "../Utils";
 import { Game, WallLocations } from "./Game";
@@ -132,59 +132,59 @@ export default class Board {
     ┗━━┻━━┻━━┻━━┻━━┛
    */
   dump(printer: Printer) {
-    let result = "";
+    let result: string[][] = [];
 
-    // result += "\u001b[90m┏";
+    // result.push("\u001b[90m┏";
 
     /* top row */
-    result += this.createRow(
-      "┏━",
-      "━━━",
-      "━┳━",
-      "━━━━┓",
-      2 * this.width - 1,
-      0
+    result.push(
+      this.createRow("┏━", "━━━", "━┳━", "━━━━┓", 2 * this.width - 1, 0)
     );
 
     for (let i = 1; i < this.height; i++) {
-      result += this.createRow(
+      result.push(
+        this.createRow(
+          "┃ ",
+          "   ",
+          " ┃ ",
+          "    ┃",
+          2 * this.width - 1,
+          2 * i - 1
+        )
+      );
+      result.push(
+        this.createRow("┣", "━━━━━", "╋", "━━━━━┫", 2 * this.width - 1, 2 * i)
+      );
+    }
+
+    result.push(
+      this.createRow(
         "┃ ",
         "   ",
         " ┃ ",
         "    ┃",
         2 * this.width - 1,
-        2 * i - 1
-      );
-      result += this.createRow(
-        "┣",
-        "━━━━━",
-        "╋",
-        "━━━━━┫",
-        2 * this.width - 1,
-        2 * i
-      );
-    }
-
-    result += this.createRow(
-      "┃ ",
-      "   ",
-      " ┃ ",
-      "    ┃",
-      2 * this.width - 1,
-      2 * this.height - 1
+        2 * this.height - 1
+      )
     );
 
     /* bottom row */
-    result += this.createRow(
-      "┗",
-      "━━━━━",
-      "┻",
-      "━━━━━┛",
-      2 * this.width - 1,
-      2 * this.height
+    result.push(
+      this.createRow(
+        "┗",
+        "━━━━━",
+        "┻",
+        "━━━━━┛",
+        2 * this.width - 1,
+        2 * this.height
+      )
     );
 
-    printer(result);
+    const resultString: string = result
+      .map((row) => row.map((element) => element).join(""))
+      .join("");
+
+    printer(resultString);
   }
 
   createRow(
@@ -194,12 +194,12 @@ export default class Board {
     endChar: string,
     count: number,
     rowNumber: number
-  ) {
+  ): string[] {
     let paddedRowNumber: string = rowNumber.toString().padStart(3, "0");
 
-    let row = "";
-    row += paddedRowNumber;
-    row += white(dim(startChar));
+    let row: string[] = [];
+    row.push(paddedRowNumber);
+    row.push(white(dim(startChar)));
     // let row = chalk.white.dim(startChar);
 
     for (let colNumber = 1; colNumber < count; colNumber++) {
@@ -208,11 +208,11 @@ export default class Board {
       if (colNumber % 2 === 1) {
         if (isEdge(coord)) {
           if (this.items[rowNumber][colNumber] === "#") {
-            row += bold(firstLoopChar);
+            row.push(black(bold(firstLoopChar)));
           } else if (this.items[rowNumber][colNumber] === "-") {
-            row += blue(bold(firstLoopChar));
+            row.push(blue(bold(firstLoopChar)));
           } else {
-            row += white(dim(firstLoopChar));
+            row.push(white(dim(firstLoopChar)));
           }
         } else if (isCell(coord)) {
           if (this.items[rowNumber][colNumber].length > 0) {
@@ -220,22 +220,22 @@ export default class Board {
             for (let element of this.items[rowNumber][colNumber]) {
               cell += element;
             }
-            row += green(bold(cell.padStart(3, " ")));
+            row.push(green(bold(cell.padStart(3, " "))));
           } else {
-            row += green(bold(firstLoopChar));
+            row.push(green(bold(firstLoopChar)));
           }
         } else if (isCorner(coord)) {
-          row += white(dim(firstLoopChar));
+          row.push(white(dim(firstLoopChar)));
         }
-        // row += chalk.white.dim(firstLoopChar);
+        // row.push(chalk.white.dim(firstLoopChar);
       } else {
         if (isEdge(coord)) {
           if (this.items[rowNumber][colNumber] === "#") {
-            row += bold(secondLoopChar);
+            row.push(black(bold(secondLoopChar)));
           } else if (this.items[rowNumber][colNumber] === "|") {
-            row += red(bold(secondLoopChar));
+            row.push(red(bold(secondLoopChar)));
           } else {
-            row += white(dim(secondLoopChar));
+            row.push(white(dim(secondLoopChar)));
           }
         } else if (isCell(coord)) {
           if (this.items[rowNumber][colNumber].length > 0) {
@@ -243,14 +243,14 @@ export default class Board {
             for (let element of this.items[rowNumber][colNumber]) {
               cell += element;
             }
-            row += green(bold(cell.padStart(3, " ")));
+            row.push(green(bold(cell.padStart(3, " "))));
           } else {
-            row += green(bold(firstLoopChar));
+            row.push(green(bold(firstLoopChar)));
           }
         } else if (isCorner(coord)) {
-          row += white(dim(secondLoopChar));
+          row.push(white(dim(secondLoopChar)));
         }
-        // row += chalk.white.dim(secondLoopChar);
+        // row.push(chalk.white.dim(secondLoopChar);
       }
     }
 
@@ -262,13 +262,13 @@ export default class Board {
       for (let element of this.items[rowNumber][count]) {
         cell += element;
       }
-      row += green(bold(cell.padStart(3, " ")));
-      row += white(dim(" " + endChar.charAt(4)));
+      row.push(green(bold(cell.padStart(3, " "))));
+      row.push(white(dim(" " + endChar.charAt(4))));
     } else {
-      row += white(dim(endChar));
+      row.push(white(dim(endChar)));
     }
 
-    row += "\n";
+    row.push("\n");
     return row;
   }
 }
