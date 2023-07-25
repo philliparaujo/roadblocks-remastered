@@ -129,7 +129,7 @@ describe("NPC", () => {
       winGame: jest.fn(),
     };
 
-    npc = await NPCImpl.create(game as TestGame, "red");
+    npc = await NPCImpl.create(game as TestGame, "red", true);
   });
 
   test("Score starts at 0", async () => {

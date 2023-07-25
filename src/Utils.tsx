@@ -67,3 +67,8 @@ export const isValidMove = (
 
   return true;
 };
+
+export const randomDiceValue = (diceRolls = [1, 2, 3, 4, 5, 6]): number => {
+  const index = Math.floor(Math.random() * 6);
+  return diceRolls[index];
+};

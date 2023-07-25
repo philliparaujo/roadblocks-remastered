@@ -22,7 +22,6 @@ const SwitchTurnButton: React.FC<SwitchTurnButtonProps> = ({
   useEffect(() => {
     const unsubscribe = game.switchTurnEventSubscription().subscribe((e) => {
       setPlayer(e.turn);
-      console.log("received event", e);
     });
     return () => unsubscribe();
   }, [game]);

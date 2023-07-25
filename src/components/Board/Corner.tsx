@@ -8,11 +8,7 @@ interface CornerProps {
 }
 
 const Corner: React.FC<CornerProps> = ({ coord }) => {
-  const handleClick = () => {
-    console.log(`corner: (${coord.row}, ${coord.col})`);
-  };
-
-  return <div className="corner" onClick={handleClick}></div>;
+  return <div className="corner"></div>;
 };
 
 export default Corner;

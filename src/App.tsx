@@ -6,6 +6,7 @@ import LockWallsButton from "./components/UI/LockWallsButton";
 import { TextBoard } from "./GameEngine/TextBoard";
 import { useEffect, useState } from "react";
 import { NPCImpl } from "./GameEngine/NPC";
+import Dice from "./components/UI/Dice";
 
 function App() {
   useEffect(() => {
@@ -19,6 +20,7 @@ function App() {
       <UIBoard debug={false}></UIBoard>
       <LockWallsButton />
       <SwitchTurnButton />
+      <Dice />
     </div>
   );
 }

@@ -8,7 +8,12 @@ import {
   isHorizontalEdge,
   isValidMove,
   isVerticalEdge,
+  randomDiceValue,
 } from "../Utils";
+import {
+  DiceRollEventSubscription,
+  DiceRollSubscriber,
+} from "./DiceRollSubscriber";
 import {
   LockWallEventSubscription,
   LockWallSubscriber,
@@ -30,48 +35,63 @@ type TurnPhase = "placingWalls" | "movingPlayer";
 export type PlayerColor = "red" | "blue";
 type CellLocations = { [key in PlayerColor]: Coord };
 export type WallLocations = { [key in PlayerColor | "locked"]: Coord[] };
+type DiceInfo = { [key in PlayerColor]: number[] };
 
 export interface GameState {
+  gameOver: boolean;
   turn: PlayerColor;
   phase: TurnPhase;
+  diceValue: number;
+  diceRolled: boolean;
   width: number;
   height: number;
   id: number;
   playerLocations: CellLocations;
   endLocations: CellLocations;
   wallLocations: WallLocations;
+  diceRolls: DiceInfo;
   playerMovedSubscriptions: PlayerMovedSubscriber;
   switchTurnSubscriptions: SwitchTurnSubscriber;
   wallToggledSubscriptions: WallToggledSubscriber;
   lockWallSubscriptions: LockWallSubscriber;
+  diceRollSubscriptions: DiceRollSubscriber;
 }
 interface EdgeResult {}
 interface LockWallResult {}
 interface EndTurnResult {}
 interface ResetResult {}
 interface PlayerMovedResult {}
+interface DiceRollResult {
+  diceValue: number;
+}
 
 export interface Game {
   // new(width, height)
   // join(gid)
   // watch(gid)
+
   addEdge: (coord: Coord) => Promise<EdgeResult>;
   removeEdge: (coord: Coord) => Promise<EdgeResult>;
   lockWalls: () => Promise<LockWallResult>;
   switchTurn: () => Promise<EndTurnResult>;
-  getTurn: () => Promise<PlayerColor>;
   reset: () => Promise<ResetResult>;
+  setPlayerLocation: (coord: Coord) => Promise<PlayerMovedResult>;
+  rollDice: () => Promise<DiceRollResult>;
+
+  getTurn: () => Promise<PlayerColor>;
   playerLocation: (player: PlayerColor) => Promise<Coord>;
   endLocation: (player: PlayerColor) => Promise<Coord>;
-  setPlayerLocation: (coord: Coord) => Promise<PlayerMovedResult>;
   getInitialCellLocation: (cellElement: CellElement) => Promise<Coord>;
   getWallLocations: () => Promise<WallLocations>;
+  getDiceRolls: (player: PlayerColor) => Promise<number[]>;
   getWidth: () => Promise<number>;
   getHeight: () => Promise<number>;
+
   playerMovedEventSubscription: () => PlayerEventSubscription;
   switchTurnEventSubscription: () => SwitchTurnEventSubscription;
   wallToggledEventSubscription: () => WallToggledEventSubscription;
   lockWallEventSubscription: () => LockWallEventSubscription;
+  diceRollEventSubscription: () => DiceRollEventSubscription;
 }
 
 var id = 1;
@@ -83,8 +103,11 @@ type OverridesForTesting = {
 
 export class GameImpl implements Game {
   private state: GameState = {
+    gameOver: false,
     turn: "red",
     phase: "placingWalls",
+    diceValue: 1,
+    diceRolled: false,
     width: 7,
     height: 7,
     id: id++,
@@ -108,10 +131,15 @@ export class GameImpl implements Game {
         { row: 12, col: 13 },
       ],
     },
+    diceRolls: {
+      red: [1, 2, 3, 4, 5, 6],
+      blue: [1, 2, 3, 4, 5, 6],
+    },
     playerMovedSubscriptions: new PlayerMovedSubscriber(),
     switchTurnSubscriptions: new SwitchTurnSubscriber(),
     wallToggledSubscriptions: new WallToggledSubscriber(),
     lockWallSubscriptions: new LockWallSubscriber(),
+    diceRollSubscriptions: new DiceRollSubscriber(),
   };
 
   constructor(width: number, height: number) {
@@ -120,6 +148,8 @@ export class GameImpl implements Game {
     console.log("Created game object", this.state.id);
     // this.generateRandomWallLocations(this.state.width, this.state.height);
     this.mirrorLockedWallLocations();
+
+    // this.rollDice();
   }
 
   static createForTesting(
@@ -142,80 +172,46 @@ export class GameImpl implements Game {
     };
   }
 
-  handleEdgeAction = (coord: Coord, placing: boolean): Promise<EdgeResult> => {
-    if (this.state.phase !== "placingWalls") {
-      return Promise.reject("NOT WALL PHASE");
-    }
-
-    if (!isEdge(coord)) {
-      return Promise.reject("INVALID COORD");
-    }
-
-    const isVertical = isVerticalEdge(coord);
-    const isCorrectTurn = isVertical
-      ? this.state.turn === "red"
-      : this.state.turn === "blue";
-
-    if (placing && isCorrectTurn) {
-      this.state.wallLocations[this.state.turn].push(coord);
-      this.notifyWallToggled(coord, true);
-      console.log(this.state.wallLocations);
-      return Promise.resolve({});
-    } else if (!placing && isCorrectTurn) {
-      this.state.wallLocations[this.state.turn] = this.state.wallLocations[
-        this.state.turn
-      ].filter((wall) => !equalCoords(wall, coord));
-      this.notifyWallToggled(coord, false);
-      return Promise.resolve({});
-    } else {
-      return Promise.reject("WRONG TURN");
-    }
-  };
-
-  notifyWallToggled = (coord: Coord, isToggled: boolean): void => {
-    this.state.wallToggledSubscriptions.notify({
-      wall: coord,
-      isToggled: isToggled,
-    });
-    // console.log(this.state.wallLocations);
-  };
-
   addEdge = (coord: Coord): Promise<EdgeResult> => {
+    if (this.state.gameOver) return Promise.reject("Game over");
     return this.handleEdgeAction(coord, true);
   };
 
   removeEdge = (coord: Coord): Promise<EdgeResult> => {
+    if (this.state.gameOver) return Promise.reject("Game over");
     return this.handleEdgeAction(coord, false);
   };
 
   lockWalls = (): Promise<LockWallResult> => {
+    if (this.state.gameOver) return Promise.reject("Game over");
+
     this.state.phase = "movingPlayer";
     this.state.lockWallSubscriptions.notify({});
     return Promise.resolve({});
   };
 
   switchTurn = (): Promise<EndTurnResult> => {
+    if (this.state.gameOver) return Promise.reject("Game over");
+
     this.state.turn = this.state.turn === "red" ? "blue" : "red";
     this.state.phase = "placingWalls";
     this.state.switchTurnSubscriptions.notify({ turn: this.state.turn });
+
+    this.state.diceRolled = false;
+
     return Promise.resolve({});
   };
 
-  getTurn = (): Promise<PlayerColor> => Promise.resolve(this.state.turn);
-
   reset = (): Promise<ResetResult> => {
+    // needs to be modified!!!
     this.state.turn = "red";
     this.state.phase = "placingWalls";
     return Promise.resolve({});
   };
 
-  playerLocation = (player: PlayerColor): Promise<Coord> =>
-    Promise.resolve(this.state.playerLocations[player]);
-
-  endLocation = (player: PlayerColor): Promise<Coord> =>
-    Promise.resolve(this.state.endLocations[player]);
-
   setPlayerLocation = (coord: Coord): Promise<PlayerMovedResult> => {
+    if (this.state.gameOver) return Promise.reject("Game over");
+
     if (this.state.phase !== "movingPlayer") {
       return Promise.reject("NOT MOVE PHASE");
     }
@@ -242,6 +238,72 @@ export class GameImpl implements Game {
 
     return Promise.resolve({});
   };
+
+  rollDice = (): Promise<DiceRollResult> => {
+    const rollDurationMs: number = 500;
+
+    if (this.state.gameOver) return Promise.reject("Game over");
+
+    if (this.state.diceRolled) {
+      return Promise.reject("Dice already rolled");
+    }
+
+    this.state.diceRollSubscriptions.notify({ type: "start" });
+    this.state.diceRolled = true;
+
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const currentDiceRolls = this.state.diceRolls[this.state.turn];
+        const newValue = randomDiceValue(currentDiceRolls);
+        const result = { diceValue: newValue };
+        this.state.diceRollSubscriptions.notify({
+          type: "stop",
+          value: newValue,
+        });
+        resolve(result);
+      }, rollDurationMs);
+    });
+  };
+
+  handleEdgeAction = (coord: Coord, placing: boolean): Promise<EdgeResult> => {
+    if (this.state.gameOver) return Promise.reject("Game over");
+
+    if (this.state.phase !== "placingWalls") {
+      return Promise.reject("NOT WALL PHASE");
+    }
+
+    if (!isEdge(coord)) {
+      return Promise.reject("INVALID COORD");
+    }
+
+    const isVertical = isVerticalEdge(coord);
+    const isCorrectTurn = isVertical
+      ? this.state.turn === "red"
+      : this.state.turn === "blue";
+
+    if (placing && isCorrectTurn) {
+      this.state.wallLocations[this.state.turn].push(coord);
+      this.notifyWallToggled(coord, true);
+      // console.log(this.state.wallLocations);
+      return Promise.resolve({});
+    } else if (!placing && isCorrectTurn) {
+      this.state.wallLocations[this.state.turn] = this.state.wallLocations[
+        this.state.turn
+      ].filter((wall) => !equalCoords(wall, coord));
+      this.notifyWallToggled(coord, false);
+      return Promise.resolve({});
+    } else {
+      return Promise.reject("WRONG TURN");
+    }
+  };
+
+  getTurn = (): Promise<PlayerColor> => Promise.resolve(this.state.turn);
+
+  playerLocation = (player: PlayerColor): Promise<Coord> =>
+    Promise.resolve(this.state.playerLocations[player]);
+
+  endLocation = (player: PlayerColor): Promise<Coord> =>
+    Promise.resolve(this.state.endLocations[player]);
 
   getInitialCellLocation = (cellElement: CellElement): Promise<Coord> => {
     switch (cellElement) {
@@ -270,6 +332,9 @@ export class GameImpl implements Game {
     );
   };
 
+  getDiceRolls = (player: PlayerColor): Promise<number[]> =>
+    Promise.resolve(this.state.diceRolls[player]);
+
   getWidth = (): Promise<number> => {
     return Promise.resolve(this.state.width);
   };
@@ -289,6 +354,17 @@ export class GameImpl implements Game {
 
   lockWallEventSubscription = (): LockWallEventSubscription =>
     this.state.lockWallSubscriptions;
+
+  diceRollEventSubscription = (): DiceRollEventSubscription =>
+    this.state.diceRollSubscriptions;
+
+  notifyWallToggled = (coord: Coord, isToggled: boolean): void => {
+    this.state.wallToggledSubscriptions.notify({
+      wall: coord,
+      isToggled: isToggled,
+    });
+    // console.log(this.state.wallLocations);
+  };
 
   generateRandomWallLocations = (width: number, height: number): void => {
     for (let i = 0; i <= height * 2; i++) {
@@ -316,6 +392,7 @@ export class GameImpl implements Game {
   };
 
   winGame = (): void => {
+    this.state.gameOver = true;
     alert((this.state.turn === "red" ? "Red" : "Blue") + " player won!");
   };
 }

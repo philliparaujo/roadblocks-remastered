@@ -12,12 +12,14 @@ import { TextBoard } from "./TextBoard";
 
 type score = number;
 
+//const ActionSleepTimeMs = 500;
+const ActionSleepTimeMs = 0;
+
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /* eventually remove */
 interface NPC {
   // bestWall: () => Promise<Coord[]>;
-  bestMovement: () => Promise<Coord[]>;
   isMyTurn: () => Promise<boolean>;
   calculateScore: () => Promise<score>;
 }
@@ -27,17 +29,28 @@ export class NPCImpl implements NPC {
   player: PlayerColor;
   textBoard: TextBoard;
   pathfinder: PathfinderImpl;
+
+  disabled?: boolean;
+
   weightFn: (i: number) => number;
 
   private unsubscribeWall: () => void;
   private unsubscribePlayer: () => void;
   private unsubscribeSwitchTurn: () => void;
 
-  private constructor(game: Game, player: PlayerColor, textBoard: TextBoard) {
+  private constructor(
+    game: Game,
+    player: PlayerColor,
+    textBoard: TextBoard,
+    disabled: boolean = false
+  ) {
     this.game = game;
     this.player = player;
     this.textBoard = textBoard;
     this.pathfinder = new PathfinderImpl();
+
+    this.disabled = disabled;
+
     this.weightFn = (i: number) => 1 / (i + 1);
 
     this.unsubscribeWall = game
@@ -57,187 +70,28 @@ export class NPCImpl implements NPC {
     this.unsubscribeSwitchTurn = game
       .switchTurnEventSubscription()
       .subscribe((e) => {
-        if (e.turn === player) {
+        if (e.turn === player && !this.disabled) {
           this.play();
         }
       });
 
     this.game.getTurn().then((result) => {
-      if (result == this.player) {
+      if (result == this.player && !this.disabled) {
         this.play();
       }
     });
   }
 
-  private printHelper(): void {
-    // this.printShortestPath();
-    this.calculateScore()
-      .then((score) => console.log("score:", score))
-      .catch((err) => console.error(err));
-    // this.bestMovement()
-    //   .then((move) => console.log("move:", move[0]))
-    //   .catch((err) => console.error(err));
-    // this.bestXWallPlacements(3)
-    //   .then((walls) => console.log("wall additions", walls))
-    //   .catch((err) => console.error(err, "!!!!"));
-    // this.bestXWallRemovals(2)
-    //   .then((walls) => console.log("wall removals", walls))
-    //   .catch((err) => console.error(err));
-    // this.printShortestPath();
-  }
-
-  static async create(game: Game, player: PlayerColor): Promise<NPCImpl> {
+  static async create(
+    game: Game,
+    player: PlayerColor,
+    disabled: boolean = false
+  ): Promise<NPCImpl> {
     const textBoard: TextBoard = await TextBoard.create(game, console.log);
-    return Promise.resolve(new NPCImpl(game, player, textBoard));
+    return Promise.resolve(new NPCImpl(game, player, textBoard, disabled));
   }
 
   /* Public methods */
-
-  private play = async (): Promise<void> => {
-    console.log("playing", this.player);
-
-    const numWallRemovals = 1;
-    const numWallAdditions = 2;
-    const numMovements = 3;
-
-    await sleep(500);
-
-    try {
-      const wallsToRemove = await this.bestXWallRemovals(numWallRemovals);
-      if (wallsToRemove) {
-        for (let wall of wallsToRemove) {
-          this.game.removeEdge(wall);
-        }
-      }
-    } catch (error) {
-      console.error("Error in removing walls:", error);
-    }
-
-    await sleep(500);
-
-    try {
-      const wallsToPlace = await this.bestXWallPlacements(numWallAdditions);
-      if (wallsToPlace) {
-        for (let wall of wallsToPlace) {
-          this.game.addEdge(wall);
-        }
-      }
-    } catch (error) {
-      console.error("Error in placing walls:", error);
-    }
-
-    await sleep(500);
-
-    try {
-      await this.game.lockWalls();
-    } catch (error) {
-      console.error("Error in switching turns", error);
-    }
-
-    await sleep(500);
-
-    try {
-      const movements = await this.bestXMovements(numMovements);
-      console.log("movements", movements);
-      if (movements) {
-        for (let coord of movements) {
-          this.game.setPlayerLocation(coord);
-        }
-      }
-    } catch (error) {
-      console.error("Error in moving:", error);
-    }
-
-    await sleep(500);
-
-    try {
-      await this.game.switchTurn();
-    } catch (error) {
-      console.error("Error in ending turns", error);
-    }
-
-    console.log(await this.game.playerLocation(this.player));
-  };
-
-  public bestXWallPlacements = async (x: number): Promise<Coord[] | null> => {
-    let board = this.textBoard.getBoardForTesting();
-    let bestWalls: Coord[] = [];
-
-    for (let i = 0; i < x; i++) {
-      let bestWall = await this.bestSingleWallAgainstOpponent(board);
-
-      if (bestWall === null) {
-        console.error("Best wall placement somehow null");
-        break;
-      }
-
-      bestWalls.push(bestWall);
-
-      let wallType = this.player === "red" ? "|" : "-";
-      board.set(bestWall, wallType as EdgeElement);
-    }
-
-    if (bestWalls.length == 0) {
-      return Promise.reject("No walls to add");
-    }
-
-    return bestWalls;
-  };
-
-  public bestXWallRemovals = async (x: number): Promise<Coord[] | null> => {
-    let board = this.textBoard.getBoardForTesting();
-    let bestWalls: Coord[] = [];
-    let walls: WallLocations = await this.game.getWallLocations();
-    let myWalls: Coord[] = walls[this.player];
-
-    for (let i = 0; i < x; i++) {
-      let bestWallResult: Coord | null = await this.bestSingleWallRemoval(
-        board,
-        myWalls
-      );
-
-      if (bestWallResult === null) {
-        console.error("Best wall to remove is somehow null");
-        break;
-      } else {
-        let bestWall = bestWallResult;
-        bestWalls.push(bestWall);
-        board.set(bestWall, " "); // Remove the wall from the board
-        myWalls = myWalls.filter((coord) => !equalCoords(coord, bestWall));
-      }
-    }
-
-    if (bestWalls.length == 0) {
-      return Promise.reject("No walls to remove");
-    }
-
-    return bestWalls;
-  };
-
-  public bestXMovements = async (x: number): Promise<Coord[] | null> => {
-    const path = await this.getShortestPathOf(this.player);
-    if (path) {
-      if (path.length <= 1) {
-        return Promise.reject("Already won?");
-      } else {
-        // Get first x coordinates, starting at index 1. If x > length, return entire path except first index
-        return path.slice(1, x + 1);
-      }
-    } else {
-      return Promise.reject("No path?");
-    }
-  };
-
-  public bestMovement = async (): Promise<Coord[]> => {
-    const path = await this.getShortestPathOf(this.player);
-    if (path) {
-      return path.length <= 1
-        ? Promise.reject("Already won?")
-        : Promise.resolve([path[1]]);
-    } else {
-      return Promise.reject("No path?");
-    }
-  };
 
   public isMyTurn = async (): Promise<boolean> => {
     const turn = await this.game.getTurn();
@@ -269,7 +123,6 @@ export class NPCImpl implements NPC {
         return Promise.reject(`opponent has no valid path, ${i}`);
       } else if (opponentPath) {
         this.printShortestPath();
-        console.log(board);
         return Promise.reject(`i don't have a valid path, ${i}`);
       } else {
         return Promise.reject(`neither of us have valid paths, ${i}`);
@@ -285,8 +138,121 @@ export class NPCImpl implements NPC {
     return Promise.resolve(finalScore);
   };
 
-  /* Private methods */
-  private bestSingleWallAgainstOpponent = async (
+  /* Powerful private methods */
+  private play = async (): Promise<void> => {
+    // console.log("playing", this.player);
+
+    await sleep(ActionSleepTimeMs);
+
+    this.game.rollDice().then(async (result) => {
+      const numMovements = result.diceValue;
+      const numWallChanges = 7 - result.diceValue;
+
+      for (let i = 0; i < numWallChanges; i++) {
+        const bestMove: Coord | null = await this.bestSingleWallMove();
+        if (bestMove === null) {
+          break;
+        }
+
+        const allWalls: WallLocations = await this.game.getWallLocations();
+        const myWalls: Coord[] = allWalls[this.player];
+        if (this.isCoordInArray(bestMove, myWalls)) {
+          await this.game.removeEdge(bestMove);
+        } else {
+          await this.game.addEdge(bestMove);
+        }
+
+        await sleep(ActionSleepTimeMs * 1.5);
+      }
+
+      try {
+        await this.game.lockWalls();
+      } catch (error) {
+        console.error("Error in switching turns", error);
+      }
+
+      await sleep(ActionSleepTimeMs);
+
+      try {
+        const movements = await this.bestXMovements(numMovements);
+        if (movements) {
+          for (let coord of movements) {
+            this.game.setPlayerLocation(coord);
+            await sleep(ActionSleepTimeMs / 2);
+          }
+        }
+      } catch (error) {
+        console.error("Error in moving:", error);
+      }
+
+      await sleep(ActionSleepTimeMs);
+
+      try {
+        this.textBoard.getBoardForTesting().dump(console.log);
+        await this.game.switchTurn();
+      } catch (error) {
+        console.error("Error in ending turns", error);
+      }
+    });
+  };
+
+  private bestXMovements = async (x: number): Promise<Coord[] | null> => {
+    const path = await this.getShortestPathOf(this.player);
+    if (path) {
+      if (path.length <= 1) {
+        return Promise.reject("Already won?");
+      } else {
+        // Get first x coordinates, starting at index 1. If x > length, return entire path except first index
+        return path.slice(1, x + 1);
+      }
+    } else {
+      return Promise.reject("No path?");
+    }
+  };
+
+  private bestSingleWallMove = async (): Promise<Coord | null> => {
+    const board: Board = this.textBoard.getBoardForTesting();
+    const allWalls = await this.game.getWallLocations();
+    const myWalls: Coord[] = allWalls[this.player];
+
+    const bestWallPlacement: Coord | null = await this.bestSingleWallPlacement(
+      board
+    );
+    let bestPlacementScore: number = -Infinity;
+    if (bestWallPlacement) {
+      const tempBoard = board.copy();
+      let wallType = this.player === "red" ? "|" : "-";
+      tempBoard.set(bestWallPlacement, wallType as EdgeElement);
+      this.calculateScore(tempBoard).then(
+        (result) => (bestPlacementScore = result)
+      );
+    }
+
+    const bestWallRemoval = await this.bestSingleWallRemoval(board, myWalls);
+    let bestRemovalScore: number = -Infinity;
+    if (bestWallRemoval) {
+      const tempBoard = board.copy();
+      tempBoard.set(bestWallRemoval, " ");
+      this.calculateScore(tempBoard).then(
+        (result) => (bestRemovalScore = result)
+      );
+    }
+
+    if (bestPlacementScore >= bestRemovalScore && myWalls.length < 6) {
+      if (!bestWallPlacement) {
+        return Promise.resolve(null);
+      }
+      return Promise.resolve(bestWallPlacement);
+    } else {
+      if (!bestWallRemoval) {
+        return Promise.resolve(null);
+      }
+      return Promise.resolve(bestWallRemoval);
+    }
+  };
+
+  /* Helper methods */
+  private bestSingleWallPlacement = async (
     board: Board
   ): Promise<Coord | null> => {
     const opponentPath = await this.getShortestPathOf(
@@ -294,15 +260,43 @@ export class NPCImpl implements NPC {
       board
     );
 
-    let bestWall = await this.bestSingleWallOnOpponentPath(board, opponentPath);
+    let bestWall = await this.highestScoreWallOnOpponentPath(
+      board,
+      opponentPath
+    );
     if (bestWall == null) {
-      bestWall = await this.bestSingleWall(board);
+      bestWall = await this.highestScoreWall(board);
     }
 
     return bestWall;
   };
 
-  private bestSingleWallOnOpponentPath = async (
+  private bestSingleWallRemoval = async (
+    board: Board,
+    myWalls: Coord[]
+  ): Promise<Coord | null> => {
+    let bestScore = -Infinity;
+    let bestWall: Coord | null = null;
+
+    for (let wallCoord of myWalls) {
+      let tempBoard = board.copy();
+      tempBoard.set(wallCoord, " "); // Remove the wall
+
+      try {
+        const score = await this.calculateScore(tempBoard);
+        if (score > bestScore) {
+          bestScore = score;
+          bestWall = wallCoord;
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    return bestWall;
+  };
+
+  private highestScoreWallOnOpponentPath = async (
     board: Board,
     opponentPath: Coord[] | null
   ) => {
@@ -336,13 +330,15 @@ export class NPCImpl implements NPC {
 
         tempBoard.set(wallCoord, wallType as EdgeElement);
 
+        const myPath = await this.getShortestPathOf(this.player, tempBoard);
+
         const newOpponentPath = await this.getShortestPathOf(
           this.getOpponent(),
           tempBoard
         );
 
         // If we've blocked the opponent completely, remove the wall and continue
-        if (newOpponentPath === null) {
+        if (myPath === null || newOpponentPath === null) {
           tempBoard.set(wallCoord, " ");
           continue;
         }
@@ -362,7 +358,7 @@ export class NPCImpl implements NPC {
     return bestWall;
   };
 
-  private bestSingleWall = async (board: Board) => {
+  private highestScoreWall = async (board: Board) => {
     const allValidWalls: Coord[] = this.allValidWallCoords();
 
     let bestScore = -Infinity;
@@ -374,13 +370,16 @@ export class NPCImpl implements NPC {
       if (tempBoard.get(coord) !== wallType) {
         tempBoard.set(coord, wallType as EdgeElement);
 
+        // PLEASE DONT BE THIS
+        const myPath = await this.getShortestPathOf(this.player, tempBoard);
+
         const newOpponentPath = await this.getShortestPathOf(
           this.getOpponent(),
           tempBoard
         );
 
         // If we've blocked the opponent completely, remove the wall and continue
-        if (newOpponentPath === null) {
+        if (myPath === null || newOpponentPath === null) {
           tempBoard.set(coord, " ");
           continue;
         }
@@ -394,31 +393,6 @@ export class NPCImpl implements NPC {
         } catch (error) {
           console.error(error);
         }
-      }
-    }
-
-    return bestWall;
-  };
-
-  private bestSingleWallRemoval = async (
-    board: Board,
-    myWalls: Coord[]
-  ): Promise<Coord | null> => {
-    let bestScore = -Infinity;
-    let bestWall: Coord | null = null;
-
-    for (let wallCoord of myWalls) {
-      let tempBoard = board.copy();
-      tempBoard.set(wallCoord, " "); // Remove the wall
-
-      try {
-        const score = await this.calculateScore(tempBoard);
-        if (score > bestScore) {
-          bestScore = score;
-          bestWall = wallCoord;
-        }
-      } catch (error) {
-        console.error(error);
       }
     }
 
@@ -518,7 +492,7 @@ export class NPCImpl implements NPC {
     );
   };
 
-  allValidWallCoords(): Coord[] {
+  private allValidWallCoords(): Coord[] {
     let validWalls: Coord[] = [];
 
     for (let row = 0; row < 2 * this.textBoard.getHeight() + 1; row++) {
@@ -539,8 +513,25 @@ export class NPCImpl implements NPC {
     return validWalls;
   }
 
-  getOpponent() {
+  private getOpponent() {
     return this.player === "red" ? "blue" : "red";
+  }
+
+  private printHelper(): void {
+    // this.printShortestPath();
+    // this.calculateScore()
+    //   .then((score) => console.log("score:", score))
+    //   .catch((err) => console.error(err));
+    // this.bestMovement()
+    //   .then((move) => console.log("move:", move[0]))
+    //   .catch((err) => console.error(err));
+    // this.bestXWallPlacements(3)
+    //   .then((walls) => console.log("wall additions", walls))
+    //   .catch((err) => console.error(err, "!!!!"));
+    // this.bestXWallRemovals(2)
+    //   .then((walls) => console.log("wall removals", walls))
+    //   .catch((err) => console.error(err));
+    // this.printShortestPath();
   }
 
   dispose() {

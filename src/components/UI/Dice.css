@@ -1,0 +1,40 @@
+.dice {
+  font-size: 3em;
+  padding: 10px;
+  border: 2px solid black;
+  border-radius: 10px;
+  user-select: none; /* This prevents the button text from being selected */
+  width: 80px;
+  height: 80px;
+  background-size: cover;
+  margin-bottom: 15px;
+  transition: filter 0.2s ease;
+}
+
+.dice.rolling {
+  color: red;
+}
+
+.dice:disabled {
+  filter: brightness(85%);
+}
+
+.dice:not(:disabled):hover {
+  filter: brightness(85%);
+}
+
+#dice-rolls-preview {
+  display: flex;
+  justify-content: space-between;
+  width: var(--dice-preview-container-width);
+}
+
+.dice-preview {
+  border: 2px solid var(--dice-border-color);
+  width: var(--dice-preview-size);
+  height: var(--dice-preview-size);
+}
+
+.dice-preview-highlighted {
+  border: 2px solid rgba(196, 196, 0, 1);
+}
