@@ -4,6 +4,7 @@ import { PathfinderImpl } from "./Pathfinder";
 import {
   averageCoord,
   equalCoords,
+  isBorderEdge,
   isHorizontalEdge,
   isVerticalEdge,
 } from "../Utils";
@@ -12,8 +13,11 @@ import { TextBoard } from "./TextBoard";
 
 type score = number;
 
-const ActionSleepTimeMs = 500;
-// const ActionSleepTimeMs = 0;
+interface NPCDurations {
+  sleepTimeMs?: number;
+  wallActionIntervalMs?: number;
+  movementIntervalMs?: number;
+}
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -31,17 +35,24 @@ export class NPCImpl implements NPC {
   pathfinder: PathfinderImpl;
 
   disabled?: boolean;
+  gameOver: boolean;
 
   weightFn: (i: number) => number;
 
   private unsubscribeWall: () => void;
   private unsubscribePlayer: () => void;
   private unsubscribeSwitchTurn: () => void;
+  private unsubscribeWinGame: () => void;
+
+  sleepTimeMs: number;
+  wallActionIntervalMs: number;
+  movementIntervalMs: number;
 
   private constructor(
     game: Game,
     player: PlayerColor,
     textBoard: TextBoard,
+    durations: NPCDurations,
     disabled: boolean = false
   ) {
     this.game = game;
@@ -50,6 +61,7 @@ export class NPCImpl implements NPC {
     this.pathfinder = new PathfinderImpl();
 
     this.disabled = disabled;
+    this.gameOver = false;
 
     this.weightFn = (i: number) => 1 / (i + 1);
 
@@ -70,25 +82,36 @@ export class NPCImpl implements NPC {
     this.unsubscribeSwitchTurn = game
       .switchTurnEventSubscription()
       .subscribe((e) => {
-        if (e.turn === player && !this.disabled) {
+        if (e.turn === player) {
           this.play();
         }
       });
+    this.unsubscribeWinGame = game.winGameEventSubscription().subscribe((e) => {
+      this.gameOver = true;
+    });
 
     this.game.getTurn().then((result) => {
-      if (result == this.player && !this.disabled) {
+      if (result == this.player) {
         this.play();
       }
     });
+
+    // Set durations using provided values or default values
+    this.sleepTimeMs = durations.sleepTimeMs ?? 500;
+    this.wallActionIntervalMs = durations.wallActionIntervalMs ?? 300;
+    this.movementIntervalMs = durations.movementIntervalMs ?? 200;
   }
 
   static async create(
     game: Game,
     player: PlayerColor,
+    durations: NPCDurations = {},
     disabled: boolean = false
   ): Promise<NPCImpl> {
     const textBoard: TextBoard = await TextBoard.create(game, console.log);
-    return Promise.resolve(new NPCImpl(game, player, textBoard, disabled));
+    return Promise.resolve(
+      new NPCImpl(game, player, textBoard, durations, disabled)
+    );
   }
 
   /* Public methods */
@@ -140,9 +163,12 @@ export class NPCImpl implements NPC {
 
   /* Powerful private methods */
   private play = async (): Promise<void> => {
+    if (this.disabled || this.gameOver) {
+      return;
+    }
     // console.log("playing", this.player);
 
-    await sleep(ActionSleepTimeMs);
+    await sleep(this.sleepTimeMs);
 
     this.game.rollDice().then(async (result) => {
       const numMovements = result.diceValue;
@@ -162,7 +188,7 @@ export class NPCImpl implements NPC {
           await this.game.addEdge(bestMove);
         }
 
-        await sleep(ActionSleepTimeMs * 1.5);
+        await sleep(this.wallActionIntervalMs);
       }
 
       try {
@@ -171,24 +197,28 @@ export class NPCImpl implements NPC {
         console.error("Error in switching turns", error);
       }
 
-      await sleep(ActionSleepTimeMs);
+      await sleep(this.sleepTimeMs);
 
       try {
         const movements = await this.bestXMovements(numMovements);
         if (movements) {
           for (let coord of movements) {
             this.game.setPlayerLocation(coord);
-            await sleep(ActionSleepTimeMs / 2);
+            await sleep(this.movementIntervalMs);
           }
         }
       } catch (error) {
-        console.error("Error in moving:", error);
+        if (!this.gameOver) console.error("Error in moving:", error);
       }
 
-      await sleep(ActionSleepTimeMs);
+      if (this.gameOver) {
+        return;
+      }
+
+      await sleep(this.sleepTimeMs);
 
       try {
-        this.textBoard.getBoardForTesting().dump(console.log);
+        // this.textBoard.getBoardForTesting().dump(console.log);
         await this.game.switchTurn();
       } catch (error) {
         console.error("Error in ending turns", error);
@@ -362,7 +392,7 @@ export class NPCImpl implements NPC {
     const allValidWalls: Coord[] = this.allValidWallCoords();
 
     let bestScore = -Infinity;
-    let bestWall: Coord | null = null;
+    let bestWalls: Coord[] = [];
 
     for (let coord of allValidWalls) {
       let tempBoard = board.copy();
@@ -370,9 +400,7 @@ export class NPCImpl implements NPC {
       if (tempBoard.get(coord) !== wallType) {
         tempBoard.set(coord, wallType as EdgeElement);
 
-        // PLEASE DONT BE THIS
         const myPath = await this.getShortestPathOf(this.player, tempBoard);
-
         const newOpponentPath = await this.getShortestPathOf(
           this.getOpponent(),
           tempBoard
@@ -388,13 +416,21 @@ export class NPCImpl implements NPC {
           const score = await this.calculateScore(tempBoard);
           if (score > bestScore) {
             bestScore = score;
-            bestWall = coord;
+            bestWalls = [coord];
+          } else if (score === bestScore) {
+            bestWalls.push(coord);
           }
         } catch (error) {
           console.error(error);
         }
       }
     }
+
+    // If there are multiple walls with the same score, pick one randomly
+    const bestWall =
+      bestWalls.length > 0
+        ? bestWalls[Math.floor(Math.random() * bestWalls.length)]
+        : null;
 
     return bestWall;
   };
@@ -495,11 +531,15 @@ export class NPCImpl implements NPC {
   private allValidWallCoords(): Coord[] {
     let validWalls: Coord[] = [];
 
-    for (let row = 0; row < 2 * this.textBoard.getHeight() + 1; row++) {
-      for (let col = 0; col < 2 * this.textBoard.getWidth() + 1; col++) {
+    const width = this.textBoard.getWidth();
+    const height = this.textBoard.getHeight();
+
+    for (let row = 0; row < 2 * height + 1; row++) {
+      for (let col = 0; col < 2 * width + 1; col++) {
         const coord: Coord = { row, col };
 
         if (
+          !isBorderEdge(coord, width, height) &&
           this.textBoard.getBoardForTesting().get(coord) !== "#" &&
           (this.player === "red"
             ? isVerticalEdge(coord)

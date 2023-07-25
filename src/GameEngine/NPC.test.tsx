@@ -9,6 +9,7 @@ import {
 } from "./PlayerMovedSubscriber";
 import { SwitchTurnEventSubscription } from "./SwitchTurnSubscriber";
 import { WallToggledEventSubscription } from "./WallToggledSubscriber";
+import { WinGameEventSubscription } from "./WinGameSubscriber";
 
 interface TestGame extends Game {
   state: Partial<GameState>;
@@ -23,6 +24,7 @@ describe("NPC", () => {
     let subPlayer = jest.fn();
     let subWalls = jest.fn();
     let subTurn = jest.fn();
+    let subWin = jest.fn();
 
     game = {
       state: {
@@ -64,6 +66,11 @@ describe("NPC", () => {
       switchTurnEventSubscription: (): SwitchTurnEventSubscription => {
         return {
           subscribe: subTurn,
+        };
+      },
+      winGameEventSubscription: (): WinGameEventSubscription => {
+        return {
+          subscribe: subWin,
         };
       },
 
@@ -129,7 +136,7 @@ describe("NPC", () => {
       winGame: jest.fn(),
     };
 
-    npc = await NPCImpl.create(game as TestGame, "red", true);
+    npc = await NPCImpl.create(game as TestGame, "red", {}, true);
   });
 
   test("Score starts at 0", async () => {

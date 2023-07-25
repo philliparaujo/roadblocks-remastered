@@ -30,6 +30,10 @@ import {
   WallToggledEventSubscription,
   WallToggledSubscriber,
 } from "./WallToggledSubscriber";
+import {
+  WinGameEventSubscription,
+  WinGameSubscriber,
+} from "./WinGameSubscriber";
 
 type TurnPhase = "placingWalls" | "movingPlayer";
 export type PlayerColor = "red" | "blue";
@@ -50,11 +54,13 @@ export interface GameState {
   endLocations: CellLocations;
   wallLocations: WallLocations;
   diceRolls: DiceInfo;
+  rollDurationMs: number;
   playerMovedSubscriptions: PlayerMovedSubscriber;
   switchTurnSubscriptions: SwitchTurnSubscriber;
   wallToggledSubscriptions: WallToggledSubscriber;
   lockWallSubscriptions: LockWallSubscriber;
   diceRollSubscriptions: DiceRollSubscriber;
+  winGameSubscriptions: WinGameSubscriber;
 }
 interface EdgeResult {}
 interface LockWallResult {}
@@ -92,13 +98,15 @@ export interface Game {
   wallToggledEventSubscription: () => WallToggledEventSubscription;
   lockWallEventSubscription: () => LockWallEventSubscription;
   diceRollEventSubscription: () => DiceRollEventSubscription;
+  winGameEventSubscription: () => WinGameEventSubscription;
 }
 
 var id = 1;
 
 type OverridesForTesting = {
-  walls: WallLocations;
-  playerLocations: CellLocations;
+  walls?: WallLocations;
+  playerLocations?: CellLocations;
+  rollDurationMs?: number;
 };
 
 export class GameImpl implements Game {
@@ -135,11 +143,13 @@ export class GameImpl implements Game {
       red: [1, 2, 3, 4, 5, 6],
       blue: [1, 2, 3, 4, 5, 6],
     },
+    rollDurationMs: 500,
     playerMovedSubscriptions: new PlayerMovedSubscriber(),
     switchTurnSubscriptions: new SwitchTurnSubscriber(),
     wallToggledSubscriptions: new WallToggledSubscriber(),
     lockWallSubscriptions: new LockWallSubscriber(),
     diceRollSubscriptions: new DiceRollSubscriber(),
+    winGameSubscriptions: new WinGameSubscriber(),
   };
 
   constructor(width: number, height: number) {
@@ -148,18 +158,21 @@ export class GameImpl implements Game {
     console.log("Created game object", this.state.id);
     // this.generateRandomWallLocations(this.state.width, this.state.height);
     this.mirrorLockedWallLocations();
-
-    // this.rollDice();
   }
 
   static createForTesting(
     width: number,
     height: number,
-    overrides: OverridesForTesting
+    overrides?: OverridesForTesting
   ) {
     const result = new GameImpl(width, height);
-    result.state.playerLocations = overrides.playerLocations;
-    result.state.wallLocations = overrides.walls;
+    if (overrides) {
+      if (overrides.playerLocations)
+        result.state.playerLocations = overrides.playerLocations;
+      if (overrides.walls) result.state.wallLocations = overrides.walls;
+      if (overrides.rollDurationMs)
+        result.state.rollDurationMs = overrides.rollDurationMs;
+    }
     return result;
   }
 
@@ -240,8 +253,6 @@ export class GameImpl implements Game {
   };
 
   rollDice = (): Promise<DiceRollResult> => {
-    const rollDurationMs: number = 500;
-
     if (this.state.gameOver) return Promise.reject("Game over");
 
     if (this.state.diceRolled) {
@@ -261,7 +272,7 @@ export class GameImpl implements Game {
           value: newValue,
         });
         resolve(result);
-      }, rollDurationMs);
+      }, this.state.rollDurationMs);
     });
   };
 
@@ -358,6 +369,9 @@ export class GameImpl implements Game {
   diceRollEventSubscription = (): DiceRollEventSubscription =>
     this.state.diceRollSubscriptions;
 
+  winGameEventSubscription = (): WinGameEventSubscription =>
+    this.state.winGameSubscriptions;
+
   notifyWallToggled = (coord: Coord, isToggled: boolean): void => {
     this.state.wallToggledSubscriptions.notify({
       wall: coord,
@@ -393,7 +407,11 @@ export class GameImpl implements Game {
 
   winGame = (): void => {
     this.state.gameOver = true;
-    alert((this.state.turn === "red" ? "Red" : "Blue") + " player won!");
+    this.state.winGameSubscriptions.notify({ winner: this.state.turn });
+    console.log(
+      (this.state.turn === "red" ? "Red" : "Blue") + " player won!",
+      this.state.id
+    );
   };
 }
 

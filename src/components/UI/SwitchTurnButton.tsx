@@ -15,7 +15,6 @@ const SwitchTurnButton: React.FC<SwitchTurnButtonProps> = ({
   useEffect(() => {
     game.getTurn().then((player) => {
       setPlayer(player);
-      console.log("first", player);
     });
   }, [game]);
 
