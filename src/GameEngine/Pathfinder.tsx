@@ -8,7 +8,7 @@ type CoordString = String;
 
 const PriorityQueue = require("js-priority-queue");
 
-const directions: direction[] = [
+export const directions: direction[] = [
   { row: -2, col: 0 },
   { row: 0, col: 2 },
   { row: 2, col: 0 },
@@ -83,7 +83,8 @@ export class PathfinderImpl {
           !isObstacle(midPoint, board) &&
           !visited.has(JSON.stringify(newCoord))
         ) {
-          let priority = heuristic(end, newCoord);
+          let cost = currentObject.priority;
+          let priority = cost + heuristic(end, newCoord);
           queue.queue({ coord: newCoord, priority });
           cameFrom.set(newCoord, current);
           visited.add(JSON.stringify(newCoord));
