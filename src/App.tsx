@@ -20,6 +20,7 @@ function App() {
       wallActionIntervalMs: 1,
       movementIntervalMs: 1,
     });
+    GameInstance.startGame();
   }, []);
 
   return (
@@ -28,7 +29,7 @@ function App() {
       <UIBoard debug={false}></UIBoard>
       <LockWallsButton />
       <SwitchTurnButton />
-      <Dice />
+      {/* <Dice /> */}
     </div>
   );
 }

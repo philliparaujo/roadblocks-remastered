@@ -7,6 +7,7 @@ import {
   PlayerEventSubscription,
   PlayerMovedSubscriber,
 } from "./PlayerMovedSubscriber";
+import { StartGameEventSubscription } from "./StartGameSubscriber";
 import { SwitchTurnEventSubscription } from "./SwitchTurnSubscriber";
 import { WallToggledEventSubscription } from "./WallToggledSubscriber";
 import { WinGameEventSubscription } from "./WinGameSubscriber";
@@ -25,6 +26,7 @@ describe("NPC", () => {
     let subWalls = jest.fn();
     let subTurn = jest.fn();
     let subWin = jest.fn();
+    let subStart = jest.fn();
 
     game = {
       state: {
@@ -69,6 +71,11 @@ describe("NPC", () => {
         };
       },
       winGameEventSubscription: (): WinGameEventSubscription => {
+        return {
+          subscribe: subWin,
+        };
+      },
+      startGameEventSubscription: (): StartGameEventSubscription => {
         return {
           subscribe: subWin,
         };

@@ -23,6 +23,10 @@ import {
   PlayerMovedSubscriber,
 } from "./PlayerMovedSubscriber";
 import {
+  StartGameEventSubscription,
+  StartGameSubscriber,
+} from "./StartGameSubscriber";
+import {
   SwitchTurnEventSubscription,
   SwitchTurnSubscriber,
 } from "./SwitchTurnSubscriber";
@@ -61,7 +65,9 @@ export interface GameState {
   lockWallSubscriptions: LockWallSubscriber;
   diceRollSubscriptions: DiceRollSubscriber;
   winGameSubscriptions: WinGameSubscriber;
+  startGameSubscriptions: StartGameSubscriber;
 }
+interface StartGameResult {}
 interface EdgeResult {}
 interface LockWallResult {}
 interface EndTurnResult {}
@@ -75,6 +81,8 @@ export interface Game {
   // new(width, height)
   // join(gid)
   // watch(gid)
+
+  startGame: () => Promise<StartGameResult>;
 
   addEdge: (coord: Coord) => Promise<EdgeResult>;
   removeEdge: (coord: Coord) => Promise<EdgeResult>;
@@ -99,6 +107,7 @@ export interface Game {
   lockWallEventSubscription: () => LockWallEventSubscription;
   diceRollEventSubscription: () => DiceRollEventSubscription;
   winGameEventSubscription: () => WinGameEventSubscription;
+  startGameEventSubscription: () => StartGameEventSubscription;
 }
 
 var id = 1;
@@ -143,13 +152,14 @@ export class GameImpl implements Game {
       red: [1, 2, 3, 4, 5, 6],
       blue: [1, 2, 3, 4, 5, 6],
     },
-    rollDurationMs: 500,
+    rollDurationMs: 1,
     playerMovedSubscriptions: new PlayerMovedSubscriber(),
     switchTurnSubscriptions: new SwitchTurnSubscriber(),
     wallToggledSubscriptions: new WallToggledSubscriber(),
     lockWallSubscriptions: new LockWallSubscriber(),
     diceRollSubscriptions: new DiceRollSubscriber(),
     winGameSubscriptions: new WinGameSubscriber(),
+    startGameSubscriptions: new StartGameSubscriber(),
   };
 
   constructor(width: number, height: number) {
@@ -184,6 +194,15 @@ export class GameImpl implements Game {
       wallToggledSubscriptions: new WallToggledSubscriber(),
     };
   }
+
+  startGame = async (): Promise<StartGameResult> => {
+    this.state.gameOver = false;
+    this.state.startGameSubscriptions.notify({
+      startingPlayer: this.state.turn,
+    });
+    console.time("_________________FULL GAME");
+    return Promise.resolve({});
+  };
 
   addEdge = (coord: Coord): Promise<EdgeResult> => {
     if (this.state.gameOver) return Promise.reject("Game over");
@@ -256,7 +275,10 @@ export class GameImpl implements Game {
     if (this.state.gameOver) return Promise.reject("Game over");
 
     if (this.state.diceRolled) {
-      return Promise.reject("Dice already rolled");
+      console.warn("Dice already rolled");
+      return Promise.resolve({
+        diceValue: this.state.diceValue,
+      });
     }
 
     this.state.diceRollSubscriptions.notify({ type: "start" });
@@ -264,14 +286,19 @@ export class GameImpl implements Game {
 
     return new Promise((resolve) => {
       setTimeout(() => {
-        const currentDiceRolls = this.state.diceRolls[this.state.turn];
-        const newValue = randomDiceValue(currentDiceRolls);
-        const result = { diceValue: newValue };
-        this.state.diceRollSubscriptions.notify({
-          type: "stop",
-          value: newValue,
-        });
-        resolve(result);
+        // console.time("rollDice");
+        try {
+          const currentDiceRolls = this.state.diceRolls[this.state.turn];
+          const newValue = randomDiceValue(currentDiceRolls);
+          const result = { diceValue: newValue };
+          this.state.diceRollSubscriptions.notify({
+            type: "stop",
+            value: newValue,
+          });
+          resolve(result);
+        } finally {
+          // console.timeEnd("rollDice");
+        }
       }, this.state.rollDurationMs);
     });
   };
@@ -372,6 +399,9 @@ export class GameImpl implements Game {
   winGameEventSubscription = (): WinGameEventSubscription =>
     this.state.winGameSubscriptions;
 
+  startGameEventSubscription = (): StartGameEventSubscription =>
+    this.state.startGameSubscriptions;
+
   notifyWallToggled = (coord: Coord, isToggled: boolean): void => {
     this.state.wallToggledSubscriptions.notify({
       wall: coord,
@@ -412,6 +442,7 @@ export class GameImpl implements Game {
       (this.state.turn === "red" ? "Red" : "Blue") + " player won!",
       this.state.id
     );
+    console.timeEnd("_________________FULL GAME");
   };
 }
 

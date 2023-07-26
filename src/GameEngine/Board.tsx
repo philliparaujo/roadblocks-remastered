@@ -91,8 +91,20 @@ export default class Board {
 
   copy(): Board {
     const newBoard: Board = new Board(this.getWidth(), this.getHeight());
-    newBoard.items = JSON.parse(JSON.stringify(this.items));
+    newBoard.items = this.deepCopy(this.items);
     return newBoard;
+  }
+
+  private deepCopy(items: any[]): any[] {
+    let copy: Row[] = [];
+    for (let i = 0; i < items.length; i++) {
+      if (Array.isArray(items[i])) {
+        copy[i] = this.deepCopy(items[i]);
+      } else {
+        copy[i] = items[i];
+      }
+    }
+    return copy;
   }
 
   async initFromGame(game: Game): Promise<void> {
@@ -270,5 +282,9 @@ export default class Board {
 
     row.push("\n");
     return row;
+  }
+
+  toString(): string {
+    return this.items.map((row) => row.join("")).join("\n");
   }
 }
