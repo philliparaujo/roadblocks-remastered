@@ -5,20 +5,21 @@ import SwitchTurnButton from "./components/UI/SwitchTurnButton";
 import LockWallsButton from "./components/UI/LockWallsButton";
 import { TextBoard } from "./GameEngine/TextBoard";
 import { useEffect, useState } from "react";
-import { NPCImpl } from "./GameEngine/NPC";
+import { NPCImpl } from "./NPC/NPC";
 import Dice from "./components/UI/Dice";
+import { NPC2Impl } from "./NPC/NPC2";
 
 function App() {
   useEffect(() => {
     NPCImpl.create(GameInstance, "red", {
-      sleepTimeMs: 1,
-      wallActionIntervalMs: 1,
-      movementIntervalMs: 1,
+      sleepTimeMs: 500,
+      wallActionIntervalMs: 200,
+      movementIntervalMs: 100,
     });
-    NPCImpl.create(GameInstance, "blue", {
-      sleepTimeMs: 1,
-      wallActionIntervalMs: 1,
-      movementIntervalMs: 1,
+    NPC2Impl.create(GameInstance, "blue", {
+      sleepTimeMs: 500,
+      wallActionIntervalMs: 200,
+      movementIntervalMs: 100,
     });
     GameInstance.startGame();
   }, []);
@@ -29,7 +30,7 @@ function App() {
       <UIBoard debug={false}></UIBoard>
       <LockWallsButton />
       <SwitchTurnButton />
-      {/* <Dice /> */}
+      <Dice />
     </div>
   );
 }

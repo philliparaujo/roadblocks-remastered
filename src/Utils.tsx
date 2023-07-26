@@ -72,3 +72,13 @@ export const randomDiceValue = (diceRolls = [1, 2, 3, 4, 5, 6]): number => {
   const index = Math.floor(Math.random() * 6);
   return diceRolls[index];
 };
+
+export const distanceBetween = (from: Coord, to: Coord): number => {
+  return Math.sqrt(
+    Math.pow(from.row - to.row, 2) + Math.pow(from.col - to.col, 2)
+  );
+};
+
+export interface Random {
+  random(): number;
+}

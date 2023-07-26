@@ -2,7 +2,7 @@ import { Coord } from "../Coord";
 import { equalCoords } from "../Utils";
 import { CellElement } from "../components/Board/Cell";
 import { Game, GameImpl, GameState, PlayerColor } from "./Game";
-import { NPCImpl } from "./NPC";
+import { NPCImpl } from "../NPC/NPC";
 import {
   PlayerEventSubscription,
   PlayerMovedSubscriber,

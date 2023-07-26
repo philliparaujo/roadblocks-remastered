@@ -200,7 +200,7 @@ export class GameImpl implements Game {
     this.state.startGameSubscriptions.notify({
       startingPlayer: this.state.turn,
     });
-    console.time("_________________FULL GAME");
+    console.time(`_________________FULL GAME ${this.state.id}`);
     return Promise.resolve({});
   };
 
@@ -442,7 +442,7 @@ export class GameImpl implements Game {
       (this.state.turn === "red" ? "Red" : "Blue") + " player won!",
       this.state.id
     );
-    console.timeEnd("_________________FULL GAME");
+    console.timeEnd(`_________________FULL GAME ${this.state.id}`);
   };
 }
 
