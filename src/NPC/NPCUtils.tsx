@@ -1,13 +1,14 @@
 import { Coord } from "../Coord";
 import Board, { EdgeElement } from "../GameEngine/Board";
 import { Game, PlayerColor, WallLocations } from "../GameEngine/Game";
-import { PathfinderImpl } from "../GameEngine/Pathfinder";
+import { PathfinderImpl, directions } from "../GameEngine/Pathfinder";
 import { TextBoard } from "../GameEngine/TextBoard";
 import {
   averageCoord,
   equalCoords,
   isBorderEdge,
   isHorizontalEdge,
+  isValidMove,
   isVerticalEdge,
 } from "../Utils";
 import { score } from "./NPC";
@@ -29,7 +30,8 @@ export class NPCUtils {
     return turn === this.player;
   };
 
-  getOpponent = (): PlayerColor => (this.player === "red" ? "blue" : "red");
+  getOpponent = (player: PlayerColor = this.player): PlayerColor =>
+    player === "red" ? "blue" : "red";
 
   getShortestPathOf = async (
     player: PlayerColor,
@@ -125,11 +127,17 @@ export class NPCUtils {
     return this.shuffle(combinations);
   };
 
-  allValidWallCoords = (): Coord[] => {
+  allValidWallCoords = (
+    width: number,
+    height: number,
+    board: Board = this.textBoard.getBoardForTesting(),
+    walls: number = 0,
+    player: PlayerColor = this.player
+  ): Coord[] => {
     let validWalls: Coord[] = [];
 
-    const width = this.textBoard.getWidth();
-    const height = this.textBoard.getHeight();
+    // const width = this.textBoard.getWidth();
+    // const height = this.textBoard.getHeight();
 
     for (let row = 0; row < 2 * height + 1; row++) {
       for (let col = 0; col < 2 * width + 1; col++) {
@@ -137,17 +145,60 @@ export class NPCUtils {
 
         if (
           !isBorderEdge(coord, width, height) &&
-          this.textBoard.getBoardForTesting().get(coord) !== "#" &&
-          (this.player === "red"
-            ? isVerticalEdge(coord)
-            : isHorizontalEdge(coord))
+          board.get(coord) !== "#" &&
+          (player === "red" ? isVerticalEdge(coord) : isHorizontalEdge(coord))
         ) {
-          validWalls.push(coord);
+          if (board.get(coord) !== " " || walls < 6) {
+            validWalls.push(coord);
+          }
         }
       }
     }
 
     return validWalls;
+  };
+
+  allValidPlayerMovements = async (
+    playerLocation: Coord,
+    width: number,
+    height: number
+  ): Promise<Coord[]> => {
+    let validMoves: Coord[] = [];
+
+    // const playerLocation: Coord = await this.game.playerLocation(this.player);
+    for (const direction of directions) {
+      const newCoord = {
+        row: playerLocation.row + direction.row,
+        col: playerLocation.col + direction.col,
+      };
+      if (
+        isValidMove(
+          playerLocation,
+          newCoord,
+          await this.game.getWallLocations(),
+          width,
+          height
+        )
+      ) {
+        validMoves.push(newCoord);
+      }
+    }
+
+    return validMoves;
+  };
+
+  bestXMovements = async (x: number): Promise<Coord[] | null> => {
+    const path = await this.getShortestPathOf(this.player);
+    if (path) {
+      if (path.length <= 1) {
+        return Promise.reject("Already won?");
+      } else {
+        // Get first x coordinates, starting at index 1. If x > length, return entire path except first index
+        return path.slice(1, x + 1);
+      }
+    } else {
+      return Promise.reject("No path?");
+    }
   };
 
   /* Score-related Utils */
@@ -211,7 +262,10 @@ export class NPCUtils {
       return null;
     }
 
-    const allValidWalls: Coord[] = this.allValidWallCoords();
+    const allValidWalls: Coord[] = this.allValidWallCoords(
+      this.textBoard.getWidth(),
+      this.textBoard.getHeight()
+    );
 
     const allWalls: WallLocations = await this.game.getWallLocations();
     const myWalls: Coord[] = allWalls[this.player];
@@ -270,7 +324,10 @@ export class NPCUtils {
 
     calculateScore: (board: Board) => Promise<score>
   ) => {
-    const allValidWalls: Coord[] = this.allValidWallCoords();
+    const allValidWalls: Coord[] = this.allValidWallCoords(
+      this.textBoard.getWidth(),
+      this.textBoard.getHeight()
+    );
 
     let bestScore = -Infinity;
     let bestWalls: Coord[] = [];

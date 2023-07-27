@@ -53,9 +53,11 @@ export const averageCoord = (from: Coord, to: Coord): Coord => {
 export const isValidMove = (
   from: Coord,
   to: Coord,
-  walls: WallLocations
+  walls: WallLocations,
+  width: number,
+  height: number
 ): boolean => {
-  if (!isAdjacent(from, to)) return false;
+  if (!isAdjacent(from, to) || !isInBounds(to, width, height)) return false;
   const middleEdge: Coord = averageCoord(from, to);
   const allWalls = [...walls.red, ...walls.blue, ...walls.locked];
 
@@ -78,7 +80,3 @@ export const distanceBetween = (from: Coord, to: Coord): number => {
     Math.pow(from.row - to.row, 2) + Math.pow(from.col - to.col, 2)
   );
 };
-
-export interface Random {
-  random(): number;
-}

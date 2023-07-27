@@ -209,10 +209,10 @@ export class NPCImpl implements NPC {
 
         // console.time("movePlayer");
         try {
-          const movements = await this.bestXMovements(numMovements);
+          const movements = await this.utils.bestXMovements(numMovements);
           if (movements) {
             for (let coord of movements) {
-              this.game.setPlayerLocation(coord);
+              await this.game.setPlayerLocation(coord);
               await sleep(this.movementIntervalMs);
             }
           }
@@ -265,20 +265,6 @@ export class NPCImpl implements NPC {
         : 0;
 
     return myAverageDistance - opponentAverageDistance;
-  };
-
-  private bestXMovements = async (x: number): Promise<Coord[] | null> => {
-    const path = await this.utils.getShortestPathOf(this.player);
-    if (path) {
-      if (path.length <= 1) {
-        return Promise.reject("Already won?");
-      } else {
-        // Get first x coordinates, starting at index 1. If x > length, return entire path except first index
-        return path.slice(1, x + 1);
-      }
-    } else {
-      return Promise.reject("No path?");
-    }
   };
 
   private bestSingleWallMove = async (): Promise<Coord | null> => {

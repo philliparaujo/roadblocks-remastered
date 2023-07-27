@@ -1,6 +1,6 @@
 import { GameImpl, PlayerColor } from "../GameEngine/Game";
 import { NPCImpl } from "./NPC";
-import { NPC2Impl } from "./NPC2";
+// import { NPC2Impl } from "./NPC2";
 
 type NPCType = "NPCImpl" | "NPC2Impl";
 
@@ -16,7 +16,7 @@ async function simulateGame(): Promise<NPCType> {
     movementIntervalMs: 0,
   });
 
-  const npc2 = NPC2Impl.create(game, npc2Color, {
+  const npc2 = NPCImpl.create(game, npc2Color, {
     sleepTimeMs: 0,
     wallActionIntervalMs: 0,
     movementIntervalMs: 0,

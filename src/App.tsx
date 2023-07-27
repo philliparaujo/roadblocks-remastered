@@ -11,7 +11,7 @@ import { NPC2Impl } from "./NPC/NPC2";
 
 function App() {
   useEffect(() => {
-    NPCImpl.create(GameInstance, "red", {
+    NPC2Impl.create(GameInstance, "red", {
       sleepTimeMs: 500,
       wallActionIntervalMs: 200,
       movementIntervalMs: 100,

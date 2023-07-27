@@ -39,7 +39,7 @@ import {
   WinGameSubscriber,
 } from "./WinGameSubscriber";
 
-type TurnPhase = "placingWalls" | "movingPlayer";
+export type TurnPhase = "placingWalls" | "movingPlayer";
 export type PlayerColor = "red" | "blue";
 type CellLocations = { [key in PlayerColor]: Coord };
 export type WallLocations = { [key in PlayerColor | "locked"]: Coord[] };
@@ -241,7 +241,7 @@ export class GameImpl implements Game {
     return Promise.resolve({});
   };
 
-  setPlayerLocation = (coord: Coord): Promise<PlayerMovedResult> => {
+  setPlayerLocation = async (coord: Coord): Promise<PlayerMovedResult> => {
     if (this.state.gameOver) return Promise.reject("Game over");
 
     if (this.state.phase !== "movingPlayer") {
@@ -251,7 +251,15 @@ export class GameImpl implements Game {
     const player = this.state.turn;
     const oldLocation = this.state.playerLocations[player];
 
-    if (!isValidMove(oldLocation, coord, this.state.wallLocations)) {
+    if (
+      !isValidMove(
+        oldLocation,
+        coord,
+        this.state.wallLocations,
+        2 * (await this.getWidth()) + 1,
+        2 * (await this.getHeight()) + 1
+      )
+    ) {
       return Promise.reject("NOT ADJACENT CELL");
     }
 
