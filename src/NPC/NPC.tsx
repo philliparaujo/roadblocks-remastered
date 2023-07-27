@@ -23,12 +23,7 @@ interface NPCDurations {
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-interface NPC {
-  calculateScore: (board: Board) => Promise<score>;
-  play: () => Promise<void>;
-}
-
-export class NPCImpl implements NPC {
+export class NPCImpl {
   game: Game;
   player: PlayerColor;
   textBoard: TextBoard;
