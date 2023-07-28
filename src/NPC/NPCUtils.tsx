@@ -92,6 +92,7 @@ export class NPCUtils {
   };
 
   isCoordInArray = (coord: Coord, array: Coord[]): boolean => {
+    // console.log(coord, array);
     return array.some(
       (item) => item.row === coord.row && item.col === coord.col
     );
@@ -131,13 +132,9 @@ export class NPCUtils {
     width: number,
     height: number,
     board: Board = this.textBoard.getBoardForTesting(),
-    walls: number = 0,
     player: PlayerColor = this.player
   ): Coord[] => {
     let validWalls: Coord[] = [];
-
-    // const width = this.textBoard.getWidth();
-    // const height = this.textBoard.getHeight();
 
     for (let row = 0; row < 2 * height + 1; row++) {
       for (let col = 0; col < 2 * width + 1; col++) {
@@ -148,9 +145,7 @@ export class NPCUtils {
           board.get(coord) !== "#" &&
           (player === "red" ? isVerticalEdge(coord) : isHorizontalEdge(coord))
         ) {
-          if (board.get(coord) !== " " || walls < 6) {
-            validWalls.push(coord);
-          }
+          validWalls.push(coord);
         }
       }
     }

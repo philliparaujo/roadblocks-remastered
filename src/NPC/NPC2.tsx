@@ -126,11 +126,12 @@ export class NPC2Impl {
     await sleep(this.sleepTimeMs);
 
     this.game.rollDice().then(async (result) => {
-      // const numMovements = result.diceValue;
+      this.mcts = await MCTS.create(this.game, this.player);
+      // this.textBoard.getBoardForTesting().dump(console.log);
+      const numMovements = result.diceValue;
       // const numWallChanges = 7 - result.diceValue;
 
-      const bestMove: Coord | null = await this.mcts.calculate(50);
-      // this.textBoard.getBoardForTesting().dump(console.log);
+      const bestMove: Coord | null = await this.mcts.calculate(100);
 
       if (bestMove === null) {
         console.error("best move is null");
@@ -174,13 +175,13 @@ export class NPC2Impl {
         if (bestMove && isCell(bestMove)) {
           await this.game.setPlayerLocation(bestMove);
         }
-        // const movements = await this.bestXMovements(1);
-        // if (movements) {
-        //   for (let coord of movements) {
-        //     this.game.setPlayerLocation(coord);
-        //     await sleep(this.movementIntervalMs);
-        //   }
-        // }
+        const movements = await this.bestXMovements(1);
+        if (movements) {
+          for (let coord of movements) {
+            this.game.setPlayerLocation(coord);
+            await sleep(this.movementIntervalMs);
+          }
+        }
       } catch (error) {
         if (!this.gameOver) console.error("Error in moving:", error);
       }
@@ -191,11 +192,9 @@ export class NPC2Impl {
 
       await sleep(this.sleepTimeMs);
       try {
-        this.mcts = await MCTS.create(this.game, this.player);
-        this.textBoard.getBoardForTesting().dump(console.log);
+        // this.textBoard.getBoardForTesting().dump(console.log);
         await this.game.switchTurn();
         console.log("finished turn :)");
-        await sleep(1000);
       } catch (error) {
         console.error("Error in ending turns", error);
       }
@@ -265,10 +264,7 @@ class Node {
       board = (await TextBoard.create(game, console.log)).getBoardForTesting();
     }
 
-    if (walls === 0) {
-      console.log("No walls");
-    }
-
+    // board.dump(console.log);
     return new Node(game, player, board, parent, action, walls);
   }
 }
@@ -333,7 +329,6 @@ class MCTS {
           : bestChild.totalReward / bestChild.visits +
             Math.sqrt((2 * Math.log(node.visits)) / bestChild.visits);
       const returnChild = childScore > bestChildScore ? child : bestChild;
-      // console.log(returnChild.action);
       return returnChild;
     });
   }
@@ -341,8 +336,7 @@ class MCTS {
   async expand(node: Node): Promise<void> {
     const possibleActions = await this.getPossibleWallActions(
       node.board,
-      node.player,
-      node.walls
+      node.player
     );
     const nextPlayer: PlayerColor = this.utils.getOpponent(node.player);
 
@@ -377,34 +371,58 @@ class MCTS {
         currentPlayer,
         node.walls
       );
-      if (wallAction === null) {
-        throw new Error("wall movement somehow null");
+      if (wallAction === null || wallAction === undefined) {
+        throw new Error("wall movement somehow bad");
       }
+
+      let ogBoardCopy = boardCopy.copy();
 
       boardCopy = await this.applyWallAction(
         boardCopy,
         currentPlayer,
         wallAction
       );
-      node.walls = this.calculateNumWalls(boardCopy, this.player);
 
-      /* MOVEMENT */
-      const playerLocation: Coord | null = await this.getPlayerLocation(
+      let playerLocation: Coord | null = await this.getPlayerLocation(
         currentPlayer,
         boardCopy
       );
       if (!playerLocation) throw new Error("could not get player locatioN?");
 
-      const endLocation =
+      let endLocation =
         currentPlayer === "red" ? this.redEndLocation : this.blueEndLocation;
 
-      const shortestPath = PathfinderImpl.shortestPath(
+      let shortestPath = PathfinderImpl.shortestPath(
         playerLocation,
         endLocation,
         boardCopy
       );
       if (!shortestPath || shortestPath.length < 2) {
-        throw new Error("shortest path not calculated correctly");
+        console.log(shortestPath, playerLocation, endLocation);
+        console.log(boardCopy);
+        boardCopy.dump(console.log);
+        boardCopy = ogBoardCopy;
+      }
+
+      node.walls = this.calculateNumWalls(boardCopy, this.player);
+
+      /* MOVEMENT */
+      playerLocation = await this.getPlayerLocation(currentPlayer, boardCopy);
+      if (!playerLocation) throw new Error("could not get player locatioN?");
+
+      endLocation =
+        currentPlayer === "red" ? this.redEndLocation : this.blueEndLocation;
+
+      shortestPath = PathfinderImpl.shortestPath(
+        playerLocation,
+        endLocation,
+        boardCopy
+      );
+      if (!shortestPath || shortestPath.length < 2) {
+        console.log(shortestPath, playerLocation, endLocation);
+        console.log(boardCopy);
+        boardCopy.dump(console.log);
+        throw new Error("shortest path not calculated correctly (MOVE)");
       }
 
       const moveAction: Coord = shortestPath[1];
@@ -427,8 +445,6 @@ class MCTS {
   }
 
   async calculate(iterations: number) {
-    console.log("start of decisions");
-    // this.root.board.dump(console.log);
     // this.textBoard.getBoardForTesting().dump(console.log);
     for (let i = 0; i < iterations; i++) {
       let node = this.root;
@@ -451,16 +467,22 @@ class MCTS {
   /* Helper methods */
   private async getPossibleWallActions(
     board: Board,
-    player: PlayerColor,
-    walls: number
+    player: PlayerColor
   ): Promise<Coord[]> {
     const validWallCoords: Coord[] = this.utils.allValidWallCoords(
       this.width,
       this.height,
       board,
-      walls,
       player
     );
+
+    const walls = this.calculateNumWalls(board, player);
+
+    if (validWallCoords.length === 0) {
+      console.log(walls);
+      board.dump(console.log);
+      throw new Error("no valid wall coords");
+    }
 
     const wallType = player === "red" ? "|" : "-";
 
@@ -495,7 +517,7 @@ class MCTS {
           boardCopy
         );
 
-        if (!myPath || !opponentPath) {
+        if (!myPath || !opponentPath || walls >= 6) {
           validWallCoords.splice(i, 1);
           i--;
         }
@@ -509,11 +531,12 @@ class MCTS {
     player: PlayerColor,
     walls: number
   ): Promise<Coord | null> {
-    const validWallCoords = await this.getPossibleWallActions(
-      board,
-      player,
-      walls
-    );
+    const validWallCoords = await this.getPossibleWallActions(board, player);
+
+    if (validWallCoords.length === 0) {
+      throw new Error("somehow no possible wall actions");
+    }
+
     const randomIndex = Math.floor(Math.random() * validWallCoords.length);
     return validWallCoords[randomIndex];
   }
