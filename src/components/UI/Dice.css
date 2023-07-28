@@ -9,6 +9,7 @@
   background-size: cover;
   margin-bottom: 15px;
   transition: filter 0.2s ease;
+  text-align: center;
 }
 
 .dice.rolling {

@@ -1,0 +1,24 @@
+.rectangle {
+  width: 20px;
+  height: 35px;
+  border: 2px solid gray;
+  border-radius: 10px;
+  background-color: #eeeeee;
+  margin: 2px;
+}
+
+.rectangle.locked {
+  background-color: gray;
+}
+
+.rectangle.green {
+  background-color: rgb(68, 230, 71);
+}
+
+.rectangle.red {
+  background-color: rgb(255, 71, 71);
+}
+
+.rectangle-container {
+  display: flex;
+}

@@ -1,12 +1,16 @@
 .App {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+.game-column {
+  align-items: center;
+  justify-content: center;
   text-align: center;
 }
 
-.App-header {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
+.actions-column {
+  padding-left: 40px;
 }
