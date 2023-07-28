@@ -18,6 +18,7 @@ import {
   LockWallEventSubscription,
   LockWallSubscriber,
 } from "./LockWallSubscriber";
+import { PathfinderImpl } from "./Pathfinder";
 import {
   PlayerEventSubscription,
   PlayerMovedSubscriber,
@@ -30,6 +31,7 @@ import {
   SwitchTurnEventSubscription,
   SwitchTurnSubscriber,
 } from "./SwitchTurnSubscriber";
+import { TextBoard } from "./TextBoard";
 import {
   WallToggledEventSubscription,
   WallToggledSubscriber,
@@ -100,6 +102,7 @@ export interface Game {
   getDiceRolls: (player: PlayerColor) => Promise<number[]>;
   getWidth: () => Promise<number>;
   getHeight: () => Promise<number>;
+  pathExists: (player: PlayerColor) => Promise<boolean>;
 
   playerMovedEventSubscription: () => PlayerEventSubscription;
   switchTurnEventSubscription: () => SwitchTurnEventSubscription;
@@ -217,21 +220,37 @@ export class GameImpl implements Game {
   lockWalls = (): Promise<LockWallResult> => {
     if (this.state.gameOver) return Promise.reject("Game over");
 
-    this.state.phase = "movingPlayer";
-    this.state.lockWallSubscriptions.notify({});
-    return Promise.resolve({});
+    return Promise.all([this.pathExists("red"), this.pathExists("blue")]).then(
+      ([redPathExists, bluePathExists]) => {
+        if (!redPathExists || !bluePathExists) {
+          return Promise.reject("No path found for at least one player");
+        }
+
+        this.state.phase = "movingPlayer";
+        this.state.lockWallSubscriptions.notify({});
+
+        return {};
+      }
+    );
   };
 
   switchTurn = (): Promise<EndTurnResult> => {
     if (this.state.gameOver) return Promise.reject("Game over");
 
-    this.state.turn = this.state.turn === "red" ? "blue" : "red";
-    this.state.phase = "placingWalls";
-    this.state.switchTurnSubscriptions.notify({ turn: this.state.turn });
+    return Promise.all([this.pathExists("red"), this.pathExists("blue")]).then(
+      ([redPathExists, bluePathExists]) => {
+        if (!redPathExists || !bluePathExists) {
+          return Promise.reject("No path found for at least one player");
+        }
 
-    this.state.diceRolled = false;
+        this.state.turn = this.state.turn === "red" ? "blue" : "red";
+        this.state.phase = "placingWalls";
+        this.state.switchTurnSubscriptions.notify({ turn: this.state.turn });
+        this.state.diceRolled = false;
 
-    return Promise.resolve({});
+        return {};
+      }
+    );
   };
 
   reset = (): Promise<ResetResult> => {
@@ -320,6 +339,11 @@ export class GameImpl implements Game {
 
     if (!isEdge(coord)) {
       return Promise.reject("INVALID COORD");
+    }
+
+    const numWalls = this.state.wallLocations[this.state.turn].length;
+    if (placing && numWalls >= 6) {
+      return Promise.reject("Too many walls");
     }
 
     const isVertical = isVerticalEdge(coord);
@@ -451,6 +475,19 @@ export class GameImpl implements Game {
       this.state.id
     );
     console.timeEnd(`_________________FULL GAME ${this.state.id}`);
+  };
+
+  pathExists = (player: PlayerColor): Promise<boolean> => {
+    return TextBoard.create(this, console.log).then((textBoard) => {
+      const board = textBoard.getBoardForTesting();
+      const path = PathfinderImpl.shortestPath(
+        this.state.playerLocations[player],
+        this.state.endLocations[player],
+        board
+      );
+
+      return !!path;
+    });
   };
 }
 

@@ -25,6 +25,25 @@ const LockWallsButton: React.FC<LockWallsButtonProps> = ({
     return () => unsubscribe();
   }, [game]);
 
+  useEffect(() => {
+    const unsubscribe = game.wallToggledEventSubscription().subscribe((e) => {
+      Promise.all([game.pathExists("red"), game.pathExists("blue")])
+        .then(([redPathExists, bluePathExists]) => {
+          if (!redPathExists || !bluePathExists) {
+            setDisabled(true);
+          } else {
+            setDisabled(false);
+          }
+        })
+        .catch((error) => {
+          console.error("Failed to check path:", error);
+          setDisabled(true);
+        });
+    });
+
+    return () => unsubscribe();
+  }, [game]);
+
   const handleClick = () => {
     if (disabled) {
       return;

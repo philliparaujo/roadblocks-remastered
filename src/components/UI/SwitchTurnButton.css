@@ -14,3 +14,7 @@
 .button.blue {
   background-color: rgb(128, 128, 255);
 }
+
+.button.disabled {
+  background-color: rgb(164, 164, 164);
+}
