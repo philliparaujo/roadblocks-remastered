@@ -123,7 +123,12 @@ describe("NPC", () => {
         }
 
         game.state!.playerLocations![player] = coord;
-        subscriptions.notify({ player: player!, from: oldLocation, to: coord });
+        subscriptions.notify({
+          player: player!,
+          from: oldLocation,
+          to: coord,
+          numMovements: 0,
+        });
 
         if (equalCoords(coord, end)) {
           game.winGame?.();

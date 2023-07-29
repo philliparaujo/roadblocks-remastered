@@ -132,6 +132,12 @@ export default class Board {
     for (const wall of wallLocations.locked) {
       this.set(wall, "#");
     }
+    for (const redWall of wallLocations.red) {
+      this.set(redWall, "|");
+    }
+    for (const blueWall of wallLocations.blue) {
+      this.set(blueWall, "-");
+    }
   }
 
   /**

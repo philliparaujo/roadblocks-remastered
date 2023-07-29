@@ -5,6 +5,7 @@ export interface PlayerMovedEvent {
   player: PlayerColor;
   from: Coord;
   to: Coord;
+  numMovements: number;
 }
 
 export type SubscribePlayerEvent = (

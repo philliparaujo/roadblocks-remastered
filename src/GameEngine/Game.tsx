@@ -19,6 +19,10 @@ import {
   LockWallEventSubscription,
   LockWallSubscriber,
 } from "./LockWallSubscriber";
+import {
+  NumWallChangesEventSubscription,
+  NumWallChangesSubscriber,
+} from "./NumWallChangesSubscriber";
 import { PathfinderImpl } from "./Pathfinder";
 import {
   PlayerEventSubscription,
@@ -61,6 +65,7 @@ export interface GameState {
   endLocations: CellLocations;
   wallLocations: WallLocations;
   oldBoard: Board | null;
+  movements: number;
   diceRolls: DiceInfo;
   rollDurationMs: number;
   playerMovedSubscriptions: PlayerMovedSubscriber;
@@ -70,6 +75,7 @@ export interface GameState {
   diceRollSubscriptions: DiceRollSubscriber;
   winGameSubscriptions: WinGameSubscriber;
   startGameSubscriptions: StartGameSubscriber;
+  numWallChangesSubscriptions: NumWallChangesSubscriber;
 }
 interface StartGameResult {}
 interface EdgeResult {}
@@ -114,6 +120,7 @@ export interface Game {
   diceRollEventSubscription: () => DiceRollEventSubscription;
   winGameEventSubscription: () => WinGameEventSubscription;
   startGameEventSubscription: () => StartGameEventSubscription;
+  numWallChangesEventSubscription: () => NumWallChangesEventSubscription;
 }
 
 var id = 1;
@@ -155,6 +162,7 @@ export class GameImpl implements Game {
       ],
     },
     oldBoard: null,
+    movements: 0,
     diceRolls: {
       red: [1, 2, 3, 4, 5, 6],
       blue: [1, 2, 3, 4, 5, 6],
@@ -167,6 +175,7 @@ export class GameImpl implements Game {
     diceRollSubscriptions: new DiceRollSubscriber(),
     winGameSubscriptions: new WinGameSubscriber(),
     startGameSubscriptions: new StartGameSubscriber(),
+    numWallChangesSubscriptions: new NumWallChangesSubscriber(),
   };
 
   constructor(width: number, height: number) {
@@ -207,9 +216,7 @@ export class GameImpl implements Game {
     this.state.startGameSubscriptions.notify({
       startingPlayer: this.state.turn,
     });
-    this.state.oldBoard = (
-      await TextBoard.create(this, console.log)
-    ).getBoardForTesting();
+    this.state.oldBoard = await this.createBoard();
     console.time(`_________________FULL GAME ${this.state.id}`);
     return Promise.resolve({});
   };
@@ -257,10 +264,10 @@ export class GameImpl implements Game {
         this.state.phase = "placingWalls";
         this.state.switchTurnSubscriptions.notify({ turn: this.state.turn });
         this.state.diceRolled = false;
+        this.state.movements = 0;
+        this.state.numWallChangesSubscriptions.notify({ wallChanges: 0 });
 
-        TextBoard.create(this, console.log).then((textBoard) => {
-          this.state.oldBoard = textBoard.getBoardForTesting();
-        });
+        this.createBoard().then((board) => (this.state.oldBoard = board));
 
         return {};
       }
@@ -298,11 +305,13 @@ export class GameImpl implements Game {
     }
 
     this.state.playerLocations[player] = coord;
+    this.state.movements++;
 
     this.state.playerMovedSubscriptions.notify({
       player: player,
       from: oldLocation,
       to: coord,
+      numMovements: this.state.movements,
     });
 
     const end = this.state.endLocations[player];
@@ -345,7 +354,10 @@ export class GameImpl implements Game {
     });
   };
 
-  handleEdgeAction = (coord: Coord, placing: boolean): Promise<EdgeResult> => {
+  handleEdgeAction = async (
+    coord: Coord,
+    placing: boolean
+  ): Promise<EdgeResult> => {
     if (this.state.gameOver) return Promise.reject("Game over");
     if (!this.state.diceRolled) return Promise.reject("Dice not rolled");
 
@@ -367,20 +379,21 @@ export class GameImpl implements Game {
       ? this.state.turn === "red"
       : this.state.turn === "blue";
 
-    if (placing && isCorrectTurn) {
+    if (!isCorrectTurn) {
+      return Promise.reject("WRONG TURN");
+    }
+
+    if (placing) {
       this.state.wallLocations[this.state.turn].push(coord);
-      this.notifyWallToggled(coord, true);
-      // console.log(this.state.wallLocations);
-      return Promise.resolve({});
-    } else if (!placing && isCorrectTurn) {
+    } else {
       this.state.wallLocations[this.state.turn] = this.state.wallLocations[
         this.state.turn
       ].filter((wall) => !equalCoords(wall, coord));
-      this.notifyWallToggled(coord, false);
-      return Promise.resolve({});
-    } else {
-      return Promise.reject("WRONG TURN");
     }
+
+    const numWallChanges = await this.getNumWallChanges();
+    this.notifyWallToggled(coord, placing, numWallChanges);
+    return Promise.resolve({});
   };
 
   getTurn = (): Promise<PlayerColor> => Promise.resolve(this.state.turn);
@@ -450,12 +463,22 @@ export class GameImpl implements Game {
   startGameEventSubscription = (): StartGameEventSubscription =>
     this.state.startGameSubscriptions;
 
-  notifyWallToggled = (coord: Coord, isToggled: boolean): void => {
+  numWallChangesEventSubscription = (): NumWallChangesEventSubscription =>
+    this.state.numWallChangesSubscriptions;
+
+  notifyWallToggled = (
+    coord: Coord,
+    isToggled: boolean,
+    numWallChanges: number
+  ): void => {
+    console.log("Sending wall change");
     this.state.wallToggledSubscriptions.notify({
       wall: coord,
       isToggled: isToggled,
     });
-    // console.log(this.state.wallLocations);
+    this.state.numWallChangesSubscriptions.notify({
+      wallChanges: numWallChanges,
+    });
   };
 
   generateRandomWallLocations = (width: number, height: number): void => {
@@ -494,8 +517,7 @@ export class GameImpl implements Game {
   };
 
   pathExists = (player: PlayerColor): Promise<boolean> => {
-    return TextBoard.create(this, console.log).then((textBoard) => {
-      const board = textBoard.getBoardForTesting();
+    return this.createBoard().then((board) => {
       const path = PathfinderImpl.shortestPath(
         this.state.playerLocations[player],
         this.state.endLocations[player],
@@ -508,6 +530,22 @@ export class GameImpl implements Game {
 
   getOldBoard = (): Promise<Board | null> => {
     return Promise.resolve(this.state.oldBoard);
+  };
+
+  getNumWallChanges = async (): Promise<number> => {
+    const oldBoard: Board | null = this.state.oldBoard;
+    if (oldBoard == null) {
+      throw new Error("could not get old board");
+    }
+    const newBoard = await this.createBoard();
+
+    return newBoard.compareEdges(oldBoard);
+  };
+
+  createBoard = async (): Promise<Board> => {
+    const board: Board = new Board(this.state.width, this.state.height);
+    await board.initFromGame(this);
+    return board;
   };
 }
 
