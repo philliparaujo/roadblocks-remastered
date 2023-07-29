@@ -55,6 +55,12 @@ const PlayerRectangles: React.FC<PlayerRectangleProps> = ({
   };
 
   useEffect(() => {
+    const unsubscribe = game.switchTurnEventSubscription().subscribe((e) => {
+      updateRectangleStates(0);
+    });
+  }, [game]);
+
+  useEffect(() => {
     const unsubscribe = game.diceRollEventSubscription().subscribe((e) => {
       if (e.type === "stop") {
         const diceValue = e.value;

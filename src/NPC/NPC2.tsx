@@ -303,6 +303,12 @@ class MCTS {
 
   select(node: Node): Node {
     return node.children.reduce((bestChild, child) => {
+      // Additional check: disregard child if it corresponds to an illegal move
+      // if (child.action !== null && child.walls >= 6) {
+      // console.error("an illegal move was considered ?");
+      // return bestChild;
+      // }
+
       const childScore =
         child.visits === 0
           ? Infinity

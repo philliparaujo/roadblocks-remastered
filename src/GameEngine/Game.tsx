@@ -112,6 +112,7 @@ export interface Game {
   getHeight: () => Promise<number>;
   pathExists: (player: PlayerColor) => Promise<boolean>;
   getOldBoard: () => Promise<Board | null>;
+  canEndTurn: () => Promise<boolean>;
 
   playerMovedEventSubscription: () => PlayerEventSubscription;
   switchTurnEventSubscription: () => SwitchTurnEventSubscription;
@@ -236,6 +237,9 @@ export class GameImpl implements Game {
   lockWalls = (): Promise<LockWallResult> => {
     if (this.state.gameOver) return Promise.reject("Game over");
     if (!this.state.diceRolled) return Promise.reject("Dice not rolled");
+    this.canEndTurn().then((canI) => {
+      if (!canI) return Promise.reject("Too many wall movements (probably)");
+    });
 
     return Promise.all([this.pathExists("red"), this.pathExists("blue")]).then(
       ([redPathExists, bluePathExists]) => {
@@ -253,6 +257,9 @@ export class GameImpl implements Game {
 
   switchTurn = (): Promise<EndTurnResult> => {
     if (this.state.gameOver) return Promise.reject("Game over");
+    this.canEndTurn().then((canI) => {
+      if (!canI) return Promise.reject("Too many wall or player movements");
+    });
 
     return Promise.all([this.pathExists("red"), this.pathExists("blue")]).then(
       ([redPathExists, bluePathExists]) => {
@@ -346,6 +353,7 @@ export class GameImpl implements Game {
             type: "stop",
             value: newValue,
           });
+          this.state.diceValue = newValue;
           resolve(result);
         } finally {
           // console.timeEnd("rollDice");
@@ -471,7 +479,6 @@ export class GameImpl implements Game {
     isToggled: boolean,
     numWallChanges: number
   ): void => {
-    console.log("Sending wall change");
     this.state.wallToggledSubscriptions.notify({
       wall: coord,
       isToggled: isToggled,
@@ -546,6 +553,14 @@ export class GameImpl implements Game {
     const board: Board = new Board(this.state.width, this.state.height);
     await board.initFromGame(this);
     return board;
+  };
+
+  canEndTurn = async (): Promise<boolean> => {
+    const dice = this.state.diceValue;
+    const playerMovements = this.state.movements;
+    const wallChanges = await this.getNumWallChanges();
+
+    return playerMovements <= dice && wallChanges <= 7 - dice;
   };
 }
 

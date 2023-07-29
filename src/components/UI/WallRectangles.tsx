@@ -57,14 +57,12 @@ const WallRectangles: React.FC<WallRectanglesProps> = ({
 
   useEffect(() => {
     const unsubscribe = game.diceRollEventSubscription().subscribe((e) => {
-      console.log("Dice rolled!", e);
       if (e.type === "stop") {
         const diceValue = e.value;
         setDiceValue(diceValue);
 
         let updatedArray = new Array(maxRectangles).fill("locked");
         updatedArray.fill("", 0, Math.max(0, 7 - diceValue));
-        console.log(e, updatedArray);
         setRectangleStates(updatedArray);
       }
     });
@@ -75,7 +73,6 @@ const WallRectangles: React.FC<WallRectanglesProps> = ({
     const unsubscribe = game
       .numWallChangesEventSubscription()
       .subscribe((e) => {
-        console.log("wall changed", e);
         updateRectangleStates(e.wallChanges);
       });
     return () => unsubscribe();
@@ -84,9 +81,7 @@ const WallRectangles: React.FC<WallRectanglesProps> = ({
   return (
     <div className="rectangle-container">
       {rectangleStates.map((state, index) => (
-        <div key={index} className={`rectangle ${state}`}>
-          <>{console.log(state, index)}</>
-        </div>
+        <div key={index} className={`rectangle ${state}`} />
       ))}
     </div>
   );
