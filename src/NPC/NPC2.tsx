@@ -129,39 +129,27 @@ export class NPC2Impl {
       this.mcts = await MCTS.create(this.game, this.player);
       // this.textBoard.getBoardForTesting().dump(console.log);
       const numMovements = result.diceValue;
-      // const numWallChanges = 7 - result.diceValue;
+      const numWallChanges = 7 - result.diceValue;
 
-      const bestMove: Coord | null = await this.mcts.calculate(100);
+      for (let i = 0; i < numWallChanges; i++) {
+        const bestMove: Coord | null = await this.mcts.calculate(100);
 
-      if (bestMove === null) {
-        console.error("best move is null");
-      }
-
-      if (bestMove && isEdge(bestMove)) {
-        const allWalls: WallLocations = await this.game.getWallLocations();
-        const myWalls: Coord[] = allWalls[this.player];
-        if (this.utils.isCoordInArray(bestMove, myWalls)) {
-          await this.game.removeEdge(bestMove);
-        } else {
-          await this.game.addEdge(bestMove);
+        if (bestMove === null) {
+          console.error("best move is null");
         }
+
+        if (bestMove && isEdge(bestMove)) {
+          const allWalls: WallLocations = await this.game.getWallLocations();
+          const myWalls: Coord[] = allWalls[this.player];
+          if (this.utils.isCoordInArray(bestMove, myWalls)) {
+            await this.game.removeEdge(bestMove);
+          } else {
+            await this.game.addEdge(bestMove);
+          }
+        }
+
+        await sleep(this.wallActionIntervalMs);
       }
-
-      // for (let i = 0; i < 1; i++) {
-      //   console.log(bestMove);
-      //   if (bestMove === null) {
-      //     break;
-      //   }
-      //   const allWalls: WallLocations = await this.game.getWallLocations();
-      //   const myWalls: Coord[] = allWalls[this.player];
-      //   if (this.utils.isCoordInArray(bestMove, myWalls)) {
-      //     await this.game.removeEdge(bestMove);
-      //   } else {
-      //     await this.game.addEdge(bestMove);
-      //   }
-
-      //   await sleep(this.wallActionIntervalMs);
-      // }
 
       try {
         await this.game.lockWalls();
@@ -172,10 +160,7 @@ export class NPC2Impl {
       await sleep(this.sleepTimeMs);
 
       try {
-        if (bestMove && isCell(bestMove)) {
-          await this.game.setPlayerLocation(bestMove);
-        }
-        const movements = await this.bestXMovements(1);
+        const movements = await this.bestXMovements(numMovements);
         if (movements) {
           for (let coord of movements) {
             this.game.setPlayerLocation(coord);
@@ -354,7 +339,7 @@ class MCTS {
         node,
         action,
         newBoard,
-        this.calculateNumWalls(newBoard, this.player)
+        newBoard.countWalls(this.player)
       );
 
       node.children.push(newNode);
@@ -404,7 +389,7 @@ class MCTS {
         boardCopy = ogBoardCopy;
       }
 
-      node.walls = this.calculateNumWalls(boardCopy, this.player);
+      node.walls = boardCopy.countWalls(this.player);
 
       /* MOVEMENT */
       playerLocation = await this.getPlayerLocation(currentPlayer, boardCopy);
@@ -476,7 +461,7 @@ class MCTS {
       player
     );
 
-    const walls = this.calculateNumWalls(board, player);
+    const walls = board.countWalls(player);
 
     if (validWallCoords.length === 0) {
       console.log(walls);
@@ -646,20 +631,6 @@ class MCTS {
     } else {
       return -1;
     }
-  };
-
-  private calculateNumWalls = (board: Board, player: PlayerColor) => {
-    let numWalls = 0;
-    const wallType = player === "red" ? "|" : "-";
-    for (let i = 0; i < 2 * board.getHeight() + 1; i++) {
-      for (let j = 0; j < 2 * board.getWidth() + 1; j++) {
-        const element = board.get({ row: i, col: j });
-        if (!Array.isArray(element) && element === wallType) {
-          numWalls++;
-        }
-      }
-    }
-    return numWalls;
   };
 
   private printScores(node: Node): void {

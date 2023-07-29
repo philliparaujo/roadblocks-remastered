@@ -1,7 +1,7 @@
 import { bgWhite, black, blue, bold, dim, green, red, white } from "../Colors";
 import { Coord } from "../Coord";
 import { isCell, isCorner, isEdge } from "../Utils";
-import { Game, WallLocations } from "./Game";
+import { Game, PlayerColor, WallLocations } from "./Game";
 import { Printer } from "./TextBoard";
 
 export type EdgeElement = " " | "|" | "-" | "#";
@@ -286,5 +286,34 @@ export default class Board {
 
   toString(): string {
     return this.items.map((row) => row.join("")).join("\n");
+  }
+
+  countWalls(player: PlayerColor): number {
+    let numWalls = 0;
+    const wallType = player === "red" ? "|" : "-";
+    for (let i = 0; i < 2 * this.width + 1; i++) {
+      for (let j = 0; j < 2 * this.height + 1; j++) {
+        const element = this.get({ row: i, col: j });
+        if (!Array.isArray(element) && element === wallType) {
+          numWalls++;
+        }
+      }
+    }
+    return numWalls;
+  }
+
+  compareEdges(oldBoard: Board): number {
+    let diffCount = 0;
+    for (let i = 0; i < 2 * this.width + 1; i++) {
+      for (let j = 0; j < 2 * this.height + 1; j++) {
+        const coord: Coord = { row: i, col: j };
+        const element = this.get(coord);
+        const oldElement = oldBoard.get(coord);
+        if (isEdge(coord) && element !== oldElement) {
+          diffCount++;
+        }
+      }
+    }
+    return diffCount;
   }
 }

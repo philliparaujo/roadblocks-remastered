@@ -10,6 +10,7 @@ import {
   isVerticalEdge,
   randomDiceValue,
 } from "../Utils";
+import Board from "./Board";
 import {
   DiceRollEventSubscription,
   DiceRollSubscriber,
@@ -59,6 +60,7 @@ export interface GameState {
   playerLocations: CellLocations;
   endLocations: CellLocations;
   wallLocations: WallLocations;
+  oldBoard: Board | null;
   diceRolls: DiceInfo;
   rollDurationMs: number;
   playerMovedSubscriptions: PlayerMovedSubscriber;
@@ -103,6 +105,7 @@ export interface Game {
   getWidth: () => Promise<number>;
   getHeight: () => Promise<number>;
   pathExists: (player: PlayerColor) => Promise<boolean>;
+  getOldBoard: () => Promise<Board | null>;
 
   playerMovedEventSubscription: () => PlayerEventSubscription;
   switchTurnEventSubscription: () => SwitchTurnEventSubscription;
@@ -151,6 +154,7 @@ export class GameImpl implements Game {
         { row: 12, col: 13 },
       ],
     },
+    oldBoard: null,
     diceRolls: {
       red: [1, 2, 3, 4, 5, 6],
       blue: [1, 2, 3, 4, 5, 6],
@@ -203,22 +207,28 @@ export class GameImpl implements Game {
     this.state.startGameSubscriptions.notify({
       startingPlayer: this.state.turn,
     });
+    this.state.oldBoard = (
+      await TextBoard.create(this, console.log)
+    ).getBoardForTesting();
     console.time(`_________________FULL GAME ${this.state.id}`);
     return Promise.resolve({});
   };
 
   addEdge = (coord: Coord): Promise<EdgeResult> => {
     if (this.state.gameOver) return Promise.reject("Game over");
+    if (!this.state.diceRolled) return Promise.reject("Dice not rolled");
     return this.handleEdgeAction(coord, true);
   };
 
   removeEdge = (coord: Coord): Promise<EdgeResult> => {
     if (this.state.gameOver) return Promise.reject("Game over");
+    if (!this.state.diceRolled) return Promise.reject("Dice not rolled");
     return this.handleEdgeAction(coord, false);
   };
 
   lockWalls = (): Promise<LockWallResult> => {
     if (this.state.gameOver) return Promise.reject("Game over");
+    if (!this.state.diceRolled) return Promise.reject("Dice not rolled");
 
     return Promise.all([this.pathExists("red"), this.pathExists("blue")]).then(
       ([redPathExists, bluePathExists]) => {
@@ -248,6 +258,10 @@ export class GameImpl implements Game {
         this.state.switchTurnSubscriptions.notify({ turn: this.state.turn });
         this.state.diceRolled = false;
 
+        TextBoard.create(this, console.log).then((textBoard) => {
+          this.state.oldBoard = textBoard.getBoardForTesting();
+        });
+
         return {};
       }
     );
@@ -262,6 +276,7 @@ export class GameImpl implements Game {
 
   setPlayerLocation = async (coord: Coord): Promise<PlayerMovedResult> => {
     if (this.state.gameOver) return Promise.reject("Game over");
+    if (!this.state.diceRolled) return Promise.reject("Dice not rolled");
 
     if (this.state.phase !== "movingPlayer") {
       return Promise.reject("NOT MOVE PHASE");
@@ -332,6 +347,7 @@ export class GameImpl implements Game {
 
   handleEdgeAction = (coord: Coord, placing: boolean): Promise<EdgeResult> => {
     if (this.state.gameOver) return Promise.reject("Game over");
+    if (!this.state.diceRolled) return Promise.reject("Dice not rolled");
 
     if (this.state.phase !== "placingWalls") {
       return Promise.reject("NOT WALL PHASE");
@@ -488,6 +504,10 @@ export class GameImpl implements Game {
 
       return !!path;
     });
+  };
+
+  getOldBoard = (): Promise<Board | null> => {
+    return Promise.resolve(this.state.oldBoard);
   };
 }
 
