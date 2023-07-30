@@ -13,12 +13,12 @@ import PlayerRectangles from "./components/UI/PlayerRectangles";
 
 function App() {
   useEffect(() => {
-    NPC2Impl.create(GameInstance, "red", {
+    NPCImpl.create(GameInstance, "red", {
       sleepTimeMs: 500,
       wallActionIntervalMs: 200,
       movementIntervalMs: 100,
     });
-    NPC2Impl.create(GameInstance, "blue", {
+    NPCImpl.create(GameInstance, "blue", {
       sleepTimeMs: 500,
       wallActionIntervalMs: 200,
       movementIntervalMs: 100,
