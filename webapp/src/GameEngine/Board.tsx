@@ -4,10 +4,20 @@ import {
   isCell,
   isCorner,
   isEdge,
+  isVerticalEdge,
 } from "@roadblocks/engine";
 import { black, blue, bold, dim, green, red, white } from "../Colors";
 import { Game } from "./Game";
-import { Printer } from "./TextBoard";
+import {
+  PlayerMovedEvent,
+  PlayerMovedEventCallback,
+} from "./PlayerMovedSubscriber";
+import {
+  WallToggledEvent,
+  WallToggledEventCallback,
+} from "./WallToggledSubscriber";
+
+export type Printer = (message?: any, ...optionalParams: any[]) => void;
 
 export type EdgeElement = " " | "|" | "-" | "#";
 type Row = BoardElement[];
@@ -20,10 +30,43 @@ export type BluePlayer = "b";
 export type RedEnd = "R";
 export type BlueEnd = "B";
 
-export default class Board {
+export interface Board {
+  width: number;
+  height: number;
+  game?: Game;
+
+  get: (coord: Coord) => BoardElement;
+  set: (coord: Coord, value: BoardElement) => void;
+  addToCell: (
+    coord: Coord,
+    value: RedPlayer | BluePlayer | RedEnd | BlueEnd
+  ) => void;
+  removeFromCell: (
+    coord: Coord,
+    value: RedPlayer | BluePlayer | RedEnd | BlueEnd
+  ) => void;
+
+  copy: () => BoardImpl;
+
+  initFromGame: (game: Game) => Promise<void>;
+  sync: (game: Game) => Promise<void>;
+
+  countWalls: (player: PlayerColor) => number;
+  compareEdges: (oldBoard: BoardImpl) => number;
+
+  dump: (printer: Printer) => void;
+  dispose: () => void;
+}
+
+export default class BoardImpl implements Board {
   private items: Row[] = [];
-  private width: number;
-  private height: number;
+  width: number;
+  height: number;
+
+  game?: Game;
+
+  private unsubscribeToWallToggled: (() => void) | undefined;
+  private unsubscribeToPlayerMoved: (() => void) | undefined;
 
   constructor(width: number, height: number) {
     this.width = width;
@@ -48,15 +91,18 @@ export default class Board {
     }
   }
 
-  get(coord: Coord) {
+  public get(coord: Coord) {
     return this.items[coord.row][coord.col];
   }
 
-  set(coord: Coord, value: BoardElement) {
+  public set(coord: Coord, value: BoardElement) {
     this.items[coord.row][coord.col] = value;
   }
 
-  addToCell(coord: Coord, value: RedPlayer | BluePlayer | RedEnd | BlueEnd) {
+  public addToCell(
+    coord: Coord,
+    value: RedPlayer | BluePlayer | RedEnd | BlueEnd
+  ) {
     const cellElement = this.get(coord);
 
     if (!(cellElement instanceof Array)) {
@@ -68,7 +114,7 @@ export default class Board {
     this.set(coord, [...cellElement, value]);
   }
 
-  removeFromCell(
+  public removeFromCell(
     coord: Coord,
     value: RedPlayer | BluePlayer | RedEnd | BlueEnd
   ) {
@@ -86,16 +132,8 @@ export default class Board {
     );
   }
 
-  getWidth() {
-    return this.width;
-  }
-
-  getHeight() {
-    return this.height;
-  }
-
-  copy(): Board {
-    const newBoard: Board = new Board(this.getWidth(), this.getHeight());
+  public copy(): BoardImpl {
+    const newBoard: BoardImpl = new BoardImpl(this.width, this.height);
     newBoard.items = this.deepCopy(this.items);
     return newBoard;
   }
@@ -112,7 +150,7 @@ export default class Board {
     return copy;
   }
 
-  async initFromGame(game: Game): Promise<void> {
+  public async initFromGame(game: Game): Promise<void> {
     const redPlayerCoord: Coord = await game.getInitialCellLocation(
       "redplayer"
     );
@@ -145,16 +183,13 @@ export default class Board {
     }
   }
 
-  /**
-    ┏━━┳━━┳━━┳━━┳━━┓
-    ┃  ┃  ┃  ┃  ┃  ┃
-    ┣━━╋━━╋━━╋━━╋━━┫
-    ┃  ┃  ┃  ┃  ┃  ┃
-    ┣━━╋━━╋━━╋━━╋━━┫
-    ┃  ┃  ┃  ┃  ┃  ┃
-    ┗━━┻━━┻━━┻━━┻━━┛
-   */
-  dump(printer: Printer) {
+  public async sync(game: Game): Promise<void> {
+    this.initFromGame(game);
+    this.subscribeToPlayerMoved(this.updatePlayer);
+    this.subscribeToWallToggled(this.updateWalls);
+  }
+
+  public dump(printer: Printer) {
     let result: string[][] = [];
 
     // result.push("\u001b[90m┏";
@@ -210,7 +245,7 @@ export default class Board {
     printer(resultString);
   }
 
-  createRow(
+  private createRow(
     startChar: string,
     firstLoopChar: string,
     secondLoopChar: string,
@@ -295,11 +330,7 @@ export default class Board {
     return row;
   }
 
-  toString(): string {
-    return this.items.map((row) => row.join("")).join("\n");
-  }
-
-  countWalls(player: PlayerColor): number {
+  public countWalls(player: PlayerColor): number {
     let numWalls = 0;
     const wallType = player === "red" ? "|" : "-";
     for (let i = 0; i < 2 * this.width + 1; i++) {
@@ -313,7 +344,7 @@ export default class Board {
     return numWalls;
   }
 
-  compareEdges(oldBoard: Board): number {
+  public compareEdges(oldBoard: BoardImpl): number {
     let diffCount = 0;
     for (let i = 0; i < 2 * this.width + 1; i++) {
       for (let j = 0; j < 2 * this.height + 1; j++) {
@@ -326,5 +357,57 @@ export default class Board {
       }
     }
     return diffCount;
+  }
+
+  /* Subscription handling */
+  private async updateWalls(e: WallToggledEvent): Promise<void> {
+    const coord: Coord = e.wall;
+    const wallValue: EdgeElement = !e.isToggled
+      ? " "
+      : isVerticalEdge(coord)
+      ? "|"
+      : "-";
+    this.set(coord, wallValue);
+  }
+
+  private async updatePlayer(e: PlayerMovedEvent): Promise<void> {
+    const prevCoord: Coord = e.from;
+    const prevElement: CellElement = this.get(prevCoord) as CellElement;
+
+    if (Array.isArray(prevElement)) {
+      const index = prevElement.indexOf(e.player === "red" ? "r" : "b");
+      if (index > -1) {
+        prevElement.splice(index, 1);
+      }
+    } else {
+      this.set(prevCoord, " ");
+    }
+
+    const newCoord: Coord = e.to;
+    const newCell: CellElement = this.get(newCoord) as CellElement;
+    if (Array.isArray(newCell)) {
+      newCell.push(e.player === "red" ? "r" : "b");
+    }
+  }
+
+  private subscribeToWallToggled(callback: WallToggledEventCallback): void {
+    this.unsubscribeToWallToggled = this.game
+      ?.wallToggledEventSubscription()
+      .subscribe(callback);
+  }
+
+  private subscribeToPlayerMoved(callback: PlayerMovedEventCallback): void {
+    this.unsubscribeToPlayerMoved = this.game
+      ?.playerMovedEventSubscription()
+      .subscribe(callback);
+  }
+
+  public dispose() {
+    if (this.unsubscribeToWallToggled) {
+      this.unsubscribeToWallToggled();
+    }
+    if (this.unsubscribeToPlayerMoved) {
+      this.unsubscribeToPlayerMoved();
+    }
   }
 }

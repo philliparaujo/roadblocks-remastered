@@ -1,5 +1,5 @@
 import { Coord } from "@roadblocks/engine";
-import Board, { EdgeElement } from "../GameEngine/Board";
+import BoardImpl, { EdgeElement } from "../GameEngine/Board";
 import { Game } from "../GameEngine/Game";
 import { PlayerColor, WallLocations } from "@roadblocks/engine";
 import { PathfinderImpl, directions } from "../GameEngine/Pathfinder";
@@ -36,7 +36,7 @@ export class NPCUtils {
 
   getShortestPathOf = async (
     player: PlayerColor,
-    board: Board = this.textBoard.getBoardForTesting()
+    board: BoardImpl = this.textBoard.getBoardForTesting()
   ): Promise<Coord[] | null> => {
     const playerLocation = await this.game.playerLocation(player);
     const endLocation = await this.game.endLocation(player);
@@ -47,7 +47,7 @@ export class NPCUtils {
   getShortestPathMinusXWalls = async (
     x: number,
     player: PlayerColor,
-    board: Board,
+    board: BoardImpl,
     myWalls: Coord[]
   ): Promise<Coord[] | null> => {
     if (x < 0) {
@@ -60,7 +60,7 @@ export class NPCUtils {
       return this.getShortestPathMinusXWalls(x - 1, player, board, myWalls);
     }
 
-    let boardCopy: Board = board.copy();
+    let boardCopy: BoardImpl = board.copy();
     const wallCombinations: Coord[][] = this.generateWallCombinations(
       myWalls,
       x
@@ -132,7 +132,7 @@ export class NPCUtils {
   allValidWallCoords = (
     width: number,
     height: number,
-    board: Board = this.textBoard.getBoardForTesting(),
+    board: BoardImpl = this.textBoard.getBoardForTesting(),
     player: PlayerColor = this.player
   ): Coord[] => {
     let validWalls: Coord[] = [];
@@ -199,8 +199,8 @@ export class NPCUtils {
 
   /* Score-related Utils */
   bestSingleWallPlacement = async (
-    board: Board,
-    calculateScore: (board: Board) => Promise<score>
+    board: BoardImpl,
+    calculateScore: (board: BoardImpl) => Promise<score>
   ): Promise<Coord | null> => {
     const opponentPath = await this.getShortestPathOf(
       this.getOpponent(),
@@ -220,10 +220,10 @@ export class NPCUtils {
   };
 
   bestSingleWallRemoval = async (
-    board: Board,
+    board: BoardImpl,
     myWalls: Coord[],
 
-    calculateScore: (board: Board) => Promise<score>
+    calculateScore: (board: BoardImpl) => Promise<score>
   ): Promise<Coord | null> => {
     let bestScore = -Infinity;
     let bestWall: Coord | null = null;
@@ -249,10 +249,10 @@ export class NPCUtils {
   };
 
   highestScoreWallOnOpponentPath = async (
-    board: Board,
+    board: BoardImpl,
     opponentPath: Coord[] | null,
 
-    calculateScore: (board: Board) => Promise<score>
+    calculateScore: (board: BoardImpl) => Promise<score>
   ) => {
     if (!opponentPath || opponentPath.length < 2) {
       return null;
@@ -316,9 +316,9 @@ export class NPCUtils {
   };
 
   highestScoreWall = async (
-    board: Board,
+    board: BoardImpl,
 
-    calculateScore: (board: Board) => Promise<score>
+    calculateScore: (board: BoardImpl) => Promise<score>
   ) => {
     const allValidWalls: Coord[] = this.allValidWallCoords(
       this.textBoard.getWidth(),

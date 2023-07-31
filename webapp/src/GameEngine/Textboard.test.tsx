@@ -1,15 +1,8 @@
 import { CellElement } from "../components/Board/Cell";
-import Board from "./Board";
 import { Game } from "./Game";
-import {
-  PlayerEventSubscription,
-  SubscribePlayerEvent,
-} from "./PlayerMovedSubscriber";
-import { Printer, TextBoard } from "./TextBoard";
-import {
-  SubscribeWallEvent,
-  WallToggledEventSubscription,
-} from "./WallToggledSubscriber";
+import { PlayerEventSubscription } from "./PlayerMovedSubscriber";
+import { TextBoard } from "./TextBoard";
+import { WallToggledEventSubscription } from "./WallToggledSubscriber";
 
 jest.mock("./Game");
 

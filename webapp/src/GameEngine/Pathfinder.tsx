@@ -1,7 +1,10 @@
-import { Coord } from "@roadblocks/engine";
-import { averageCoord, equalCoords, isInBounds } from "@roadblocks/engine";
-import Board from "./Board";
-import { TextBoard } from "./TextBoard";
+import {
+  Coord,
+  averageCoord,
+  equalCoords,
+  isInBounds,
+} from "@roadblocks/engine";
+import BoardImpl from "./Board";
 
 type direction = Coord;
 type CoordString = String;
@@ -15,20 +18,20 @@ export const directions: direction[] = [
   { row: 0, col: -2 },
 ];
 
-function isObstacle(coord: Coord, board: Board) {
+function isObstacle(coord: Coord, board: BoardImpl) {
   const element = board.get(coord);
   return element === "#" || element === "|" || element === "-";
 }
 
 export class PathfinderImpl {
-  static hasPath = (start: Coord, end: Coord, board: Board): boolean => {
+  static hasPath = (start: Coord, end: Coord, board: BoardImpl): boolean => {
     return PathfinderImpl.shortestPath(start, end, board) !== null;
   };
 
   static shortestPath = (
     start: Coord,
     end: Coord,
-    board: Board
+    board: BoardImpl
   ): Coord[] | null => {
     const heuristic = (a: Coord, b: Coord) =>
       Math.abs(a.row - b.row) + Math.abs(a.col - b.col);
@@ -75,11 +78,7 @@ export class PathfinderImpl {
         let midPoint = averageCoord(current, newCoord);
 
         if (
-          isInBounds(
-            newCoord,
-            2 * board.getWidth() + 1,
-            2 * board.getHeight() + 1
-          ) &&
+          isInBounds(newCoord, 2 * board.width + 1, 2 * board.height + 1) &&
           !isObstacle(midPoint, board) &&
           !visited.has(JSON.stringify(newCoord))
         ) {

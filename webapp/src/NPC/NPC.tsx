@@ -1,16 +1,6 @@
-import { Coord } from "@roadblocks/engine";
-import {
-  averageCoord,
-  distanceBetween,
-  equalCoords,
-  isBorderEdge,
-  isHorizontalEdge,
-  isVerticalEdge,
-} from "@roadblocks/engine";
-import Board, { BoardElement, EdgeElement } from "../GameEngine/Board";
+import { Coord, PlayerColor, WallLocations } from "@roadblocks/engine";
+import BoardImpl, { EdgeElement } from "../GameEngine/Board";
 import { Game } from "../GameEngine/Game";
-import { PlayerColor, WallLocations } from "@roadblocks/engine";
-import { PathfinderImpl } from "../GameEngine/Pathfinder";
 import { TextBoard } from "../GameEngine/TextBoard";
 import { NPCUtils } from "./NPCUtils";
 
@@ -107,7 +97,7 @@ export class NPCImpl {
 
   /* Public methods */
   public calculateScore = async (
-    board: Board = this.textBoard.getBoardForTesting()
+    board: BoardImpl = this.textBoard.getBoardForTesting()
   ): Promise<score> => {
     const opponentColor = this.utils.getOpponent();
     const scoreVariations: score[] = [];
@@ -264,7 +254,7 @@ export class NPCImpl {
   };
 
   private bestSingleWallMove = async (): Promise<Coord | null> => {
-    const board: Board = this.textBoard.getBoardForTesting();
+    const board: BoardImpl = this.textBoard.getBoardForTesting();
     const allWalls = await this.game.getWallLocations();
     const myWalls: Coord[] = allWalls[this.player];
 

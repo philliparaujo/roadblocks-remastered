@@ -1,5 +1,5 @@
 import { Coord, isVerticalEdge } from "@roadblocks/engine";
-import Board, { CellElement, EdgeElement } from "./Board";
+import BoardImpl, { CellElement, EdgeElement } from "./Board";
 import GameInstance, { Game } from "./Game";
 import {
   PlayerMovedEvent,
@@ -15,7 +15,7 @@ export type Printer = (message?: any, ...optionalParams: any[]) => void;
 export class TextBoard {
   private printer: Printer;
   private game: Game;
-  private board: Board;
+  private board: BoardImpl;
   private width: number;
   private height: number;
   private unsubscribeToWallToggled: (() => void) | undefined;
@@ -31,7 +31,7 @@ export class TextBoard {
     this.width = width;
     this.height = height;
     this.printer = printer;
-    this.board = new Board(width, height);
+    this.board = new BoardImpl(width, height);
     this.updatePlayer = this.updatePlayer.bind(this);
     this.updateWalls = this.updateWalls.bind(this);
   }
@@ -53,8 +53,8 @@ export class TextBoard {
     return textBoard;
   }
 
-  public getBoardForTesting(): Board {
-    const board: Board = this.board.copy();
+  public getBoardForTesting(): BoardImpl {
+    const board: BoardImpl = this.board.copy();
     // console.log(board);
     return board;
   }

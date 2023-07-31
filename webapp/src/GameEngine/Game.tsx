@@ -13,7 +13,7 @@ import {
   randomDiceValue,
 } from "@roadblocks/engine";
 import { CellElement } from "../components/Board/Cell";
-import Board from "./Board";
+import BoardImpl from "./Board";
 import {
   DiceRollEventSubscription,
   DiceRollSubscriber,
@@ -60,7 +60,7 @@ export interface GameState {
   playerLocations: CellLocations;
   endLocations: CellLocations;
   wallLocations: WallLocations;
-  oldBoard: Board | null;
+  oldBoard: BoardImpl | null;
   movements: number;
   diceRolls: DiceInfo;
   rollDurationMs: number;
@@ -107,7 +107,7 @@ export interface Game {
   getWidth: () => Promise<number>;
   getHeight: () => Promise<number>;
   pathExists: (player: PlayerColor) => Promise<boolean>;
-  getOldBoard: () => Promise<Board | null>;
+  getOldBoard: () => Promise<BoardImpl | null>;
   canEndTurn: () => Promise<boolean>;
 
   playerMovedEventSubscription: () => PlayerEventSubscription;
@@ -531,12 +531,12 @@ export class GameImpl implements Game {
     });
   };
 
-  getOldBoard = (): Promise<Board | null> => {
+  getOldBoard = (): Promise<BoardImpl | null> => {
     return Promise.resolve(this.state.oldBoard);
   };
 
   getNumWallChanges = async (): Promise<number> => {
-    const oldBoard: Board | null = this.state.oldBoard;
+    const oldBoard: BoardImpl | null = this.state.oldBoard;
     if (oldBoard == null) {
       throw new Error("could not get old board");
     }
@@ -545,8 +545,8 @@ export class GameImpl implements Game {
     return newBoard.compareEdges(oldBoard);
   };
 
-  createBoard = async (): Promise<Board> => {
-    const board: Board = new Board(this.state.width, this.state.height);
+  createBoard = async (): Promise<BoardImpl> => {
+    const board: BoardImpl = new BoardImpl(this.state.width, this.state.height);
     await board.initFromGame(this);
     return board;
   };

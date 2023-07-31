@@ -1,15 +1,13 @@
+import { useEffect } from "react";
 import "./App.css";
-import UIBoard from "./components/Board/UIBoard";
-import GameInstance, { GameImpl } from "./GameEngine/Game";
-import SwitchTurnButton from "./components/UI/SwitchTurnButton";
-import LockWallsButton from "./components/UI/LockWallsButton";
-import { TextBoard } from "./GameEngine/TextBoard";
-import { useEffect, useState } from "react";
+import GameInstance from "./GameEngine/Game";
 import { NPCImpl } from "./NPC/NPC";
+import UIBoard from "./components/Board/UIBoard";
 import Dice from "./components/UI/Dice";
-import { NPC2Impl } from "./NPC/NPC2";
-import WallRectangles from "./components/UI/WallRectangles";
+import LockWallsButton from "./components/UI/LockWallsButton";
 import PlayerRectangles from "./components/UI/PlayerRectangles";
+import SwitchTurnButton from "./components/UI/SwitchTurnButton";
+import WallRectangles from "./components/UI/WallRectangles";
 
 function App() {
   useEffect(() => {

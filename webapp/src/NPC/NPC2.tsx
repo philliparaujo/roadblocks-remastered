@@ -1,22 +1,17 @@
-import { Coord } from "@roadblocks/engine";
 import {
-  averageCoord,
-  distanceBetween,
+  Coord,
+  PlayerColor,
+  WallLocations,
   equalCoords,
   isAdjacent,
-  isBorderEdge,
   isCell,
   isEdge,
-  isHorizontalEdge,
-  isVerticalEdge,
 } from "@roadblocks/engine";
-import Board, { BoardElement, EdgeElement } from "../GameEngine/Board";
+import BoardImpl from "../GameEngine/Board";
 import { Game } from "../GameEngine/Game";
-import { PlayerColor, TurnPhase, WallLocations } from "@roadblocks/engine";
 import { PathfinderImpl } from "../GameEngine/Pathfinder";
 import { TextBoard } from "../GameEngine/TextBoard";
 import { NPCUtils } from "./NPCUtils";
-import { text } from "stream/consumers";
 
 export type score = number;
 
@@ -206,7 +201,7 @@ export class NPC2Impl {
 class Node {
   game: Game;
   player: PlayerColor;
-  board: Board;
+  board: BoardImpl;
   parent: Node | null;
   children: Node[];
   action: Coord | null;
@@ -217,7 +212,7 @@ class Node {
   private constructor(
     game: Game,
     player: PlayerColor,
-    board: Board,
+    board: BoardImpl,
     parent: Node | null,
     action: Coord | null,
     walls: number
@@ -238,7 +233,7 @@ class Node {
     player: PlayerColor,
     parent: Node | null = null,
     action: Coord | null = null,
-    board?: Board,
+    board?: BoardImpl,
     walls: number = 0
   ) {
     if (!board) {
@@ -329,7 +324,7 @@ class MCTS {
 
     for (let i = 0; i < possibleActions.length; i++) {
       const action = possibleActions[i];
-      const newBoard: Board = await this.applyWallAction(
+      const newBoard: BoardImpl = await this.applyWallAction(
         node.board,
         node.player,
         action
@@ -453,7 +448,7 @@ class MCTS {
 
   /* Helper methods */
   private async getPossibleWallActions(
-    board: Board,
+    board: BoardImpl,
     player: PlayerColor
   ): Promise<Coord[]> {
     const validWallCoords: Coord[] = this.utils.allValidWallCoords(
@@ -514,7 +509,7 @@ class MCTS {
   }
 
   private async getRandomWallAction(
-    board: Board,
+    board: BoardImpl,
     player: PlayerColor,
     walls: number
   ): Promise<Coord | null> {
@@ -529,10 +524,10 @@ class MCTS {
   }
 
   private async applyWallAction(
-    board: Board,
+    board: BoardImpl,
     player: PlayerColor,
     coord: Coord
-  ): Promise<Board> {
+  ): Promise<BoardImpl> {
     const boardCopy = board.copy();
     const allWalls: WallLocations = await this.game.getWallLocations();
     const myWalls: Coord[] = allWalls[player];
@@ -547,10 +542,10 @@ class MCTS {
   }
 
   private async applyMove(
-    board: Board,
+    board: BoardImpl,
     player: PlayerColor,
     coord: Coord
-  ): Promise<Board> {
+  ): Promise<BoardImpl> {
     const boardCopy = board.copy();
     const playerType = player === "red" ? "r" : "b";
     const oldCoord: Coord | null = this.getPlayerLocation(player, boardCopy);
@@ -582,11 +577,11 @@ class MCTS {
 
   private getPlayerLocation = (
     player: PlayerColor,
-    board: Board
+    board: BoardImpl
   ): Coord | null => {
     const lookingFor = player === "red" ? "r" : "b";
-    for (let i = 0; i < 2 * board.getHeight() + 1; i++) {
-      for (let j = 0; j < 2 * board.getWidth() + 1; j++) {
+    for (let i = 0; i < 2 * board.height + 1; i++) {
+      for (let j = 0; j < 2 * board.width + 1; j++) {
         const element = board.get({ row: i, col: j });
         if (Array.isArray(element)) {
           if (element.includes(lookingFor)) {
@@ -598,7 +593,7 @@ class MCTS {
     return null;
   };
 
-  private getWinner = (board: Board): PlayerColor | null => {
+  private getWinner = (board: BoardImpl): PlayerColor | null => {
     const redLocation = this.getPlayerLocation("red", board);
     const blueLocation = this.getPlayerLocation("blue", board);
 
@@ -620,11 +615,11 @@ class MCTS {
     }
   };
 
-  private gameOver = (board: Board): boolean => {
+  private gameOver = (board: BoardImpl): boolean => {
     return this.getWinner(board) !== null;
   };
 
-  private getReward = (board: Board): number => {
+  private getReward = (board: BoardImpl): number => {
     const winner = this.getWinner(board);
     if (winner === this.player) {
       return 1;
