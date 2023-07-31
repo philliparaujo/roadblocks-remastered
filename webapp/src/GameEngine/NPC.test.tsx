@@ -1,7 +1,8 @@
-import { Coord } from "../Coord";
-import { equalCoords } from "../Utils";
+import { Coord } from "@roadblocks/engine";
+import { equalCoords } from "@roadblocks/engine";
 import { CellElement } from "../components/Board/Cell";
-import { Game, GameImpl, GameState, PlayerColor } from "./Game";
+import { Game, GameImpl, GameState } from "./Game";
+import { PlayerColor } from "@roadblocks/engine";
 import { NPCImpl } from "../NPC/NPC";
 import {
   PlayerEventSubscription,
@@ -209,7 +210,7 @@ describe("NPC", () => {
       await game.addEdge({ row: 12, col: 7 });
       const newPathScore = await npc.calculateScore();
 
-      expect(newPathScore).tobeGreaterThan(directPathScore);
+      expect(newPathScore).toBeGreaterThan(directPathScore);
     }
   });
 });

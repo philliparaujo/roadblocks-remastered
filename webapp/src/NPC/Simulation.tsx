@@ -1,4 +1,5 @@
-import { GameImpl, PlayerColor } from "../GameEngine/Game";
+import { GameImpl } from "../GameEngine/Game";
+import { PlayerColor } from "@roadblocks/engine";
 import { NPCImpl } from "./NPC";
 // import { NPC2Impl } from "./NPC2";
 

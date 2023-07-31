@@ -1,6 +1,7 @@
-import { Coord } from "../Coord";
+import { Coord } from "@roadblocks/engine";
 import Board, { EdgeElement } from "../GameEngine/Board";
-import { Game, PlayerColor, WallLocations } from "../GameEngine/Game";
+import { Game } from "../GameEngine/Game";
+import { PlayerColor, WallLocations } from "@roadblocks/engine";
 import { PathfinderImpl, directions } from "../GameEngine/Pathfinder";
 import { TextBoard } from "../GameEngine/TextBoard";
 import {
@@ -10,7 +11,7 @@ import {
   isHorizontalEdge,
   isValidMove,
   isVerticalEdge,
-} from "../Utils";
+} from "@roadblocks/engine";
 import { score } from "./NPC";
 
 export class NPCUtils {

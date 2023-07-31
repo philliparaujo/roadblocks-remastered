@@ -1,9 +1,10 @@
 import Cell, { CellElement } from "./Cell";
 import Corner from "./Corner";
 import Edge, { EdgeType } from "./Edge";
-import { equalCoords, isCell, isCorner } from "../../Utils";
-import GameInstance, { Game, PlayerColor } from "../../GameEngine/Game";
-import { Coord } from "../../Coord";
+import { equalCoords, isCell, isCorner } from "@roadblocks/engine";
+import GameInstance, { Game } from "../../GameEngine/Game";
+import { PlayerColor } from "@roadblocks/engine";
+import { Coord } from "@roadblocks/engine";
 import { useEffect, useState } from "react";
 
 export interface UIBoardProps {

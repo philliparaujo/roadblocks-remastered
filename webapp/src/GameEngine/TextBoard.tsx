@@ -1,6 +1,5 @@
-import { Coord } from "../Coord";
-import { EdgeType, Orientation } from "../components/Board/Edge";
-import { isCell, isCorner, isHorizontalEdge, isVerticalEdge } from "../Utils";
+import { Coord, isVerticalEdge } from "@roadblocks/engine";
+import Board, { CellElement, EdgeElement } from "./Board";
 import GameInstance, { Game } from "./Game";
 import {
   PlayerMovedEvent,
@@ -10,15 +9,6 @@ import {
   WallToggledEvent,
   WallToggledEventCallback,
 } from "./WallToggledSubscriber";
-import Board, {
-  BlueEnd,
-  BluePlayer,
-  BoardElement,
-  CellElement,
-  EdgeElement,
-  RedEnd,
-  RedPlayer,
-} from "./Board";
 
 export type Printer = (message?: any, ...optionalParams: any[]) => void;
 

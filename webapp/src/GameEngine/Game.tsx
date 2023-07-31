@@ -1,15 +1,18 @@
-import { CellElement } from "../components/Board/Cell";
-import { Coord } from "../Coord";
 import {
+  CellLocations,
+  Coord,
+  DiceInfo,
+  PlayerColor,
+  TurnPhase,
+  WallLocations,
   equalCoords,
-  isAdjacent,
   isBorderEdge,
   isEdge,
-  isHorizontalEdge,
   isValidMove,
   isVerticalEdge,
   randomDiceValue,
-} from "../Utils";
+} from "@roadblocks/engine";
+import { CellElement } from "../components/Board/Cell";
 import Board from "./Board";
 import {
   DiceRollEventSubscription,
@@ -36,7 +39,6 @@ import {
   SwitchTurnEventSubscription,
   SwitchTurnSubscriber,
 } from "./SwitchTurnSubscriber";
-import { TextBoard } from "./TextBoard";
 import {
   WallToggledEventSubscription,
   WallToggledSubscriber,
@@ -45,12 +47,6 @@ import {
   WinGameEventSubscription,
   WinGameSubscriber,
 } from "./WinGameSubscriber";
-
-export type TurnPhase = "placingWalls" | "movingPlayer";
-export type PlayerColor = "red" | "blue";
-type CellLocations = { [key in PlayerColor]: Coord };
-export type WallLocations = { [key in PlayerColor | "locked"]: Coord[] };
-type DiceInfo = { [key in PlayerColor]: number[] };
 
 export interface GameState {
   gameOver: boolean;

@@ -1,7 +1,12 @@
-import { bgWhite, black, blue, bold, dim, green, red, white } from "../Colors";
-import { Coord } from "../Coord";
-import { isCell, isCorner, isEdge } from "../Utils";
-import { Game, PlayerColor, WallLocations } from "./Game";
+import {
+  Coord,
+  PlayerColor,
+  isCell,
+  isCorner,
+  isEdge,
+} from "@roadblocks/engine";
+import { black, blue, bold, dim, green, red, white } from "../Colors";
+import { Game } from "./Game";
 import { Printer } from "./TextBoard";
 
 export type EdgeElement = " " | "|" | "-" | "#";

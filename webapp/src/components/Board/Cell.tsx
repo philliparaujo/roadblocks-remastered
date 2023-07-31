@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import GameInstance, { Game } from "../../GameEngine/Game";
 import "./Cell.css";
-import { Coord } from "../../Coord";
-import { equalCoords } from "../../Utils";
+import { Coord } from "@roadblocks/engine";
+import { equalCoords } from "@roadblocks/engine";
 
 export type CellElement = "redplayer" | "redend" | "blueplayer" | "blueend";
 type CellContents = CellElement[];

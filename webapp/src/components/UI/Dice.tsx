@@ -1,7 +1,8 @@
 import "./Dice.css";
 import { useEffect, useState, useRef } from "react";
-import GameInstance, { Game, PlayerColor } from "../../GameEngine/Game";
-import { randomDiceValue } from "../../Utils";
+import GameInstance, { Game } from "../../GameEngine/Game";
+import { PlayerColor } from "@roadblocks/engine";
+import { randomDiceValue } from "@roadblocks/engine";
 
 export interface DiceProps {
   game?: Game;

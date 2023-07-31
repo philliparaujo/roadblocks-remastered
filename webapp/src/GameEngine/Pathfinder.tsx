@@ -1,5 +1,5 @@
-import { Coord } from "../Coord";
-import { averageCoord, equalCoords, isInBounds } from "../Utils";
+import { Coord } from "@roadblocks/engine";
+import { averageCoord, equalCoords, isInBounds } from "@roadblocks/engine";
 import Board from "./Board";
 import { TextBoard } from "./TextBoard";
 

@@ -1,8 +1,8 @@
 import "./Edge.css";
-import { Coord } from "../../Coord";
+import { Coord } from "@roadblocks/engine";
 import GameInstance, { Game } from "../../GameEngine/Game";
 import { useEffect, useState } from "react";
-import { equalCoords } from "../../Utils";
+import { equalCoords } from "@roadblocks/engine";
 
 type EdgeColor = "gray" | "red" | "blue" | "black" | "lightblue" | "lightred";
 export type Orientation = "horizontal" | "vertical";

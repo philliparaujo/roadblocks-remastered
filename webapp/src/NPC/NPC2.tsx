@@ -1,4 +1,4 @@
-import { Coord } from "../Coord";
+import { Coord } from "@roadblocks/engine";
 import {
   averageCoord,
   distanceBetween,
@@ -9,14 +9,10 @@ import {
   isEdge,
   isHorizontalEdge,
   isVerticalEdge,
-} from "../Utils";
+} from "@roadblocks/engine";
 import Board, { BoardElement, EdgeElement } from "../GameEngine/Board";
-import {
-  Game,
-  PlayerColor,
-  TurnPhase,
-  WallLocations,
-} from "../GameEngine/Game";
+import { Game } from "../GameEngine/Game";
+import { PlayerColor, TurnPhase, WallLocations } from "@roadblocks/engine";
 import { PathfinderImpl } from "../GameEngine/Pathfinder";
 import { TextBoard } from "../GameEngine/TextBoard";
 import { NPCUtils } from "./NPCUtils";

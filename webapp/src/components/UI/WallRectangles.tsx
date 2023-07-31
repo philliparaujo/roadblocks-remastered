@@ -1,13 +1,10 @@
 import "./Rectangles.css";
 import { useEffect, useRef, useState } from "react";
-import GameInstance, {
-  Game,
-  PlayerColor,
-  TurnPhase,
-} from "../../GameEngine/Game";
+import GameInstance, { Game } from "../../GameEngine/Game";
+import { PlayerColor, TurnPhase } from "@roadblocks/engine";
 import { TextBoard } from "../../GameEngine/TextBoard";
 import Board from "../../GameEngine/Board";
-import { isVerticalEdge } from "../../Utils";
+import { isVerticalEdge } from "@roadblocks/engine";
 
 export interface WallRectanglesProps {
   game?: Game;

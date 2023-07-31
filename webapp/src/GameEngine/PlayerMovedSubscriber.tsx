@@ -1,5 +1,5 @@
-import { Coord } from "../Coord";
-import { PlayerColor } from "./Game";
+import { Coord } from "@roadblocks/engine";
+import { PlayerColor } from "@roadblocks/engine";
 
 export interface PlayerMovedEvent {
   player: PlayerColor;

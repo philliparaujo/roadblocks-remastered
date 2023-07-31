@@ -4,7 +4,7 @@ import UIBoard from "../components/Board/UIBoard";
 import Game, { GameImpl } from "./Game";
 import SwitchTurnButton from "../components/UI/SwitchTurnButton";
 import LockWallsButton from "../components/UI/LockWallsButton";
-import { Coord } from "../Coord";
+import { Coord } from "@roadblocks/engine";
 
 interface GameProps {
   height: number;

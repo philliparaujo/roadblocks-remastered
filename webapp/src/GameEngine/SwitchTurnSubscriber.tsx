@@ -1,4 +1,4 @@
-import { PlayerColor } from "./Game";
+import { PlayerColor } from "@roadblocks/engine";
 
 export interface SwitchTurnEvent {
   turn: PlayerColor;
