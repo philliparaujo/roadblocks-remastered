@@ -2,7 +2,7 @@
   "name": "@roadblocks/engine",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/index.js",
+  "main": "dist/index.jsx",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
