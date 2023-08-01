@@ -3,6 +3,7 @@ import { Coord } from "@roadblocks/engine";
 export interface WallToggledEvent {
   wall: Coord;
   isToggled: boolean;
+  ts?: EpochTimeStamp;
 }
 
 export type SubscribeWallEvent = (
@@ -36,8 +37,9 @@ export class WallToggledSubscriber implements WallToggledEventSubscription {
   };
 
   notify: (event: WallToggledEvent) => void = (event) => {
-    this.pastEvents.push(event);
-    // console.log("Sending subscriptions", this.subscribers.length);
-    this.subscribers.forEach((callback) => callback(event));
+    const tsEvent = { ...event, ts: new Date().getTime() };
+    this.pastEvents.push(tsEvent);
+    // console.log("Sending subscriptions", this.subscribers.length, tsEvent);
+    this.subscribers.forEach((callback) => callback(tsEvent));
   };
 }

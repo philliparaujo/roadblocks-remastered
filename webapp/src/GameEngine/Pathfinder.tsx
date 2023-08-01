@@ -4,7 +4,7 @@ import {
   equalCoords,
   isInBounds,
 } from "@roadblocks/engine";
-import BoardImpl from "./Board";
+import { Board } from "./Board";
 
 type direction = Coord;
 type CoordString = String;
@@ -18,20 +18,20 @@ export const directions: direction[] = [
   { row: 0, col: -2 },
 ];
 
-function isObstacle(coord: Coord, board: BoardImpl) {
+function isObstacle(coord: Coord, board: Board) {
   const element = board.get(coord);
   return element === "#" || element === "|" || element === "-";
 }
 
 export class PathfinderImpl {
-  static hasPath = (start: Coord, end: Coord, board: BoardImpl): boolean => {
+  static hasPath = (start: Coord, end: Coord, board: Board): boolean => {
     return PathfinderImpl.shortestPath(start, end, board) !== null;
   };
 
   static shortestPath = (
     start: Coord,
     end: Coord,
-    board: BoardImpl
+    board: Board
   ): Coord[] | null => {
     const heuristic = (a: Coord, b: Coord) =>
       Math.abs(a.row - b.row) + Math.abs(a.col - b.col);

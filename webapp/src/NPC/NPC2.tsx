@@ -7,10 +7,9 @@ import {
   isCell,
   isEdge,
 } from "@roadblocks/engine";
-import BoardImpl from "../GameEngine/Board";
+import { Board, createFromGame } from "../GameEngine/Board";
 import { Game } from "../GameEngine/Game";
 import { PathfinderImpl } from "../GameEngine/Pathfinder";
-import { TextBoard } from "../GameEngine/TextBoard";
 import { NPCUtils } from "./NPCUtils";
 
 export type score = number;
@@ -26,7 +25,7 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 export class NPC2Impl {
   game: Game;
   player: PlayerColor;
-  textBoard: TextBoard;
+  board: Board;
   utils: NPCUtils;
   mcts: MCTS;
 
@@ -48,15 +47,15 @@ export class NPC2Impl {
   private constructor(
     game: Game,
     player: PlayerColor,
-    textBoard: TextBoard,
+    board: Board,
     mcts: MCTS,
     durations: NPCDurations,
     disabled: boolean = false
   ) {
     this.game = game;
     this.player = player;
-    this.textBoard = textBoard;
-    this.utils = new NPCUtils(this.player, this.textBoard, this.game);
+    this.board = board;
+    this.utils = new NPCUtils(this.player, this.board, this.game);
     this.mcts = mcts;
 
     this.disabled = disabled;
@@ -102,9 +101,9 @@ export class NPC2Impl {
     disabled: boolean = false
   ): Promise<NPC2Impl> {
     const mcts = await MCTS.create(game, player);
-    const textBoard: TextBoard = await TextBoard.create(game, console.log);
+    const board: Board = await createFromGame(game);
     return Promise.resolve(
-      new NPC2Impl(game, player, textBoard, mcts, durations, disabled)
+      new NPC2Impl(game, player, board, mcts, durations, disabled)
     );
   }
 
@@ -118,7 +117,6 @@ export class NPC2Impl {
 
     this.game.rollDice().then(async (result) => {
       this.mcts = await MCTS.create(this.game, this.player);
-      // this.textBoard.getBoardForTesting().dump(console.log);
       const numMovements = result.diceValue;
       const numWallChanges = 7 - result.diceValue;
 
@@ -168,7 +166,6 @@ export class NPC2Impl {
 
       await sleep(this.sleepTimeMs);
       try {
-        // this.textBoard.getBoardForTesting().dump(console.log);
         await this.game.switchTurn();
         console.log("finished turn :)");
       } catch (error) {
@@ -201,7 +198,7 @@ export class NPC2Impl {
 class Node {
   game: Game;
   player: PlayerColor;
-  board: BoardImpl;
+  board: Board;
   parent: Node | null;
   children: Node[];
   action: Coord | null;
@@ -212,7 +209,7 @@ class Node {
   private constructor(
     game: Game,
     player: PlayerColor,
-    board: BoardImpl,
+    board: Board,
     parent: Node | null,
     action: Coord | null,
     walls: number
@@ -233,11 +230,11 @@ class Node {
     player: PlayerColor,
     parent: Node | null = null,
     action: Coord | null = null,
-    board?: BoardImpl,
+    board?: Board,
     walls: number = 0
   ) {
     if (!board) {
-      board = (await TextBoard.create(game, console.log)).getBoardForTesting();
+      board = await createFromGame(game);
     }
 
     // board.dump(console.log);
@@ -249,7 +246,7 @@ class MCTS {
   game: Game;
   player: PlayerColor;
   root: Node;
-  textBoard: TextBoard;
+  board: Board;
   utils: NPCUtils;
   width: number;
   height: number;
@@ -260,36 +257,29 @@ class MCTS {
     game: Game,
     player: PlayerColor,
     root: Node,
-    textBoard: TextBoard,
+    board: Board,
     redEndLocation: Coord,
     blueEndLocation: Coord
   ) {
     this.game = game;
     this.player = player;
     this.root = root;
-    this.textBoard = textBoard;
-    this.utils = new NPCUtils(player, textBoard, game);
-    this.width = textBoard.getWidth();
-    this.height = textBoard.getHeight();
+    this.board = board;
+    this.utils = new NPCUtils(player, board, game);
+    this.width = board.width;
+    this.height = board.height;
     this.redEndLocation = redEndLocation;
     this.blueEndLocation = blueEndLocation;
   }
 
   static async create(game: Game, player: PlayerColor) {
-    const textBoard: TextBoard = await TextBoard.create(game, console.log);
+    const board: Board = await createFromGame(game);
     const root = await Node.create(game, player);
 
     const redEndLocation = await game.endLocation("red");
     const blueEndLocation = await game.endLocation("blue");
 
-    return new MCTS(
-      game,
-      player,
-      root,
-      textBoard,
-      redEndLocation,
-      blueEndLocation
-    );
+    return new MCTS(game, player, root, board, redEndLocation, blueEndLocation);
   }
 
   select(node: Node): Node {
@@ -324,7 +314,7 @@ class MCTS {
 
     for (let i = 0; i < possibleActions.length; i++) {
       const action = possibleActions[i];
-      const newBoard: BoardImpl = await this.applyWallAction(
+      const newBoard: Board = await this.applyWallAction(
         node.board,
         node.player,
         action
@@ -427,7 +417,6 @@ class MCTS {
   }
 
   async calculate(iterations: number) {
-    // this.textBoard.getBoardForTesting().dump(console.log);
     for (let i = 0; i < iterations; i++) {
       let node = this.root;
 
@@ -448,7 +437,7 @@ class MCTS {
 
   /* Helper methods */
   private async getPossibleWallActions(
-    board: BoardImpl,
+    board: Board,
     player: PlayerColor
   ): Promise<Coord[]> {
     const validWallCoords: Coord[] = this.utils.allValidWallCoords(
@@ -509,7 +498,7 @@ class MCTS {
   }
 
   private async getRandomWallAction(
-    board: BoardImpl,
+    board: Board,
     player: PlayerColor,
     walls: number
   ): Promise<Coord | null> {
@@ -524,10 +513,10 @@ class MCTS {
   }
 
   private async applyWallAction(
-    board: BoardImpl,
+    board: Board,
     player: PlayerColor,
     coord: Coord
-  ): Promise<BoardImpl> {
+  ): Promise<Board> {
     const boardCopy = board.copy();
     const allWalls: WallLocations = await this.game.getWallLocations();
     const myWalls: Coord[] = allWalls[player];
@@ -542,10 +531,10 @@ class MCTS {
   }
 
   private async applyMove(
-    board: BoardImpl,
+    board: Board,
     player: PlayerColor,
     coord: Coord
-  ): Promise<BoardImpl> {
+  ): Promise<Board> {
     const boardCopy = board.copy();
     const playerType = player === "red" ? "r" : "b";
     const oldCoord: Coord | null = this.getPlayerLocation(player, boardCopy);
@@ -577,7 +566,7 @@ class MCTS {
 
   private getPlayerLocation = (
     player: PlayerColor,
-    board: BoardImpl
+    board: Board
   ): Coord | null => {
     const lookingFor = player === "red" ? "r" : "b";
     for (let i = 0; i < 2 * board.height + 1; i++) {
@@ -593,7 +582,7 @@ class MCTS {
     return null;
   };
 
-  private getWinner = (board: BoardImpl): PlayerColor | null => {
+  private getWinner = (board: Board): PlayerColor | null => {
     const redLocation = this.getPlayerLocation("red", board);
     const blueLocation = this.getPlayerLocation("blue", board);
 
@@ -615,11 +604,11 @@ class MCTS {
     }
   };
 
-  private gameOver = (board: BoardImpl): boolean => {
+  private gameOver = (board: Board): boolean => {
     return this.getWinner(board) !== null;
   };
 
-  private getReward = (board: BoardImpl): number => {
+  private getReward = (board: Board): number => {
     const winner = this.getWinner(board);
     if (winner === this.player) {
       return 1;

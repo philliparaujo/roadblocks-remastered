@@ -13,7 +13,7 @@ import {
   randomDiceValue,
 } from "@roadblocks/engine";
 import { CellElement } from "../components/Board/Cell";
-import BoardImpl from "./Board";
+import { Board, createFromGame, createStandalone } from "./Board";
 import {
   DiceRollEventSubscription,
   DiceRollSubscriber,
@@ -60,7 +60,8 @@ export interface GameState {
   playerLocations: CellLocations;
   endLocations: CellLocations;
   wallLocations: WallLocations;
-  oldBoard: BoardImpl | null;
+  oldBoard: Board | null;
+  currentBoard: Board | null;
   movements: number;
   diceRolls: DiceInfo;
   rollDurationMs: number;
@@ -107,7 +108,7 @@ export interface Game {
   getWidth: () => Promise<number>;
   getHeight: () => Promise<number>;
   pathExists: (player: PlayerColor) => Promise<boolean>;
-  getOldBoard: () => Promise<BoardImpl | null>;
+  getOldBoard: () => Promise<Board | null>;
   canEndTurn: () => Promise<boolean>;
 
   playerMovedEventSubscription: () => PlayerEventSubscription;
@@ -159,6 +160,7 @@ export class GameImpl implements Game {
       ],
     },
     oldBoard: null,
+    currentBoard: null,
     movements: 0,
     diceRolls: {
       red: [1, 2, 3, 4, 5, 6],
@@ -213,7 +215,14 @@ export class GameImpl implements Game {
     this.state.startGameSubscriptions.notify({
       startingPlayer: this.state.turn,
     });
-    this.state.oldBoard = await this.createBoard();
+    this.state.oldBoard = await createStandalone(
+      this.state.width,
+      this.state.height
+    );
+    await this.state.oldBoard.initFromGame(this);
+
+    this.state.currentBoard = this.state.oldBoard.copy();
+
     console.time(`_________________FULL GAME ${this.state.id}`);
     return Promise.resolve({});
   };
@@ -270,7 +279,14 @@ export class GameImpl implements Game {
         this.state.movements = 0;
         this.state.numWallChangesSubscriptions.notify({ wallChanges: 0 });
 
-        this.createBoard().then((board) => (this.state.oldBoard = board));
+        if (this.state.currentBoard) {
+          this.state.oldBoard = this.state.currentBoard.copy();
+          this.state.currentBoard = createStandalone(
+            this.state.width,
+            this.state.height
+          );
+          this.state.currentBoard.initFromGame(this);
+        }
 
         return {};
       }
@@ -309,6 +325,10 @@ export class GameImpl implements Game {
 
     this.state.playerLocations[player] = coord;
     this.state.movements++;
+
+    const playerType = this.state.turn === "red" ? "r" : "b";
+    this.state.currentBoard?.removeFromCell(oldLocation, playerType);
+    this.state.currentBoard?.addToCell(coord, playerType);
 
     this.state.playerMovedSubscriptions.notify({
       player: player,
@@ -365,34 +385,31 @@ export class GameImpl implements Game {
     if (this.state.gameOver) return Promise.reject("Game over");
     if (!this.state.diceRolled) return Promise.reject("Dice not rolled");
 
-    if (this.state.phase !== "placingWalls") {
+    if (this.state.phase !== "placingWalls")
       return Promise.reject("NOT WALL PHASE");
-    }
-
-    if (!isEdge(coord)) {
-      return Promise.reject("INVALID COORD");
-    }
+    if (!isEdge(coord)) return Promise.reject("INVALID COORD");
 
     const numWalls = this.state.wallLocations[this.state.turn].length;
-    if (placing && numWalls >= 6) {
-      return Promise.reject("Too many walls");
-    }
+    if (placing && numWalls >= 6) return Promise.reject("Too many walls");
 
     const isVertical = isVerticalEdge(coord);
     const isCorrectTurn = isVertical
       ? this.state.turn === "red"
       : this.state.turn === "blue";
 
-    if (!isCorrectTurn) {
-      return Promise.reject("WRONG TURN");
-    }
+    if (!isCorrectTurn) return Promise.reject("WRONG TURN");
 
     if (placing) {
       this.state.wallLocations[this.state.turn].push(coord);
+
+      const wallType = this.state.turn === "red" ? "|" : "-";
+      this.state.currentBoard?.set(coord, wallType);
     } else {
       this.state.wallLocations[this.state.turn] = this.state.wallLocations[
         this.state.turn
       ].filter((wall) => !equalCoords(wall, coord));
+
+      this.state.currentBoard?.set(coord, " ");
     }
 
     const numWallChanges = await this.getNumWallChanges();
@@ -520,35 +537,30 @@ export class GameImpl implements Game {
   };
 
   pathExists = (player: PlayerColor): Promise<boolean> => {
-    return this.createBoard().then((board) => {
-      const path = PathfinderImpl.shortestPath(
-        this.state.playerLocations[player],
-        this.state.endLocations[player],
-        board
-      );
+    const board = this.state.currentBoard;
+    if (board == null) throw new Error("board is null");
 
-      return !!path;
-    });
+    const path = PathfinderImpl.shortestPath(
+      this.state.playerLocations[player],
+      this.state.endLocations[player],
+      board
+    );
+
+    return Promise.resolve(!!path);
   };
 
-  getOldBoard = (): Promise<BoardImpl | null> => {
+  getOldBoard = (): Promise<Board | null> => {
     return Promise.resolve(this.state.oldBoard);
   };
 
   getNumWallChanges = async (): Promise<number> => {
-    const oldBoard: BoardImpl | null = this.state.oldBoard;
-    if (oldBoard == null) {
-      throw new Error("could not get old board");
-    }
-    const newBoard = await this.createBoard();
+    const oldBoard: Board | null = this.state.oldBoard;
+    const newBoard: Board | null = this.state.currentBoard;
+
+    if (oldBoard == null) throw new Error("could not get old board");
+    if (newBoard == null) throw new Error("could not get new board");
 
     return newBoard.compareEdges(oldBoard);
-  };
-
-  createBoard = async (): Promise<BoardImpl> => {
-    const board: BoardImpl = new BoardImpl(this.state.width, this.state.height);
-    await board.initFromGame(this);
-    return board;
   };
 
   canEndTurn = async (): Promise<boolean> => {

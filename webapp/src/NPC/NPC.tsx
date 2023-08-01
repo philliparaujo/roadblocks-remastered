@@ -1,7 +1,6 @@
 import { Coord, PlayerColor, WallLocations } from "@roadblocks/engine";
-import BoardImpl, { EdgeElement } from "../GameEngine/Board";
+import { Board, EdgeElement, createFromGame } from "../GameEngine/Board";
 import { Game } from "../GameEngine/Game";
-import { TextBoard } from "../GameEngine/TextBoard";
 import { NPCUtils } from "./NPCUtils";
 
 export type score = number;
@@ -17,7 +16,7 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 export class NPCImpl {
   game: Game;
   player: PlayerColor;
-  textBoard: TextBoard;
+  board: Board;
   utils: NPCUtils;
 
   disabled?: boolean;
@@ -38,14 +37,14 @@ export class NPCImpl {
   private constructor(
     game: Game,
     player: PlayerColor,
-    textBoard: TextBoard,
+    board: Board,
     durations: NPCDurations,
     disabled: boolean = false
   ) {
     this.game = game;
     this.player = player;
-    this.textBoard = textBoard;
-    this.utils = new NPCUtils(this.player, this.textBoard, this.game);
+    this.board = board;
+    this.utils = new NPCUtils(this.player, this.board, this.game);
 
     this.disabled = disabled;
     this.gameOver = false;
@@ -89,16 +88,14 @@ export class NPCImpl {
     durations: NPCDurations = {},
     disabled: boolean = false
   ): Promise<NPCImpl> {
-    const textBoard: TextBoard = await TextBoard.create(game, console.log);
+    const board: Board = await createFromGame(game);
     return Promise.resolve(
-      new NPCImpl(game, player, textBoard, durations, disabled)
+      new NPCImpl(game, player, board, durations, disabled)
     );
   }
 
   /* Public methods */
-  public calculateScore = async (
-    board: BoardImpl = this.textBoard.getBoardForTesting()
-  ): Promise<score> => {
+  public calculateScore = async (board: Board = this.board): Promise<score> => {
     const opponentColor = this.utils.getOpponent();
     const scoreVariations: score[] = [];
 
@@ -213,8 +210,8 @@ export class NPCImpl {
 
         await sleep(this.sleepTimeMs);
         try {
-          // this.textBoard.getBoardForTesting().dump(console.log);
           await this.game.switchTurn();
+          // this.board.dump(console.log);
         } catch (error) {
           console.error("Error in ending turns", error);
         }
@@ -254,16 +251,15 @@ export class NPCImpl {
   };
 
   private bestSingleWallMove = async (): Promise<Coord | null> => {
-    const board: BoardImpl = this.textBoard.getBoardForTesting();
     const allWalls = await this.game.getWallLocations();
     const myWalls: Coord[] = allWalls[this.player];
 
     // console.time("bestWallPlacement");
     const bestWallPlacement: Coord | null =
-      await this.utils.bestSingleWallPlacement(board, this.calculateScore);
+      await this.utils.bestSingleWallPlacement(this.board, this.calculateScore);
     let bestPlacementScore: number = -Infinity;
     if (bestWallPlacement) {
-      const tempBoard = board.copy();
+      const tempBoard = this.board.copy();
       let wallType = this.player === "red" ? "|" : "-";
       tempBoard.set(bestWallPlacement, wallType as EdgeElement);
       this.calculateScore(tempBoard).then(
@@ -274,13 +270,13 @@ export class NPCImpl {
 
     // console.time("bestWallRemoval");
     const bestWallRemoval = await this.utils.bestSingleWallRemoval(
-      board,
+      this.board,
       myWalls,
       this.calculateScore
     );
     let bestRemovalScore: number = -Infinity;
     if (bestWallRemoval) {
-      const tempBoard = board.copy();
+      const tempBoard = this.board.copy();
       tempBoard.set(bestWallRemoval, " ");
       this.calculateScore(tempBoard).then(
         (result) => (bestRemovalScore = result)

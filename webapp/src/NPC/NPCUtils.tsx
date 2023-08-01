@@ -1,10 +1,7 @@
-import { Coord } from "@roadblocks/engine";
-import BoardImpl, { EdgeElement } from "../GameEngine/Board";
-import { Game } from "../GameEngine/Game";
-import { PlayerColor, WallLocations } from "@roadblocks/engine";
-import { PathfinderImpl, directions } from "../GameEngine/Pathfinder";
-import { TextBoard } from "../GameEngine/TextBoard";
 import {
+  Coord,
+  PlayerColor,
+  WallLocations,
   averageCoord,
   equalCoords,
   isBorderEdge,
@@ -12,16 +9,19 @@ import {
   isValidMove,
   isVerticalEdge,
 } from "@roadblocks/engine";
+import { Board, EdgeElement } from "../GameEngine/Board";
+import { Game } from "../GameEngine/Game";
+import { PathfinderImpl, directions } from "../GameEngine/Pathfinder";
 import { score } from "./NPC";
 
 export class NPCUtils {
   private player: PlayerColor;
-  private textBoard: TextBoard;
+  private board: Board;
   private game: Game;
 
-  constructor(player: PlayerColor, textBoard: TextBoard, game: Game) {
+  constructor(player: PlayerColor, board: Board, game: Game) {
     this.player = player;
-    this.textBoard = textBoard;
+    this.board = board;
     this.game = game;
   }
 
@@ -36,7 +36,7 @@ export class NPCUtils {
 
   getShortestPathOf = async (
     player: PlayerColor,
-    board: BoardImpl = this.textBoard.getBoardForTesting()
+    board: Board = this.board
   ): Promise<Coord[] | null> => {
     const playerLocation = await this.game.playerLocation(player);
     const endLocation = await this.game.endLocation(player);
@@ -47,7 +47,7 @@ export class NPCUtils {
   getShortestPathMinusXWalls = async (
     x: number,
     player: PlayerColor,
-    board: BoardImpl,
+    board: Board,
     myWalls: Coord[]
   ): Promise<Coord[] | null> => {
     if (x < 0) {
@@ -60,7 +60,7 @@ export class NPCUtils {
       return this.getShortestPathMinusXWalls(x - 1, player, board, myWalls);
     }
 
-    let boardCopy: BoardImpl = board.copy();
+    let boardCopy: Board = board.copy();
     const wallCombinations: Coord[][] = this.generateWallCombinations(
       myWalls,
       x
@@ -132,7 +132,7 @@ export class NPCUtils {
   allValidWallCoords = (
     width: number,
     height: number,
-    board: BoardImpl = this.textBoard.getBoardForTesting(),
+    board: Board = this.board,
     player: PlayerColor = this.player
   ): Coord[] => {
     let validWalls: Coord[] = [];
@@ -199,8 +199,8 @@ export class NPCUtils {
 
   /* Score-related Utils */
   bestSingleWallPlacement = async (
-    board: BoardImpl,
-    calculateScore: (board: BoardImpl) => Promise<score>
+    board: Board,
+    calculateScore: (board: Board) => Promise<score>
   ): Promise<Coord | null> => {
     const opponentPath = await this.getShortestPathOf(
       this.getOpponent(),
@@ -220,10 +220,10 @@ export class NPCUtils {
   };
 
   bestSingleWallRemoval = async (
-    board: BoardImpl,
+    board: Board,
     myWalls: Coord[],
 
-    calculateScore: (board: BoardImpl) => Promise<score>
+    calculateScore: (board: Board) => Promise<score>
   ): Promise<Coord | null> => {
     let bestScore = -Infinity;
     let bestWall: Coord | null = null;
@@ -249,18 +249,18 @@ export class NPCUtils {
   };
 
   highestScoreWallOnOpponentPath = async (
-    board: BoardImpl,
+    board: Board,
     opponentPath: Coord[] | null,
 
-    calculateScore: (board: BoardImpl) => Promise<score>
+    calculateScore: (board: Board) => Promise<score>
   ) => {
     if (!opponentPath || opponentPath.length < 2) {
       return null;
     }
 
     const allValidWalls: Coord[] = this.allValidWallCoords(
-      this.textBoard.getWidth(),
-      this.textBoard.getHeight()
+      this.board.width,
+      this.board.height
     );
 
     const allWalls: WallLocations = await this.game.getWallLocations();
@@ -316,13 +316,13 @@ export class NPCUtils {
   };
 
   highestScoreWall = async (
-    board: BoardImpl,
+    board: Board,
 
-    calculateScore: (board: BoardImpl) => Promise<score>
+    calculateScore: (board: Board) => Promise<score>
   ) => {
     const allValidWalls: Coord[] = this.allValidWallCoords(
-      this.textBoard.getWidth(),
-      this.textBoard.getHeight()
+      this.board.width,
+      this.board.height
     );
 
     let bestScore = -Infinity;

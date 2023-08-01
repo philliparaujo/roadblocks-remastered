@@ -46,19 +46,41 @@ export interface Board {
     value: RedPlayer | BluePlayer | RedEnd | BlueEnd
   ) => void;
 
-  copy: () => BoardImpl;
-
+  copy: () => Board;
   initFromGame: (game: Game) => Promise<void>;
-  sync: (game: Game) => Promise<void>;
 
   countWalls: (player: PlayerColor) => number;
-  compareEdges: (oldBoard: BoardImpl) => number;
+  compareEdges: (oldBoard: Board) => number;
 
   dump: (printer: Printer) => void;
   dispose: () => void;
+
+  updateWalls: (e: WallToggledEvent) => Promise<void>;
+  updatePlayer: (e: PlayerMovedEvent) => Promise<void>;
+  subscribeToWallToggled: (callback: WallToggledEventCallback) => void;
+  subscribeToPlayerMoved: (callback: PlayerMovedEventCallback) => void;
 }
 
-export default class BoardImpl implements Board {
+export function createStandalone(width: number, height: number): Board {
+  return new BoardImpl(width, height);
+}
+
+export async function createFromGame(game: Game): Promise<Board> {
+  const width = await game.getWidth();
+  const height = await game.getHeight();
+  const board = new BoardImpl(width, height, game);
+
+  await board.initFromGame(game);
+
+  board.subscribeToPlayerMoved(board.updatePlayer);
+  board.subscribeToWallToggled(board.updateWalls);
+
+  return board;
+}
+
+class BoardImpl implements Board {
+  id: number = Math.round(Math.random() * 1000000000);
+
   private items: Row[] = [];
   width: number;
   height: number;
@@ -68,9 +90,14 @@ export default class BoardImpl implements Board {
   private unsubscribeToWallToggled: (() => void) | undefined;
   private unsubscribeToPlayerMoved: (() => void) | undefined;
 
-  constructor(width: number, height: number) {
+  constructor(
+    width: number,
+    height: number,
+    game: Game | undefined = undefined
+  ) {
     this.width = width;
     this.height = height;
+    this.game = game;
 
     for (let i = 0; i < 2 * height + 1; i++) {
       const row: Row = [];
@@ -89,6 +116,9 @@ export default class BoardImpl implements Board {
       }
       this.items.push(row);
     }
+
+    this.updatePlayer = this.updatePlayer.bind(this);
+    this.updateWalls = this.updateWalls.bind(this);
   }
 
   public get(coord: Coord) {
@@ -132,7 +162,7 @@ export default class BoardImpl implements Board {
     );
   }
 
-  public copy(): BoardImpl {
+  public copy(): Board {
     const newBoard: BoardImpl = new BoardImpl(this.width, this.height);
     newBoard.items = this.deepCopy(this.items);
     return newBoard;
@@ -181,12 +211,6 @@ export default class BoardImpl implements Board {
     for (const blueWall of wallLocations.blue) {
       this.set(blueWall, "-");
     }
-  }
-
-  public async sync(game: Game): Promise<void> {
-    this.initFromGame(game);
-    this.subscribeToPlayerMoved(this.updatePlayer);
-    this.subscribeToWallToggled(this.updateWalls);
   }
 
   public dump(printer: Printer) {
@@ -344,7 +368,7 @@ export default class BoardImpl implements Board {
     return numWalls;
   }
 
-  public compareEdges(oldBoard: BoardImpl): number {
+  public compareEdges(oldBoard: Board): number {
     let diffCount = 0;
     for (let i = 0; i < 2 * this.width + 1; i++) {
       for (let j = 0; j < 2 * this.height + 1; j++) {
@@ -360,7 +384,7 @@ export default class BoardImpl implements Board {
   }
 
   /* Subscription handling */
-  private async updateWalls(e: WallToggledEvent): Promise<void> {
+  public async updateWalls(e: WallToggledEvent): Promise<void> {
     const coord: Coord = e.wall;
     const wallValue: EdgeElement = !e.isToggled
       ? " "
@@ -370,7 +394,7 @@ export default class BoardImpl implements Board {
     this.set(coord, wallValue);
   }
 
-  private async updatePlayer(e: PlayerMovedEvent): Promise<void> {
+  public async updatePlayer(e: PlayerMovedEvent): Promise<void> {
     const prevCoord: Coord = e.from;
     const prevElement: CellElement = this.get(prevCoord) as CellElement;
 
@@ -390,19 +414,25 @@ export default class BoardImpl implements Board {
     }
   }
 
-  private subscribeToWallToggled(callback: WallToggledEventCallback): void {
+  public subscribeToWallToggled(callback: WallToggledEventCallback): void {
     this.unsubscribeToWallToggled = this.game
       ?.wallToggledEventSubscription()
       .subscribe(callback);
   }
 
-  private subscribeToPlayerMoved(callback: PlayerMovedEventCallback): void {
+  public subscribeToPlayerMoved(callback: PlayerMovedEventCallback): void {
+    if (!this.game) {
+      throw new Error("game is undefined or null ?!?");
+    }
     this.unsubscribeToPlayerMoved = this.game
       ?.playerMovedEventSubscription()
       .subscribe(callback);
   }
 
   public dispose() {
+    if (!this.game) {
+      throw new Error("game is undefined or null ?!?");
+    }
     if (this.unsubscribeToWallToggled) {
       this.unsubscribeToWallToggled();
     }
