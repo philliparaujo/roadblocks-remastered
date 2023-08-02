@@ -1,7 +1,9 @@
 import express from "express";
 import { v4 as uuidv4 } from "uuid";
+import SessionManager, { GameNotFoundError } from "../SessionManager";
 
 const router: express.Router = express.Router();
+const sessionManager = new SessionManager();
 
 type Player = { name: string; id: string };
 type Game = Player[];
@@ -11,26 +13,12 @@ router.post("/newgame", (req, res) => {
   let body = req.body;
   let playerName: string = body.playerName;
 
-  if (!playerName) {
-    return res.status(400).json({
-      error: "Player name is required",
-    });
+  try {
+    const { sessionId, gameId } = sessionManager.create(playerName);
+    res.send({ sessionId, gameId });
+  } catch (e) {
+    res.sendStatus(400);
   }
-
-  if (typeof playerName !== "string") {
-    return res.status(400).json({
-      error: "Player name must be a string",
-    });
-  }
-
-  // generate a unique gameId and sessionId
-  let gameId: string = uuidv4();
-  let sessionId: string = uuidv4();
-
-  // store game
-  games[gameId] = [{ name: playerName, id: sessionId }];
-
-  res.send({ gameId: gameId, sessionId: sessionId });
 });
 
 router.post("/joingame", (req, res) => {
@@ -38,50 +26,28 @@ router.post("/joingame", (req, res) => {
   let playerName = body.playerName;
   let gameId = body.gameId;
 
-  if (!playerName) {
-    return res.status(400).json({
-      error: "Player name is required",
-    });
+  try {
+    const { sessionId } = sessionManager.join(gameId, playerName);
+    res.send({ sessionId });
+  } catch (e) {
+    if (e instanceof GameNotFoundError) {
+      res.sendStatus(404);
+    } else {
+      res.sendStatus(400);
+    }
   }
+});
 
-  if (typeof playerName !== "string") {
-    return res.status(400).json({
-      error: "Player name must be a string",
-    });
+router.get("/testValue", (req, res) => {
+  let body = req.body;
+  let sessionId = req.query.sessionId as string;
+
+  try {
+    let game = sessionManager.get(sessionId);
+    res.send({ value: game.value });
+  } catch (e) {
+    res.sendStatus(404);
   }
-
-  if (!gameId) {
-    return res.status(400).json({
-      error: "Game ID is required",
-    });
-  }
-
-  if (typeof gameId !== "string") {
-    return res.status(400).json({
-      error: "Game ID must be a string",
-    });
-  }
-
-  // join player to game
-  let game = games[gameId];
-  if (!game) {
-    return res.status(404).json({
-      error: "Game not found",
-    });
-  }
-
-  // check that playerName is unique in game
-  let playerNames = game.map((p) => p.name);
-  if (playerNames.includes(playerName)) {
-    return res.status(400).json({
-      error: "Player name already exists in game",
-    });
-  }
-
-  let sessionId: string = uuidv4();
-  game.push({ name: playerName, id: sessionId });
-
-  res.send({ sessionId: sessionId });
 });
 
 export default router;
