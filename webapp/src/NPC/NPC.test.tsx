@@ -1,17 +1,17 @@
-import { Coord } from "@roadblocks/engine";
-import { equalCoords } from "@roadblocks/engine";
-import { CellElement } from "../components/Board/Cell";
-import { Game, GameImpl, GameState } from "../GameEngine/Game";
-import { PlayerColor } from "@roadblocks/engine";
-import { NPCImpl } from "./NPC";
 import {
+  Coord,
+  PlayerColor,
   PlayerEventSubscription,
   PlayerMovedSubscriber,
-} from "../GameEngine/PlayerMovedSubscriber";
-import { StartGameEventSubscription } from "../GameEngine/StartGameSubscriber";
-import { SwitchTurnEventSubscription } from "../GameEngine/SwitchTurnSubscriber";
-import { WallToggledEventSubscription } from "../GameEngine/WallToggledSubscriber";
-import { WinGameEventSubscription } from "../GameEngine/WinGameSubscriber";
+  StartGameEventSubscription,
+  SwitchTurnEventSubscription,
+  WallToggledEventSubscription,
+  WinGameEventSubscription,
+  equalCoords,
+} from "@roadblocks/engine";
+import { Game, GameState } from "../GameEngine/Game";
+import { CellElement } from "../components/Board/Cell";
+import { NPCImpl } from "./NPC";
 
 interface TestGame extends Game {
   state: Partial<GameState>;

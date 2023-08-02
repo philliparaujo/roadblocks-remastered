@@ -1,4 +1,4 @@
-import { Coord } from "@roadblocks/engine";
+import { Coord } from "../Coord";
 
 export interface NumWallChangesEvent {
   wallChanges: number;

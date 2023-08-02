@@ -1,8 +1,10 @@
+import {
+  PlayerEventSubscription,
+  WallToggledEventSubscription,
+} from "@roadblocks/engine";
 import { CellElement } from "../components/Board/Cell";
 import { Board, createFromGame, createStandalone } from "./Board";
 import { Game, GameImpl } from "./Game";
-import { PlayerEventSubscription } from "./PlayerMovedSubscriber";
-import { WallToggledEventSubscription } from "./WallToggledSubscriber";
 
 describe("board printout", () => {
   test("print to console", () => {

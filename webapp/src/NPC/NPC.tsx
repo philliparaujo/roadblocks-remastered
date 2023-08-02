@@ -1,4 +1,13 @@
-import { Coord, PlayerColor, WallLocations } from "@roadblocks/engine";
+import {
+  Coord,
+  PlayerColor,
+  PlayerMovedEvent,
+  StartGameEvent,
+  SwitchTurnEvent,
+  WallLocations,
+  WallToggledEvent,
+  WinGameEvent,
+} from "@roadblocks/engine";
 import { Board, EdgeElement, createFromGame } from "../GameEngine/Board";
 import { Game } from "../GameEngine/Game";
 import { NPCUtils } from "./NPCUtils";
@@ -53,24 +62,26 @@ export class NPCImpl {
 
     this.unsubscribeWall = game
       .wallToggledEventSubscription()
-      .subscribe(async (e) => {});
+      .subscribe(async (e: WallToggledEvent) => {});
     this.unsubscribePlayer = game
       .playerMovedEventSubscription()
-      .subscribe(async (e) => {});
+      .subscribe(async (e: PlayerMovedEvent) => {});
 
     this.unsubscribeSwitchTurn = game
       .switchTurnEventSubscription()
-      .subscribe(async (e) => {
+      .subscribe(async (e: SwitchTurnEvent) => {
         if (e.turn === player && (await this.utils.isMyTurn())) {
           this.play();
         }
       });
-    this.unsubscribeWinGame = game.winGameEventSubscription().subscribe((e) => {
-      this.gameOver = true;
-    });
+    this.unsubscribeWinGame = game
+      .winGameEventSubscription()
+      .subscribe((e: WinGameEvent) => {
+        this.gameOver = true;
+      });
     this.unsubscribeStartGame = game
       .startGameEventSubscription()
-      .subscribe(async (e) => {
+      .subscribe(async (e: StartGameEvent) => {
         if (e.startingPlayer == this.player && (await this.utils.isMyTurn())) {
           this.play();
         }

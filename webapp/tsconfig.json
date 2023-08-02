@@ -21,6 +21,7 @@
     "src",
     "../engine/src/Coord.tsx",
     "../engine/src/Types.tsx",
-    "../engine.tsx"
+    "../engine.tsx",
+    "../engine/src/subscribers/DiceRollSubscriber.tsx"
   ]
 }

@@ -1,6 +1,10 @@
 import {
   Coord,
   PlayerColor,
+  PlayerMovedEvent,
+  PlayerMovedEventCallback,
+  WallToggledEvent,
+  WallToggledEventCallback,
   isCell,
   isCorner,
   isEdge,
@@ -8,14 +12,6 @@ import {
 } from "@roadblocks/engine";
 import { black, blue, bold, dim, green, red, white } from "../Colors";
 import { Game } from "./Game";
-import {
-  PlayerMovedEvent,
-  PlayerMovedEventCallback,
-} from "./PlayerMovedSubscriber";
-import {
-  WallToggledEvent,
-  WallToggledEventCallback,
-} from "./WallToggledSubscriber";
 
 export type Printer = (message?: any, ...optionalParams: any[]) => void;
 

@@ -2,9 +2,23 @@ import {
   CellLocations,
   Coord,
   DiceInfo,
+  LockWallEventSubscription,
+  LockWallSubscriber,
+  NumWallChangesEventSubscription,
+  NumWallChangesSubscriber,
   PlayerColor,
+  PlayerEventSubscription,
+  PlayerMovedSubscriber,
+  StartGameEventSubscription,
+  StartGameSubscriber,
+  SwitchTurnEventSubscription,
+  SwitchTurnSubscriber,
   TurnPhase,
   WallLocations,
+  WallToggledEventSubscription,
+  WallToggledSubscriber,
+  WinGameEventSubscription,
+  WinGameSubscriber,
   equalCoords,
   isBorderEdge,
   isEdge,
@@ -12,41 +26,13 @@ import {
   isVerticalEdge,
   randomDiceValue,
 } from "@roadblocks/engine";
-import { CellElement } from "../components/Board/Cell";
-import { Board, createFromGame, createStandalone } from "./Board";
 import {
   DiceRollEventSubscription,
   DiceRollSubscriber,
-} from "./DiceRollSubscriber";
-import {
-  LockWallEventSubscription,
-  LockWallSubscriber,
-} from "./LockWallSubscriber";
-import {
-  NumWallChangesEventSubscription,
-  NumWallChangesSubscriber,
-} from "./NumWallChangesSubscriber";
+} from "@roadblocks/engine/src/subscribers/DiceRollSubscriber";
+import { CellElement } from "../components/Board/Cell";
+import { Board, createStandalone } from "./Board";
 import { PathfinderImpl } from "./Pathfinder";
-import {
-  PlayerEventSubscription,
-  PlayerMovedSubscriber,
-} from "./PlayerMovedSubscriber";
-import {
-  StartGameEventSubscription,
-  StartGameSubscriber,
-} from "./StartGameSubscriber";
-import {
-  SwitchTurnEventSubscription,
-  SwitchTurnSubscriber,
-} from "./SwitchTurnSubscriber";
-import {
-  WallToggledEventSubscription,
-  WallToggledSubscriber,
-} from "./WallToggledSubscriber";
-import {
-  WinGameEventSubscription,
-  WinGameSubscriber,
-} from "./WinGameSubscriber";
 
 export interface GameState {
   gameOver: boolean;

@@ -1,4 +1,4 @@
-import { PlayerColor } from "@roadblocks/engine";
+import { PlayerColor } from "../Types";
 
 export interface WinGameEvent {
   winner: PlayerColor;

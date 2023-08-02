@@ -1,5 +1,5 @@
 import { GameImpl } from "../GameEngine/Game";
-import { PlayerColor } from "@roadblocks/engine";
+import { PlayerColor, WinGameEvent } from "@roadblocks/engine";
 import { NPCImpl } from "./NPC";
 import { NPC2Impl } from "./NPC2";
 
@@ -44,7 +44,7 @@ async function simulateGame(
   game.startGame();
 
   return new Promise<GameResult>((resolve) => {
-    game.winGameEventSubscription().subscribe((event) => {
+    game.winGameEventSubscription().subscribe((event: WinGameEvent) => {
       const winnerType = event.winner === npc1Color ? npcType1 : npcType2;
       resolve({ type: winnerType, color: event.winner });
     });
