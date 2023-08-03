@@ -13,9 +13,10 @@ describe("board printout", () => {
   });
 
   test("print to console", async () => {
-    const b = await createFromGame(new GameImpl(7, 7));
+    const g = new GameImpl(7, 7);
+    const b = await createFromGame(g);
     b.dump(console.log);
-    b.dispose();
+    b.dispose(g);
   });
 
   test("print to console", () => {

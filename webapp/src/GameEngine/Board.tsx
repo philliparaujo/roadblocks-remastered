@@ -29,7 +29,6 @@ export type BlueEnd = "B";
 export interface Board {
   width: number;
   height: number;
-  game?: Game;
 
   get: (coord: Coord) => BoardElement;
   set: (coord: Coord, value: BoardElement) => void;
@@ -49,12 +48,18 @@ export interface Board {
   compareEdges: (oldBoard: Board) => number;
 
   dump: (printer: Printer) => void;
-  dispose: () => void;
+  dispose: (game: Game) => void;
 
   updateWalls: (e: WallToggledEvent) => Promise<void>;
   updatePlayer: (e: PlayerMovedEvent) => Promise<void>;
-  subscribeToWallToggled: (callback: WallToggledEventCallback) => void;
-  subscribeToPlayerMoved: (callback: PlayerMovedEventCallback) => void;
+  subscribeToWallToggled: (
+    callback: WallToggledEventCallback,
+    game: Game
+  ) => void;
+  subscribeToPlayerMoved: (
+    callback: PlayerMovedEventCallback,
+    game: Game
+  ) => void;
 }
 
 export function createStandalone(width: number, height: number): Board {
@@ -64,12 +69,12 @@ export function createStandalone(width: number, height: number): Board {
 export async function createFromGame(game: Game): Promise<Board> {
   const width = await game.getWidth();
   const height = await game.getHeight();
-  const board = new BoardImpl(width, height, game);
+  const board = new BoardImpl(width, height);
 
   await board.initFromGame(game);
 
-  board.subscribeToPlayerMoved(board.updatePlayer);
-  board.subscribeToWallToggled(board.updateWalls);
+  board.subscribeToPlayerMoved(board.updatePlayer, game);
+  board.subscribeToWallToggled(board.updateWalls, game);
 
   return board;
 }
@@ -81,19 +86,12 @@ class BoardImpl implements Board {
   width: number;
   height: number;
 
-  game?: Game;
-
   private unsubscribeToWallToggled: (() => void) | undefined;
   private unsubscribeToPlayerMoved: (() => void) | undefined;
 
-  constructor(
-    width: number,
-    height: number,
-    game: Game | undefined = undefined
-  ) {
+  constructor(width: number, height: number) {
     this.width = width;
     this.height = height;
-    this.game = game;
 
     for (let i = 0; i < 2 * height + 1; i++) {
       const row: Row = [];
@@ -410,23 +408,29 @@ class BoardImpl implements Board {
     }
   }
 
-  public subscribeToWallToggled(callback: WallToggledEventCallback): void {
-    this.unsubscribeToWallToggled = this.game
+  public subscribeToWallToggled(
+    callback: WallToggledEventCallback,
+    game: Game
+  ): void {
+    this.unsubscribeToWallToggled = game
       ?.wallToggledEventSubscription()
       .subscribe(callback);
   }
 
-  public subscribeToPlayerMoved(callback: PlayerMovedEventCallback): void {
-    if (!this.game) {
+  public subscribeToPlayerMoved(
+    callback: PlayerMovedEventCallback,
+    game: Game
+  ): void {
+    if (!game) {
       throw new Error("game is undefined or null ?!?");
     }
-    this.unsubscribeToPlayerMoved = this.game
+    this.unsubscribeToPlayerMoved = game
       ?.playerMovedEventSubscription()
       .subscribe(callback);
   }
 
-  public dispose() {
-    if (!this.game) {
+  public dispose(game: Game) {
+    if (!game) {
       throw new Error("game is undefined or null ?!?");
     }
     if (this.unsubscribeToWallToggled) {
