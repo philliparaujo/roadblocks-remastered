@@ -1,8 +1,13 @@
 import { Game } from "@roadblocks/types";
 
 export class GameImpl implements Game {
-  value: number;
+  myValue: number;
   constructor() {
-    this.value = Math.random();
+    this.myValue = Math.random();
+    console.log(`Created object with ${this.myValue}`);
   }
+
+  value = (): Promise<number> => {
+    return Promise.resolve(this.myValue);
+  };
 }

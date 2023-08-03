@@ -13,6 +13,7 @@ router.post("/newgame", (req, res) => {
   let body = req.body;
   let playerName: string = body.playerName;
 
+  console.log("Creating game for player", playerName);
   try {
     const { sessionId, gameId } = sessionManager.create(playerName);
     res.send({ sessionId, gameId });
@@ -39,12 +40,13 @@ router.post("/joingame", (req, res) => {
 });
 
 router.get("/testValue", (req, res) => {
-  let body = req.body;
   let sessionId = req.query.sessionId as string;
 
   try {
     let game = sessionManager.get(sessionId);
-    res.send({ value: game.value });
+    game.value().then((value) => {
+      res.send({ value: value });
+    });
   } catch (e) {
     res.sendStatus(404);
   }
@@ -53,6 +55,11 @@ router.get("/testValue", (req, res) => {
 router.get("/addEdge", (req, res) => {
   let body = req.body;
   let coord: Coord = body.coord;
+});
+
+router.use("/", (req, res) => {
+  console.log("Bad call", req.url);
+  res.status(404).send("Not found");
 });
 
 export default router;
