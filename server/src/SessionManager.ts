@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
-import { Game, GameImpl } from "./FakeGame";
+import { GameImpl } from "./FakeGame";
+import { Game } from "@roadblocks/types";
 
 type Session = { sessionId: string; name: string; gameId: string; game: Game };
 

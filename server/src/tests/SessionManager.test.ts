@@ -1,5 +1,6 @@
-import { Game, GameImpl } from "../FakeGame";
+import { GameImpl } from "../FakeGame";
 import SessionManager, { GameNotFoundError } from "../SessionManager";
+import { Game } from "@roadblocks/types";
 
 describe("Test create", () => {
   it("returns sessionId and gameId", async () => {

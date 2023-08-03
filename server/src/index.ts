@@ -4,7 +4,7 @@ import gameRouter from "./routes/game";
 import bodyParser from "body-parser";
 
 const app: express.Application = express();
-const port: number = 3000;
+const port: number = 5000;
 
 app.use(bodyParser.json());
 app.use("/", gameRouter);

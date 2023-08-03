@@ -1,6 +1,6 @@
 import express from "express";
-import { v4 as uuidv4 } from "uuid";
 import SessionManager, { GameNotFoundError } from "../SessionManager";
+import { Coord } from "@roadblocks/engine";
 
 const router: express.Router = express.Router();
 const sessionManager = new SessionManager();
@@ -48,6 +48,11 @@ router.get("/testValue", (req, res) => {
   } catch (e) {
     res.sendStatus(404);
   }
+});
+
+router.get("/addEdge", (req, res) => {
+  let body = req.body;
+  let coord: Coord = body.coord;
 });
 
 export default router;

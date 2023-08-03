@@ -1,6 +1,8 @@
 lockfileVersion: 5.4
 
 specifiers:
+  '@roadblocks/engine': link:../engine
+  '@roadblocks/types': link:../types
   '@types/body-parser': ^1.19.2
   '@types/express': ^4.17.17
   '@types/jest': ^29.5.3
@@ -27,6 +29,8 @@ dependencies:
   uuid: 9.0.0
 
 devDependencies:
+  '@roadblocks/engine': link:../engine
+  '@roadblocks/types': link:../types
   '@types/body-parser': 1.19.2
   '@types/jest': 29.5.3
   '@types/supertest': 2.0.12

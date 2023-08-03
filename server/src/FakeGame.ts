@@ -1,6 +1,4 @@
-export interface Game {
-  value: number;
-}
+import { Game } from "@roadblocks/types";
 
 export class GameImpl implements Game {
   value: number;
