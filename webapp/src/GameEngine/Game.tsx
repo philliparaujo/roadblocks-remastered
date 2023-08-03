@@ -117,7 +117,7 @@ type OverridesForTesting = {
 
 export class GameImpl implements Game {
   private state: GameState = {
-    gameOver: false,
+    gameOver: true,
     turn: "red",
     phase: "placingWalls",
     diceValue: 1,

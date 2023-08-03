@@ -4,8 +4,13 @@ import { logResults } from "./logger";
 const serviceURL = "http://localhost:5000";
 
 export class Client implements Game {
-  sessionId: string;
-  gameId: string;
+  sessionId: string | undefined;
+  gameId: string | undefined;
+
+  constructor() {
+    this.sessionId = undefined;
+    this.gameId = undefined;
+  }
 
   newgame = (playerName: string): Promise<void> =>
     fetch(`${serviceURL}/newgame`, {
@@ -36,7 +41,10 @@ export class Client implements Game {
       .then(logResults("value"))
       .then((json) => json.value);
 
-  getStateForTesting = (): { sessionId: string; gameId: string } => {
+  getStateForTesting = (): {
+    sessionId: string | undefined;
+    gameId: string | undefined;
+  } => {
     return {
       sessionId: this.sessionId,
       gameId: this.gameId,

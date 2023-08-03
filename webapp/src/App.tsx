@@ -8,20 +8,31 @@ import LockWallsButton from "./components/UI/LockWallsButton";
 import PlayerRectangles from "./components/UI/PlayerRectangles";
 import SwitchTurnButton from "./components/UI/SwitchTurnButton";
 import WallRectangles from "./components/UI/WallRectangles";
+import { Client } from "../../client/src/client";
 
 function App() {
   useEffect(() => {
-    NPCImpl.create(GameInstance, "red", {
-      sleepTimeMs: 500,
-      wallActionIntervalMs: 200,
-      movementIntervalMs: 100,
-    });
-    NPCImpl.create(GameInstance, "blue", {
-      sleepTimeMs: 500,
-      wallActionIntervalMs: 200,
-      movementIntervalMs: 100,
-    });
-    GameInstance.startGame();
+    // NPCImpl.create(GameInstance, "red", {
+    //   sleepTimeMs: 500,
+    //   wallActionIntervalMs: 200,
+    //   movementIntervalMs: 100,
+    // });
+    // NPCImpl.create(GameInstance, "blue", {
+    //   sleepTimeMs: 500,
+    //   wallActionIntervalMs: 200,
+    //   movementIntervalMs: 100,
+    // });
+    // GameInstance.startGame();
+    const client = new Client();
+
+    const fetchValue = async () => {
+      await client.newgame("John");
+      const value = await client.value();
+      console.log(value);
+    };
+
+    setTimeout(fetchValue, 1000);
+    // fetchValue();
   }, []);
 
   return (

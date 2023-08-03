@@ -1,3 +1,3 @@
 export interface Game {
-  value: number;
+  value: () => Promise<number>;
 }
