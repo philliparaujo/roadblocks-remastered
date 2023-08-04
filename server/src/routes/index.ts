@@ -21,9 +21,4 @@ router.post("/hello2", (req, res) => {
   res.send({ user: NAME });
 });
 
-router.use("/", (req, res) => {
-  console.log("Bad call", req.url);
-  res.status(404).send("Not found");
-});
-
 export default router;

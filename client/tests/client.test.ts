@@ -18,6 +18,30 @@ describe("Test /newgame", () => {
   });
 });
 
+describe("Test /joingame", () => {
+  let sut: Client;
+  beforeEach(async () => {
+    sut = new Client();
+    await sut.newgame("John");
+  });
+
+  it("returns correct gameId and sessionId", async () => {
+    const before = sut.getStateForTesting();
+    const beforeSessionId = before.sessionId;
+    const beforeGameId = before.gameId;
+
+    await sut.joingame(beforeGameId, "Jane");
+
+    const after = sut.getStateForTesting();
+    expect(after.gameId).toEqual(beforeGameId);
+    expect(after.sessionId).not.toEqual(beforeSessionId);
+  });
+
+  it("throws error when joining with invalid gameId", async () => {
+    await expect(sut.joingame("invalid-game-id", "Jane")).rejects.toThrow();
+  });
+});
+
 describe("Test /testValue", () => {
   let sut: Client;
   beforeEach(async () => {

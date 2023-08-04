@@ -1,6 +1,7 @@
 import express from "express";
 import SessionManager, { GameNotFoundError } from "../SessionManager";
 import { Coord } from "@roadblocks/engine";
+import { NewGameResult } from "@roadblocks/types";
 
 const router: express.Router = express.Router();
 const sessionManager = new SessionManager();
@@ -16,7 +17,11 @@ router.post("/newgame", (req, res) => {
   console.log("Creating game for player", playerName);
   try {
     const { sessionId, gameId } = sessionManager.create(playerName);
-    res.send({ sessionId, gameId });
+    const result: NewGameResult = {
+      sessionId,
+      gameId,
+    };
+    res.send(result);
   } catch (e) {
     res.sendStatus(400);
   }
