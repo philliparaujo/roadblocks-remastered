@@ -1,6 +1,4 @@
 import {
-  Coord,
-  PlayerColor,
   PlayerEventSubscription,
   PlayerMovedSubscriber,
   StartGameEventSubscription,
@@ -9,6 +7,7 @@ import {
   WinGameEventSubscription,
   equalCoords,
 } from "@roadblocks/engine";
+import { Coord, PlayerColor } from "@roadblocks/types";
 import { Game, GameState } from "../GameEngine/Game";
 import { CellElement } from "../components/Board/Cell";
 import { NPCImpl } from "./NPC";

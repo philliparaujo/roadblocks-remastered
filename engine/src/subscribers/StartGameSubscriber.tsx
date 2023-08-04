@@ -1,4 +1,4 @@
-import { PlayerColor } from "../Types";
+import { PlayerColor } from "@roadblocks/types";
 
 export interface StartGameEvent {
   startingPlayer: PlayerColor;

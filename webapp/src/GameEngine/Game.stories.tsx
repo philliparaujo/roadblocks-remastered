@@ -1,10 +1,10 @@
 // Game.stories.tsx
+import { Coord } from "@roadblocks/types";
 import { Meta, StoryObj } from "@storybook/react";
 import UIBoard from "../components/Board/UIBoard";
-import Game, { GameImpl } from "./Game";
-import SwitchTurnButton from "../components/UI/SwitchTurnButton";
 import LockWallsButton from "../components/UI/LockWallsButton";
-import { Coord } from "@roadblocks/engine";
+import SwitchTurnButton from "../components/UI/SwitchTurnButton";
+import { GameImpl } from "./Game";
 
 interface GameProps {
   height: number;

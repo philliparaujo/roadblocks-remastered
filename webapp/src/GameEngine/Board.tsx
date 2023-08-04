@@ -1,6 +1,4 @@
 import {
-  Coord,
-  PlayerColor,
   PlayerMovedEvent,
   PlayerMovedEventCallback,
   WallToggledEvent,
@@ -10,6 +8,7 @@ import {
   isEdge,
   isVerticalEdge,
 } from "@roadblocks/engine";
+import { Coord, PlayerColor } from "@roadblocks/types";
 import { black, blue, bold, dim, green, red, white } from "../Colors";
 import { Game } from "./Game";
 

@@ -1,5 +1,4 @@
-import { Coord } from "./Coord";
-import { WallLocations } from "./Types";
+import { Coord, WallLocations } from "@roadblocks/types";
 
 export const isCorner = (coord: Coord): boolean =>
   coord.row % 2 === 0 && coord.col % 2 === 0;

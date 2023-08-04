@@ -1,9 +1,10 @@
-import { Coord, equalCoords, isCell, isCorner } from "@roadblocks/engine";
+import { equalCoords, isCell, isCorner } from "@roadblocks/engine";
 import { useEffect, useState } from "react";
 import GameInstance, { Game } from "../../GameEngine/Game";
 import Cell, { CellElement } from "./Cell";
 import Corner from "./Corner";
 import Edge, { EdgeType } from "./Edge";
+import { Coord } from "@roadblocks/types";
 
 export interface UIBoardProps {
   height?: number;

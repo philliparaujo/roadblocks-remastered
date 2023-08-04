@@ -1,7 +1,4 @@
 import {
-  Coord,
-  PlayerColor,
-  WallLocations,
   averageCoord,
   equalCoords,
   isBorderEdge,
@@ -9,6 +6,7 @@ import {
   isValidMove,
   isVerticalEdge,
 } from "@roadblocks/engine";
+import { Coord, PlayerColor, WallLocations } from "@roadblocks/types";
 import { Board, EdgeElement } from "../GameEngine/Board";
 import { Game } from "../GameEngine/Game";
 import { PathfinderImpl, directions } from "../GameEngine/Pathfinder";

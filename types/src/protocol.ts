@@ -6,3 +6,7 @@ export interface NewGameResult {
 export interface JoinGameResult {
   sessionId: string;
 }
+
+export interface ValueResult {
+  value: number;
+}

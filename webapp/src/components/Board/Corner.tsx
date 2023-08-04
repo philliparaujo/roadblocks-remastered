@@ -1,6 +1,6 @@
-import "./Corner.css";
-import { Coord } from "@roadblocks/engine";
+import { Coord } from "@roadblocks/types";
 import { Game } from "../../GameEngine/Game";
+import "./Corner.css";
 
 interface CornerProps {
   coord: Coord;

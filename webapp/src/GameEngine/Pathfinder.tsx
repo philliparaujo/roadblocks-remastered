@@ -1,9 +1,5 @@
-import {
-  Coord,
-  averageCoord,
-  equalCoords,
-  isInBounds,
-} from "@roadblocks/engine";
+import { averageCoord, equalCoords, isInBounds } from "@roadblocks/engine";
+import { Coord } from "@roadblocks/types";
 import { Board } from "./Board";
 
 type direction = Coord;

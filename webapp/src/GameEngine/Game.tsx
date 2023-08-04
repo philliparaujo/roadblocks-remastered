@@ -1,20 +1,14 @@
 import {
-  CellLocations,
-  Coord,
-  DiceInfo,
   LockWallEventSubscription,
   LockWallSubscriber,
   NumWallChangesEventSubscription,
   NumWallChangesSubscriber,
-  PlayerColor,
   PlayerEventSubscription,
   PlayerMovedSubscriber,
   StartGameEventSubscription,
   StartGameSubscriber,
   SwitchTurnEventSubscription,
   SwitchTurnSubscriber,
-  TurnPhase,
-  WallLocations,
   WallToggledEventSubscription,
   WallToggledSubscriber,
   WinGameEventSubscription,
@@ -30,6 +24,14 @@ import {
   DiceRollEventSubscription,
   DiceRollSubscriber,
 } from "@roadblocks/engine/src/subscribers/DiceRollSubscriber";
+import {
+  CellLocations,
+  Coord,
+  DiceInfo,
+  PlayerColor,
+  TurnPhase,
+  WallLocations,
+} from "@roadblocks/types";
 import { CellElement } from "../components/Board/Cell";
 import { Board, createStandalone } from "./Board";
 import { PathfinderImpl } from "./Pathfinder";

@@ -1,13 +1,11 @@
 import {
-  Coord,
-  PlayerColor,
   PlayerMovedEvent,
   StartGameEvent,
   SwitchTurnEvent,
-  WallLocations,
   WallToggledEvent,
   WinGameEvent,
 } from "@roadblocks/engine";
+import { Coord, PlayerColor, WallLocations } from "@roadblocks/types";
 import { Board, EdgeElement, createFromGame } from "../GameEngine/Board";
 import { Game } from "../GameEngine/Game";
 import { NPCUtils } from "./NPCUtils";

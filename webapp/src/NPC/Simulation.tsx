@@ -1,5 +1,6 @@
+import { WinGameEvent } from "@roadblocks/engine";
+import { PlayerColor } from "@roadblocks/types";
 import { GameImpl } from "../GameEngine/Game";
-import { PlayerColor, WinGameEvent } from "@roadblocks/engine";
 import { NPCImpl } from "./NPC";
 import { NPC2Impl } from "./NPC2";
 

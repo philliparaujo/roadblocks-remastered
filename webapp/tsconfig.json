@@ -19,7 +19,7 @@
   },
   "include": [
     "src",
-    "../engine/src/Coord.tsx",
+    "../types/src/Coord.tsx",
     "../engine/src/Types.tsx",
     "../engine.tsx",
     "../engine/src/subscribers/DiceRollSubscriber.tsx"

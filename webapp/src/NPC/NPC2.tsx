@@ -1,10 +1,7 @@
 import {
-  Coord,
-  PlayerColor,
   PlayerMovedEvent,
   StartGameEvent,
   SwitchTurnEvent,
-  WallLocations,
   WallToggledEvent,
   WinGameEvent,
   equalCoords,
@@ -12,6 +9,7 @@ import {
   isCell,
   isEdge,
 } from "@roadblocks/engine";
+import { Coord, PlayerColor, WallLocations } from "@roadblocks/types";
 import { Board, createFromGame } from "../GameEngine/Board";
 import { Game } from "../GameEngine/Game";
 import { PathfinderImpl } from "../GameEngine/Pathfinder";

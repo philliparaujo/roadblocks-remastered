@@ -1,7 +1,6 @@
+import { Coord, NewGameResult } from "@roadblocks/types";
 import express from "express";
 import SessionManager, { GameNotFoundError } from "../SessionManager";
-import { Coord } from "@roadblocks/engine";
-import { NewGameResult } from "@roadblocks/types";
 
 const router: express.Router = express.Router();
 const sessionManager = new SessionManager();
