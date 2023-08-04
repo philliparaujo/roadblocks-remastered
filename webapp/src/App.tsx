@@ -1,14 +1,10 @@
 import { useEffect } from "react";
-import "./App.css";
 import GameInstance from "./GameEngine/Game";
 import { NPCImpl } from "./NPC/NPC";
-import UIBoard from "./components/Board/UIBoard";
-import Dice from "./components/UI/Dice";
-import LockWallsButton from "./components/UI/LockWallsButton";
-import PlayerRectangles from "./components/UI/PlayerRectangles";
-import SwitchTurnButton from "./components/UI/SwitchTurnButton";
-import WallRectangles from "./components/UI/WallRectangles";
 import { Client } from "../../client/src/client";
+import { Routes, Route, Router, Link } from "react-router-dom";
+import Game from "./Game";
+import Home from "./Home";
 
 function App() {
   useEffect(() => {
@@ -37,25 +33,13 @@ function App() {
 
   return (
     <div className="App">
-      <div className="game-column">
-        <h2>Game</h2>
-        <UIBoard debug={false} />
-      </div>
-      <div className="actions-column">
-        <Dice />
-        <div>
-          <h3>Wall Moves:</h3>
-          <WallRectangles />
-        </div>
-        <div>
-          <h3>Player Moves:</h3>
-          <PlayerRectangles />
-        </div>
-        <div>
-          <LockWallsButton />
-          <SwitchTurnButton />
-        </div>
-      </div>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/home" element={<Home />} />
+        <Route path="/game" element={<Game />} />
+        <Route path="/settings" element={<div>SETTINGS</div>} />
+        <Route path="/about" element={<div>ABOUT</div>} />
+      </Routes>
     </div>
   );
 }
