@@ -1,6 +1,6 @@
 import { Client } from "../src/client";
 
-describe("Test /newgame", () => {
+describe("Test /newGame", () => {
   it("returns gameId and sessionId", async () => {
     const sut = new Client();
 
@@ -8,7 +8,7 @@ describe("Test /newgame", () => {
     expect(before.sessionId).toBeUndefined();
     expect(before.gameId).toBeUndefined();
 
-    await sut.newgame("John");
+    await sut.newGame("John");
 
     const after = sut.getStateForTesting();
     expect(after.sessionId).not.toBeUndefined();
@@ -18,11 +18,11 @@ describe("Test /newgame", () => {
   });
 });
 
-describe("Test /joingame", () => {
+describe("Test /joinGame", () => {
   let sut: Client;
   beforeEach(async () => {
     sut = new Client();
-    await sut.newgame("John");
+    await sut.newGame("John");
   });
 
   it("returns correct gameId and sessionId", async () => {
@@ -30,7 +30,7 @@ describe("Test /joingame", () => {
     const beforeSessionId = before.sessionId;
     const beforeGameId = before.gameId;
 
-    await sut.joingame(beforeGameId, "Jane");
+    await sut.joinGame(beforeGameId, "Jane");
 
     const after = sut.getStateForTesting();
     expect(after.gameId).toEqual(beforeGameId);
@@ -38,7 +38,7 @@ describe("Test /joingame", () => {
   });
 
   it("throws error when joining with invalid gameId", async () => {
-    await expect(sut.joingame("invalid-game-id", "Jane")).rejects.toThrow();
+    await expect(sut.joinGame("invalid-game-id", "Jane")).rejects.toThrow();
   });
 });
 
@@ -46,7 +46,7 @@ describe("Test /testValue", () => {
   let sut: Client;
   beforeEach(async () => {
     sut = new Client();
-    await sut.newgame("John");
+    await sut.newGame("John");
   });
 
   it("returns game value after creating game", async () => {

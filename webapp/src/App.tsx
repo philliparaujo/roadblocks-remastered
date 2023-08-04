@@ -22,7 +22,7 @@ function App() {
     const client = new Client();
 
     const fetchValue = async () => {
-      await client.newgame("John");
+      await client.newGame("John");
       const value = await client.value();
       console.log(value);
     };

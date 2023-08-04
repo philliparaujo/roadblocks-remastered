@@ -7,10 +7,10 @@ const app = express();
 app.use(bodyParser.json());
 app.use("/", router);
 
-describe("Test /newgame", () => {
+describe("Test /newGame", () => {
   it("returns gameId and sessionId", async () => {
     const response = await request(app)
-      .post("/newgame")
+      .post("/newGame")
       .send({ playerName: "John" })
       .expect("Content-Type", /json/)
       .expect(200);
@@ -20,19 +20,19 @@ describe("Test /newgame", () => {
   });
 
   it("returns an error when no name is provided", async () => {
-    const response = await request(app).post("/newgame").send({}).expect(400);
+    const response = await request(app).post("/newGame").send({}).expect(400);
   });
 
   it("returns an error when name is not a string", async () => {
     const response = await request(app)
-      .post("/newgame")
+      .post("/newGame")
       .send({ playerName: 123 })
       .expect(400);
   });
 
   it("gameId and sessionId are not equal", async () => {
     const response = await request(app)
-      .post("/newgame")
+      .post("/newGame")
       .send({ playerName: "John" })
       .expect("Content-Type", /json/)
       .expect(200);
@@ -40,14 +40,14 @@ describe("Test /newgame", () => {
   });
 });
 
-describe("Test /joingame", () => {
+describe("Test /joinGame", () => {
   let gameId: string;
   let sessionId1: string;
 
   // create a new game before running these tests
   beforeEach(async () => {
     const response = await request(app)
-      .post("/newgame")
+      .post("/newGame")
       .send({ playerName: "John" })
       .expect("Content-Type", /json/)
       .expect(200);
@@ -58,7 +58,7 @@ describe("Test /joingame", () => {
 
   it("returns sessionId", async () => {
     const response = await request(app)
-      .post("/joingame")
+      .post("/joinGame")
       .send({ playerName: "Jane", gameId: gameId })
       .expect("Content-Type", /json/)
       .expect(200);
@@ -69,28 +69,28 @@ describe("Test /joingame", () => {
 
   it("returns an error when no name is provided", async () => {
     const response = await request(app)
-      .post("/joingame")
+      .post("/joinGame")
       .send({ gameId: gameId })
       .expect(400);
   });
 
   it("returns an error when name is not a string", async () => {
     const response = await request(app)
-      .post("/joingame")
+      .post("/joinGame")
       .send({ playerName: 123, gameId: gameId })
       .expect(400);
   });
 
   it("returns an error when no gameId is provided", async () => {
     const response = await request(app)
-      .post("/joingame")
+      .post("/joinGame")
       .send({ playerName: "Jane" })
       .expect(400);
   });
 
   it("returns an error when gameId is not a string", async () => {
     const response = await request(app)
-      .post("/joingame")
+      .post("/joinGame")
       .send({ playerName: "Jane", gameId: 123 })
       .expect(400);
   });
@@ -98,7 +98,7 @@ describe("Test /joingame", () => {
   it("returns an error when gameId doesn't already exist", async () => {
     expect(gameId).not.toEqual("foo");
     const response = await request(app)
-      .post("/joingame")
+      .post("/joinGame")
       .send({ playerName: "Jane", gameId: "foo" })
       .expect(404);
   });

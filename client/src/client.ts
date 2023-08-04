@@ -9,8 +9,8 @@ import { logResults } from "./logger";
 const serviceURL = "http://localhost:5000";
 
 interface GameControl {
-  newgame: (playerName: string) => Promise<void>;
-  joingame: (gameId: string, playerName: string) => Promise<void>;
+  newGame: (playerName: string) => Promise<void>;
+  joinGame: (gameId: string, playerName: string) => Promise<void>;
   value: () => Promise<number>;
 }
 
@@ -23,14 +23,14 @@ export class Client implements Game, GameControl {
     this.gameId = undefined;
   }
 
-  newgame = (playerName: string): Promise<void> =>
-    myPost<NewGameResult>("newgame", { playerName }).then((results) => {
+  newGame = (playerName: string): Promise<void> =>
+    myPost<NewGameResult>("newGame", { playerName }).then((results) => {
       this.gameId = results.gameId;
       this.sessionId = results.sessionId;
     });
 
-  joingame = (gameId: string, playerName: string): Promise<void> =>
-    myPost<JoinGameResult>("joingame", { gameId, playerName }).then(
+  joinGame = (gameId: string, playerName: string): Promise<void> =>
+    myPost<JoinGameResult>("joinGame", { gameId, playerName }).then(
       (results) => {
         this.gameId = gameId;
         this.sessionId = results.sessionId;

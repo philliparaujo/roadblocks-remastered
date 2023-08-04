@@ -10,7 +10,7 @@ type Player = { name: string; id: string };
 type Game = Player[];
 let games: Record<string, Game> = {};
 
-router.post("/newgame", (req, res) => {
+router.post("/newGame", (req, res) => {
   let body = req.body;
   let playerName: string = body.playerName;
 
@@ -27,7 +27,7 @@ router.post("/newgame", (req, res) => {
   }
 });
 
-router.post("/joingame", (req, res) => {
+router.post("/joinGame", (req, res) => {
   let body = req.body;
   let playerName = body.playerName;
   let gameId = body.gameId;
