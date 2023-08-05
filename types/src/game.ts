@@ -4,4 +4,5 @@ import { EdgeResult } from "./protocol";
 export interface Game {
   value: () => Promise<number>;
   addEdge: (coord: Coord) => Promise<EdgeResult>;
+  removeEdge: (coord: Coord) => Promise<EdgeResult>;
 }

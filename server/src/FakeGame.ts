@@ -12,6 +12,11 @@ export class GameImpl implements Game {
     return Promise.resolve({});
   };
 
+  removeEdge = (coord: Coord): Promise<EdgeResult> => {
+    console.log(`Removing edge at ${coord.row},${coord.col}`);
+    return Promise.resolve({});
+  };
+
   value = (): Promise<number> => {
     return Promise.resolve(this.myValue);
   };

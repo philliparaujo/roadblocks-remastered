@@ -72,6 +72,22 @@ router.post("/addEdge", (req, res) => {
   }
 });
 
+router.post("/removeEdge", (req, res) => {
+  let body = req.body;
+  let coord: Coord = body.coord;
+  let sessionId = body.sessionId as string;
+
+  try {
+    let game = sessionManager.get(sessionId);
+    console.log(game);
+    game.removeEdge(coord).then(() => {
+      res.send({ coord });
+    });
+  } catch (e) {
+    res.sendStatus(404);
+  }
+});
+
 router.use("/", (req, res) => {
   console.log("Bad call", req.url);
   res.status(404).send("Not found");

@@ -26,11 +26,8 @@ function App() {
       const value = await client.value();
       console.log(value);
 
-      const addEdge = async () => {
-        await client.addEdge({ row: 1, col: 4 });
-      };
-
-      await addEdge();
+      await client.addEdge({ row: 1, col: 4 });
+      await client.removeEdge({ row: 1, col: 4 });
     };
 
     setTimeout(fetchValue, 1000);

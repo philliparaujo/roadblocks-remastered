@@ -48,6 +48,13 @@ export class Client implements Game, GameControl {
       }
     );
 
+  removeEdge = (coord: Coord): Promise<EdgeResult> =>
+    myPost<EdgeResult>("removeEdge", { coord, sessionId: this.sessionId }).then(
+      () => {
+        return Promise.resolve({});
+      }
+    );
+
   value = (): Promise<number> =>
     myFetch<ValueResult>(`testValue?sessionId=${this.sessionId}`).then(
       (results) => results.value
