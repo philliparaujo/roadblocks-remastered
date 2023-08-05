@@ -1,4 +1,6 @@
 import {
+  DiceRollEventSubscription,
+  DiceRollSubscriber,
   LockWallEventSubscription,
   LockWallSubscriber,
   NumWallChangesEventSubscription,
@@ -20,10 +22,6 @@ import {
   isVerticalEdge,
   randomDiceValue,
 } from "@roadblocks/engine";
-import {
-  DiceRollEventSubscription,
-  DiceRollSubscriber,
-} from "@roadblocks/engine/src/subscribers/DiceRollSubscriber";
 import {
   CellLocations,
   Coord,
@@ -106,6 +104,8 @@ export interface Game {
   startGameEventSubscription: () => StartGameEventSubscription;
   numWallChangesEventSubscription: () => NumWallChangesEventSubscription;
 }
+
+export interface GameSubscriptions {}
 
 var id = 1;
 

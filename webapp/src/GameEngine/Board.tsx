@@ -9,7 +9,15 @@ import {
   isVerticalEdge,
 } from "@roadblocks/engine";
 import { Coord, PlayerColor } from "@roadblocks/types";
-import { black, blue, bold, dim, green, red, white } from "../Colors";
+import {
+  black,
+  blue,
+  bold,
+  dim,
+  green,
+  red,
+  white,
+} from "@roadblocks/types/src/Colors";
 import { Game } from "./Game";
 
 export type Printer = (message?: any, ...optionalParams: any[]) => void;
