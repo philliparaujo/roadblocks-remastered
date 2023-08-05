@@ -103,3 +103,27 @@ describe("Test /joinGame", () => {
       .expect(404);
   });
 });
+
+describe("Test /addEdge", () => {
+  let gameId: string;
+  let sessionId1: string;
+
+  // create a new game before running these tests
+  beforeEach(async () => {
+    const response = await request(app)
+      .post("/newGame")
+      .send({ playerName: "John" })
+      .expect("Content-Type", /json/)
+      .expect(200);
+
+    gameId = response.body.gameId;
+    sessionId1 = response.body.sessionId;
+  });
+
+  it("returns success when adding proper red edge", async () => {
+    const response = await request(app)
+      .post("/addEdge")
+      .send({ coord: { row: 1, col: 4 }, sessionId: sessionId1 })
+      .expect(200);
+  });
+});

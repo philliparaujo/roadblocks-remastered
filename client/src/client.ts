@@ -1,4 +1,7 @@
 import {
+  AddEdgeResult,
+  Coord,
+  EdgeResult,
   Game,
   JoinGameResult,
   NewGameResult,
@@ -11,6 +14,7 @@ const serviceURL = "http://localhost:5000";
 interface GameControl {
   newGame: (playerName: string) => Promise<void>;
   joinGame: (gameId: string, playerName: string) => Promise<void>;
+  addEdge: (coord: Coord) => Promise<EdgeResult>;
   value: () => Promise<number>;
 }
 
@@ -37,6 +41,13 @@ export class Client implements Game, GameControl {
       }
     );
 
+  addEdge = (coord: Coord): Promise<EdgeResult> =>
+    myPost<EdgeResult>("addEdge", { coord, sessionId: this.sessionId }).then(
+      () => {
+        return Promise.resolve({});
+      }
+    );
+
   value = (): Promise<number> =>
     myFetch<ValueResult>(`testValue?sessionId=${this.sessionId}`).then(
       (results) => results.value
@@ -54,6 +65,7 @@ export class Client implements Game, GameControl {
 }
 
 function myPost<T>(action: string, body: any): Promise<T> {
+  console.log("trying", action);
   return fetch(`${serviceURL}/${action}`, {
     method: "POST",
     headers: {

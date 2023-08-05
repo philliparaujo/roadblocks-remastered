@@ -28,7 +28,14 @@ import {
   CellLocations,
   Coord,
   DiceInfo,
+  DiceRollResult,
+  EdgeResult,
+  EndTurnResult,
+  LockWallResult,
   PlayerColor,
+  PlayerMovedResult,
+  ResetResult,
+  StartGameResult,
   TurnPhase,
   WallLocations,
 } from "@roadblocks/types";
@@ -61,15 +68,6 @@ export interface GameState {
   winGameSubscriptions: WinGameSubscriber;
   startGameSubscriptions: StartGameSubscriber;
   numWallChangesSubscriptions: NumWallChangesSubscriber;
-}
-interface StartGameResult {}
-interface EdgeResult {}
-interface LockWallResult {}
-interface EndTurnResult {}
-interface ResetResult {}
-interface PlayerMovedResult {}
-interface DiceRollResult {
-  diceValue: number;
 }
 
 export interface Game {

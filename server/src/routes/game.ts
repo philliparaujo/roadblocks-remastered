@@ -56,9 +56,20 @@ router.get("/testValue", (req, res) => {
   }
 });
 
-router.get("/addEdge", (req, res) => {
+router.post("/addEdge", (req, res) => {
   let body = req.body;
   let coord: Coord = body.coord;
+  let sessionId = body.sessionId as string;
+
+  try {
+    let game = sessionManager.get(sessionId);
+    console.log(game);
+    game.addEdge(coord).then(() => {
+      res.send({ coord });
+    });
+  } catch (e) {
+    res.sendStatus(404);
+  }
 });
 
 router.use("/", (req, res) => {

@@ -25,6 +25,12 @@ function App() {
       await client.newGame("John");
       const value = await client.value();
       console.log(value);
+
+      const addEdge = async () => {
+        await client.addEdge({ row: 1, col: 4 });
+      };
+
+      await addEdge();
     };
 
     setTimeout(fetchValue, 1000);
