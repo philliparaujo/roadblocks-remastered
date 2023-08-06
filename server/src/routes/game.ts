@@ -34,7 +34,7 @@ router.post("/newGame", (req, res) => {
   let body = req.body;
   let playerName: string = body.playerName;
 
-  console.log("Creating game for player", playerName);
+  // console.log("Creating game for player", playerName);
   try {
     sessionManager
       .create(playerName)
@@ -85,7 +85,7 @@ router.post("/addEdge", (req, res) => {
 
   try {
     sessionManager.get(sessionId).then((game) => {
-      console.log(game);
+      // console.log(game);
       game
         .addEdge(coord)
         .then(() => {
@@ -105,7 +105,7 @@ router.post("/removeEdge", (req, res) => {
 
   try {
     let game = sessionManager.get(sessionId).then((game) => {
-      console.log(game);
+      // console.log(game);
       game
         .removeEdge(coord)
         .then(() => {

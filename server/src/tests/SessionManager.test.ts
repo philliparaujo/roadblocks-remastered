@@ -9,11 +9,11 @@ describe("Test create", () => {
     expect(gameId).toBeDefined();
   });
 
-  it("throws an error when no name is provided", () => {
+  it("rejects promise when no name is provided", async () => {
     const sessionManager = new SessionManager();
-    expect(() => {
-      sessionManager.create("");
-    }).toThrowError("Player name is required");
+    await expect(sessionManager.create("")).rejects.toMatch(
+      "Player name is required"
+    );
   });
 
   it("gameId and sessionId are not equal", async () => {
@@ -48,22 +48,22 @@ describe("Test join", () => {
   });
 
   it("rejects promise when no name is provided", async () => {
-    expect(() => {
-      sessionManager.join(gameId, "");
-    }).rejects.toContain("Player name is required");
+    await expect(sessionManager.join(gameId, "")).rejects.toMatch(
+      "Player name is required"
+    );
   });
 
   it("rejects promise when no gameId is provided", async () => {
-    expect(() => {
-      sessionManager.join("", "Jane");
-    }).rejects.toContain("Game ID is required");
+    await expect(sessionManager.join("", "Jane")).rejects.toMatch(
+      "Game ID is required"
+    );
   });
 
   it("rejects promise when gameId doesn't already exist", async () => {
     expect(gameId).not.toEqual("foo");
-    expect(() => {
-      sessionManager.join("foo", "Jane");
-    }).rejects.toContain("Game not found");
+    await expect(sessionManager.join("foo", "Jane")).rejects.toMatch(
+      "Game not found"
+    );
   });
 
   describe("Test delete", () => {
@@ -114,14 +114,14 @@ describe("Test join", () => {
     });
 
     it("returns game", async () => {
-      const game2 = sessionManager.get(sessionId1);
+      const game2 = await sessionManager.get(sessionId1);
       expect(game2).toEqual(game);
     });
 
-    it("throws error if session does not exist", async () => {
-      expect(() => {
-        sessionManager.get("foo");
-      }).toThrowError("Session with given ID doesn't exist");
+    it("rejects promise if session does not exist", async () => {
+      await expect(sessionManager.get("foo")).rejects.toMatch(
+        "Session with given ID doesn't exist"
+      );
     });
   });
 });
