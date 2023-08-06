@@ -1,8 +1,5 @@
-import { Coord } from "./Coord";
-import { EdgeResult } from "./protocol";
+export type CellElement = "redplayer" | "redend" | "blueplayer" | "blueend";
 
 export interface Game {
-  value: () => Promise<number>;
-  addEdge: (coord: Coord) => Promise<EdgeResult>;
-  removeEdge: (coord: Coord) => Promise<EdgeResult>;
+  //TODO: move functions and properties shared between GameClient and GameServer here
 }

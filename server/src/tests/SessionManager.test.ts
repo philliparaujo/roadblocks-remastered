@@ -1,11 +1,10 @@
-import { GameImpl } from "../FakeGame";
-import SessionManager, { GameNotFoundError } from "../SessionManager";
-import { Game } from "@roadblocks/types";
+import { GameServerImpl, GameServer as Game } from "@roadblocks/engine";
+import SessionManager from "../SessionManager";
 
 describe("Test create", () => {
   it("returns sessionId and gameId", async () => {
     const sessionManager = new SessionManager();
-    const { sessionId, gameId } = sessionManager.create("John");
+    const { sessionId, gameId } = await sessionManager.create("John");
     expect(sessionId).toBeDefined();
     expect(gameId).toBeDefined();
   });
@@ -17,9 +16,9 @@ describe("Test create", () => {
     }).toThrowError("Player name is required");
   });
 
-  it("gameId and sessionId are not equal", () => {
+  it("gameId and sessionId are not equal", async () => {
     const sessionManager = new SessionManager();
-    const { sessionId, gameId } = sessionManager.create("John");
+    const { sessionId, gameId } = await sessionManager.create("John");
     expect(gameId).not.toEqual(sessionId);
   });
 });
@@ -30,7 +29,7 @@ describe("Test join", () => {
   const sessionId1: string = "iWillNeverWriteThis";
   const name: string = "Improbable Name";
   const gameId: string = "1111111111111234";
-  const game: Game = new GameImpl();
+  const game: Game = new GameServerImpl(7, 7);
 
   beforeAll(async () => {
     const sessions = sessionManager.getSessionsForTesting();
@@ -43,35 +42,35 @@ describe("Test join", () => {
   });
 
   it("returns sessionId", async () => {
-    const { sessionId } = sessionManager.join(gameId, "Jane");
+    const { sessionId } = await sessionManager.join(gameId, "Jane");
     expect(sessionId).toBeDefined();
     expect(sessionId).not.toEqual(sessionId1);
   });
 
-  it("returns an error when no name is provided", async () => {
+  it("rejects promise when no name is provided", async () => {
     expect(() => {
       sessionManager.join(gameId, "");
-    }).toThrowError("Player name is required");
+    }).rejects.toContain("Player name is required");
   });
 
-  it("returns an error when no gameId is provided", async () => {
+  it("rejects promise when no gameId is provided", async () => {
     expect(() => {
       sessionManager.join("", "Jane");
-    }).toThrowError("Game ID is required");
+    }).rejects.toContain("Game ID is required");
   });
 
-  it("returns an error when gameId doesn't already exist", async () => {
+  it("rejects promise when gameId doesn't already exist", async () => {
     expect(gameId).not.toEqual("foo");
     expect(() => {
       sessionManager.join("foo", "Jane");
-    }).toThrowError(GameNotFoundError);
+    }).rejects.toContain("Game not found");
   });
 
   describe("Test delete", () => {
     const sessionId1: string = "iWillNeverWriteThis";
     const name: string = "Improbable Name";
     const gameId: string = "1111111111111234";
-    const game: Game = new GameImpl();
+    const game: Game = new GameServerImpl(7, 7);
 
     beforeEach(async () => {
       const sessions = sessionManager.getSessionsForTesting();
@@ -101,7 +100,7 @@ describe("Test join", () => {
     const sessionId1: string = "iWillNeverWriteThis";
     const name: string = "Improbable Name";
     const gameId: string = "1111111111111234";
-    const game: Game = new GameImpl();
+    const game: Game = new GameServerImpl(7, 7);
 
     beforeEach(async () => {
       const sessions = sessionManager.getSessionsForTesting();

@@ -1,13 +1,34 @@
-import { Coord, NewGameResult } from "@roadblocks/types";
+import { GameServer, SubscriberServer } from "@roadblocks/engine";
+import {
+  AddEdgeResult,
+  Coord,
+  DiceRollEvent,
+  JoinGameResult,
+  LockWallEvent,
+  NewGameResult,
+  NumWallChangesEvent,
+  PlayerMovedEvent,
+  RemoveEdgeResult,
+  StartGameEvent,
+  SwitchTurnEvent,
+  TimedEvent,
+  WallToggledEvent,
+  WinGameEvent,
+} from "@roadblocks/types";
 import express from "express";
-import SessionManager, { GameNotFoundError } from "../SessionManager";
+import SessionManager from "../SessionManager";
 
 const router: express.Router = express.Router();
 const sessionManager = new SessionManager();
 
-type Player = { name: string; id: string };
-type Game = Player[];
-let games: Record<string, Game> = {};
+function safeSend<T>(
+  value: T,
+  sender: {
+    send: (v: any) => void;
+  }
+): void {
+  sender.send(value);
+}
 
 router.post("/newGame", (req, res) => {
   let body = req.body;
@@ -15,14 +36,22 @@ router.post("/newGame", (req, res) => {
 
   console.log("Creating game for player", playerName);
   try {
-    const { sessionId, gameId } = sessionManager.create(playerName);
-    const result: NewGameResult = {
-      sessionId,
-      gameId,
-    };
-    res.send(result);
+    sessionManager
+      .create(playerName)
+      .then(({ sessionId, gameId }) => {
+        safeSend<NewGameResult>(
+          {
+            sessionId,
+            gameId,
+          },
+          res
+        );
+      })
+      .catch((err) => {
+        res.sendStatus(400);
+      });
   } catch (e) {
-    res.sendStatus(400);
+    res.sendStatus(500);
   }
 });
 
@@ -32,27 +61,20 @@ router.post("/joinGame", (req, res) => {
   let gameId = body.gameId;
 
   try {
-    const { sessionId } = sessionManager.join(gameId, playerName);
-    res.send({ sessionId });
+    sessionManager
+      .join(gameId, playerName)
+      .then(({ sessionId }) => {
+        safeSend<JoinGameResult>({ sessionId }, res);
+      })
+      .catch((err) => {
+        if (err.includes("Game not found")) {
+          res.sendStatus(404);
+        } else {
+          res.sendStatus(400);
+        }
+      });
   } catch (e) {
-    if (e instanceof GameNotFoundError) {
-      res.sendStatus(404);
-    } else {
-      res.sendStatus(400);
-    }
-  }
-});
-
-router.get("/testValue", (req, res) => {
-  let sessionId = req.query.sessionId as string;
-
-  try {
-    let game = sessionManager.get(sessionId);
-    game.value().then((value) => {
-      res.send({ value: value });
-    });
-  } catch (e) {
-    res.sendStatus(404);
+    res.sendStatus(500);
   }
 });
 
@@ -62,13 +84,17 @@ router.post("/addEdge", (req, res) => {
   let sessionId = body.sessionId as string;
 
   try {
-    let game = sessionManager.get(sessionId);
-    console.log(game);
-    game.addEdge(coord).then(() => {
-      res.send({ coord });
+    sessionManager.get(sessionId).then((game) => {
+      console.log(game);
+      game
+        .addEdge(coord)
+        .then(() => {
+          safeSend<AddEdgeResult>({ coord }, res);
+        })
+        .catch((err) => res.sendStatus(400));
     });
   } catch (e) {
-    res.sendStatus(404);
+    res.sendStatus(500);
   }
 });
 
@@ -78,18 +104,112 @@ router.post("/removeEdge", (req, res) => {
   let sessionId = body.sessionId as string;
 
   try {
-    let game = sessionManager.get(sessionId);
-    console.log(game);
-    game.removeEdge(coord).then(() => {
-      res.send({ coord });
+    let game = sessionManager.get(sessionId).then((game) => {
+      console.log(game);
+      game
+        .removeEdge(coord)
+        .then(() => {
+          safeSend<RemoveEdgeResult>({ coord }, res);
+        })
+        .catch((err) => res.sendStatus(400));
     });
   } catch (e) {
-    res.sendStatus(404);
+    res.sendStatus(500);
   }
 });
 
+// // TODO: add all events
+// router.get("/pubsub/dicerolls", (req, res) => {
+//   let sessionId = req.query.sessionId as string;
+//   let lastTsString = req.query.lastEventTime as string;
+//   let lastTsNumber = Date.parse(lastTsString);
+
+//   try {
+//     let game = sessionManager.get(sessionId);
+
+//     game.diceRollSubscriptions.get(lastTsNumber).then((events) => {
+//       safeSend<DiceRollEvent[]>(events, res);
+//     });
+//   } catch (e) {
+//     res.sendStatus(404);
+//   }
+// });
+
+function registerPubSub<T extends TimedEvent>(
+  name: string,
+  subscribeGetter: (game: GameServer) => SubscriberServer<T>,
+  router: express.Router
+) {
+  router.get(`/pubsub/${name}`, (req, res) => {
+    let sessionId = req.query.sessionId as string;
+    let lastTsString = req.query.lastEventTime as string;
+    let lastTsNumber = Date.parse(lastTsString);
+
+    console.log("Session", sessionId, "lastTS", lastTsNumber);
+
+    try {
+      sessionManager
+        .get(sessionId)
+        .then((game) => {
+          subscribeGetter(game)
+            .get(lastTsNumber)
+            .then((events) => {
+              safeSend<T[]>(events, res);
+            });
+        })
+        .catch(() => {
+          res.sendStatus(404); // game does not exist
+        });
+    } catch (e) {
+      console.log("FATAL: ", e);
+      res.sendStatus(500);
+    }
+  });
+}
+
+registerPubSub<DiceRollEvent>(
+  "dicerolls",
+  (game: GameServer) => game.diceRollSubscriptions,
+  router
+);
+registerPubSub<PlayerMovedEvent>(
+  "playermoved",
+  (game: GameServer) => game.playerMovedSubscriptions,
+  router
+);
+registerPubSub<SwitchTurnEvent>(
+  "turnended",
+  (game: GameServer) => game.switchTurnSubscriptions,
+  router
+);
+registerPubSub<WallToggledEvent>(
+  "walltoggled",
+  (game: GameServer) => game.wallToggledSubscriptions,
+  router
+);
+registerPubSub<LockWallEvent>(
+  "lockwall",
+  (game: GameServer) => game.lockWallSubscriptions,
+  router
+);
+registerPubSub<WinGameEvent>(
+  "wingame",
+  (game: GameServer) => game.winGameSubscriptions,
+  router
+);
+registerPubSub<StartGameEvent>(
+  "startgame",
+  (game: GameServer) => game.startGameSubscriptions,
+  router
+);
+registerPubSub<NumWallChangesEvent>(
+  "numwallschanged",
+  (game: GameServer) => game.numWallChangesSubscriptions,
+  router
+);
+
 router.use("/", (req, res) => {
-  console.log("Bad call", req.url);
+  console.log("Server endpoint does not exist. Sorry.", req.url);
   res.status(404).send("Not found");
 });
 

@@ -1,5 +1,4 @@
 import express from "express";
-import indexRouter from "./routes/index";
 import gameRouter from "./routes/game";
 import bodyParser from "body-parser";
 import cors from "cors";
@@ -12,5 +11,5 @@ app.use(cors());
 app.use("/", gameRouter);
 
 app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
+  console.log("Roadblocks server running on port", port);
 });

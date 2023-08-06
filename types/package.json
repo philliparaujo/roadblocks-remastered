@@ -5,14 +5,16 @@
   "main": "dist/index.jsx",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
-    "test": "jest"
+    "build": "pnpm run clean && tsc",
+    "dev": "pnpm run clean && tsc --watch",
+    "test": "jest",
+    "clean": "rimraf dist"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "rimraf": "^5.0.1",
     "typescript": "^5.1.6"
   }
 }

@@ -5,16 +5,20 @@
   "main": "dist/index.jsx",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch"
+    "build": "pnpm run clean && tsc",
+    "dev": "pnpm run clean && tsc --watch",
+    "clean": "rimraf dist"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@roadblocks/types": "link:../types",
+    "rimraf": "^5.0.1",
     "typescript": "^5.1.6"
   },
   "dependencies": {
-    "@roadblocks/types": "^1.0.0"
+    "@types/js-priority-queue": "^0.0.6",
+    "js-priority-queue": "^0.1.5"
   }
 }

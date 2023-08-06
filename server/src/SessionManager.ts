@@ -1,21 +1,20 @@
 import { v4 as uuidv4 } from "uuid";
-import { GameImpl } from "./FakeGame";
-import { Game } from "@roadblocks/types";
+import {
+  GameServerImpl as GameServer,
+  GameServer as Game,
+} from "@roadblocks/engine";
 
 type Session = { sessionId: string; name: string; gameId: string; game: Game };
 
-export class GameNotFoundError extends Error {
-  constructor(gameId: string) {
-    super(gameId);
-    this.name = "GameNotFoundError";
-  }
-}
+export var SessionManagerGameFactory = {
+  create: (): Game => new GameServer(7, 7),
+};
 
 export interface SessionManager {
-  create: (name: string) => { sessionId: string; gameId: string };
-  join: (gameId: string, name: string) => { sessionId: string };
-  delete: (sessionId: string) => void;
-  get: (sessionId: string) => Game;
+  create: (name: string) => Promise<{ sessionId: string; gameId: string }>;
+  join: (gameId: string, name: string) => Promise<{ sessionId: string }>;
+  delete: (sessionId: string) => Promise<void>;
+  get: (sessionId: string) => Promise<Game>;
 }
 
 class SessionManagerImpl implements SessionManager {
@@ -25,10 +24,10 @@ class SessionManagerImpl implements SessionManager {
     this.sessions = [];
   }
 
-  create(name: string): { sessionId: string; gameId: string } {
-    if (!name) throw new Error("Player name is required");
+  create(name: string): Promise<{ sessionId: string; gameId: string }> {
+    if (!name) return Promise.reject("Player name is required");
     if (typeof name !== "string")
-      throw new Error("Player name must be a string");
+      return Promise.reject("Player name must be a string");
 
     const sessionId: string = uuidv4();
     const gameId: string = uuidv4();
@@ -37,28 +36,29 @@ class SessionManagerImpl implements SessionManager {
       sessionId: sessionId,
       name: name,
       gameId: gameId,
-      game: new GameImpl(),
+      game: SessionManagerGameFactory.create(), // TODO: receive width/height during new game
     };
 
     this.sessions.push(session);
     // console.log("Created session", sessionId, ".");
-    return { sessionId, gameId };
+    return Promise.resolve({ sessionId, gameId });
   }
 
-  join(gameId: string, name: string): { sessionId: string } {
-    if (!name) throw new Error("Player name is required");
+  join(gameId: string, name: string): Promise<{ sessionId: string }> {
+    if (!name) return Promise.reject("Player name is required");
     if (typeof name !== "string")
-      throw new Error("Player name must be a string");
+      return Promise.reject("Player name must be a string");
 
-    if (!gameId) throw new Error("Game ID is required");
-    if (typeof gameId !== "string") throw new Error("Game ID must be a string");
+    if (!gameId) return Promise.reject("Game ID is required");
+    if (typeof gameId !== "string")
+      return Promise.reject("Game ID must be a string");
 
     const sessionToJoin = this.sessions.find(
       (session) => session.gameId === gameId
     );
 
     // var g: GameNotFound = {gameId: gameId};
-    if (!sessionToJoin) throw new GameNotFoundError(gameId);
+    if (!sessionToJoin) return Promise.reject(`Game not found ${gameId}`);
 
     const sessionId: string = uuidv4();
     const session: Session = {
@@ -69,21 +69,22 @@ class SessionManagerImpl implements SessionManager {
     };
 
     this.sessions.push(session);
-    return { sessionId };
+    return Promise.resolve({ sessionId });
   }
 
-  delete(sessionId: string): void {
+  delete(sessionId: string): Promise<void> {
     this.sessions = this.sessions.filter(
       (session) => session.sessionId != sessionId
     );
+    return Promise.resolve();
   }
 
-  get(sessionId: string): Game {
+  get(sessionId: string): Promise<Game> {
     const session: Session | undefined = this.sessions.find(
       (session) => session.sessionId == sessionId
     );
-    if (!session) throw new Error("Session with given ID doesn't exist");
-    return session.game;
+    if (!session) return Promise.reject("Session with given ID doesn't exist");
+    return Promise.resolve(session.game);
   }
 
   getSessionsForTesting(): Session[] {

@@ -2,6 +2,21 @@ import request from "supertest";
 import express from "express";
 import router from "../routes/game";
 import bodyParser from "body-parser";
+import SessionManagerImpl, {
+  SessionManagerGameFactory,
+} from "../SessionManager";
+import {
+  DiceRollSubscriberServer,
+  GameServer,
+  LockWallSubscriberServer,
+  NumWallChangesSubscriberServer,
+  PlayerMovedSubscriberServer,
+  StartGameSubscriberServer,
+  SwitchTurnSubscriberServer,
+  WallToggledSubscriberServer,
+  WinGameSubscriberServer,
+} from "@roadblocks/engine";
+import { Coord, EdgeResult } from "@roadblocks/types";
 
 const app = express();
 app.use(bodyParser.json());
@@ -104,9 +119,29 @@ describe("Test /joinGame", () => {
   });
 });
 
+class FakeGame implements GameServer {
+  addEdge = (coord: Coord): Promise<EdgeResult> =>
+    coord.col === 888 && coord.row === 999
+      ? Promise.resolve({})
+      : Promise.reject("Where's my data?");
+  removeEdge = (coord: Coord): Promise<EdgeResult> => Promise.resolve({});
+  playerMovedSubscriptions = new PlayerMovedSubscriberServer();
+  switchTurnSubscriptions = new SwitchTurnSubscriberServer();
+  wallToggledSubscriptions = new WallToggledSubscriberServer();
+  lockWallSubscriptions = new LockWallSubscriberServer();
+  diceRollSubscriptions = new DiceRollSubscriberServer();
+  winGameSubscriptions = new WinGameSubscriberServer();
+  startGameSubscriptions = new StartGameSubscriberServer();
+  numWallChangesSubscriptions = new NumWallChangesSubscriberServer();
+}
+
 describe("Test /addEdge", () => {
   let gameId: string;
   let sessionId1: string;
+
+  beforeAll(() => {
+    SessionManagerGameFactory.create = () => new FakeGame();
+  });
 
   // create a new game before running these tests
   beforeEach(async () => {
@@ -123,7 +158,7 @@ describe("Test /addEdge", () => {
   it("returns success when adding proper red edge", async () => {
     const response = await request(app)
       .post("/addEdge")
-      .send({ coord: { row: 1, col: 4 }, sessionId: sessionId1 })
+      .send({ coord: { row: 999, col: 888 }, sessionId: sessionId1 })
       .expect(200);
   });
 });
@@ -145,7 +180,7 @@ describe("Test /removeEdge", () => {
 
     await request(app)
       .post("/addEdge")
-      .send({ coord: { row: 1, col: 4 }, sessionId: sessionId1 })
+      .send({ coord: { row: 999, col: 888 }, sessionId: sessionId1 })
       .expect(200);
   });
 
