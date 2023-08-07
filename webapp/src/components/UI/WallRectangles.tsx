@@ -50,14 +50,12 @@ const WallRectangles: React.FC<WallRectanglesProps> = ({
 
   useEffect(() => {
     const unsubscribe = game.diceRollEventSubscription().subscribe((e) => {
-      if (e.type === "stop") {
-        const diceValue = e.value;
-        setDiceValue(diceValue);
+      const diceValue = e.value;
+      setDiceValue(diceValue);
 
-        let updatedArray = new Array(maxRectangles).fill("locked");
-        updatedArray.fill("", 0, Math.max(0, 7 - diceValue));
-        setRectangleStates(updatedArray);
-      }
+      let updatedArray = new Array(maxRectangles).fill("locked");
+      updatedArray.fill("", 0, Math.max(0, 7 - diceValue));
+      setRectangleStates(updatedArray);
     });
     return () => unsubscribe();
   }, [game]);

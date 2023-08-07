@@ -160,6 +160,7 @@ export class GameServerImpl implements GameServer {
     this.numWallChangesSubscriptions = new NumWallChangesSubscriberServer();
 
     setInterval(() => {
+      // test game here
       this.wallToggledSubscriptions.notify(
         new WallToggledEvent({ row: 1, col: 4 }, fakeToggle)
       );

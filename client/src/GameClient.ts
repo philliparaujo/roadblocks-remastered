@@ -13,33 +13,16 @@ import {
   WallLocations,
 } from "@roadblocks/types";
 import { logResults } from "./logger";
-
 import {
-  DiceRollEventSubscription,
-  DiceRollSubscriber,
-} from "./subscribers/DiceRollSubscriber";
-import {
-  LockWallEventSubscription,
-  LockWallSubscriber,
-} from "./subscribers/LockWallSubscriber";
-import {
-  NumWallChangesEventSubscription,
-  NumWallChangesSubscriber,
-} from "./subscribers/NumWallChangesSubscriber";
-import {
-  PlayerEventSubscription,
-  PlayerMovedSubscriber,
-} from "./subscribers/PlayerMovedSubscriber";
-import {
-  StartGameEventSubscription,
-  StartGameSubscriber,
-} from "./subscribers/StartGameSubscriber";
-import { SwitchTurnSubscriber } from "./subscribers/SwitchTurnSubscriber";
-import {
-  WinGameEventSubscription,
-  WinGameSubscriber,
-} from "./subscribers/WinGameSubscriber";
-import { WallToggledSubscriberClient } from "./PubSubClient";
+  DiceRollSubscriberClient,
+  LockWallSubscriberClient,
+  NumWallChangesSubscriberClient,
+  PlayerMovedSubscriberClient,
+  StartGameSubscriberClient,
+  SwitchTurnSubscriberClient,
+  WallToggledSubscriberClient,
+  WinGameSubscriberClient,
+} from "./PubSubClient";
 
 export const serviceURL = "http://localhost:5000";
 
@@ -51,14 +34,14 @@ export interface GameControl {
 }
 
 export class GameClient implements Game, GameControl {
-  playerMovedSubscriptions = new PlayerMovedSubscriber();
-  switchTurnSubscriptions = new SwitchTurnSubscriber();
+  playerMovedSubscriptions = new PlayerMovedSubscriberClient();
+  switchTurnSubscriptions = new SwitchTurnSubscriberClient();
   wallToggledSubscriptions = new WallToggledSubscriberClient();
-  lockWallSubscriptions = new LockWallSubscriber();
-  diceRollSubscriptions = new DiceRollSubscriber();
-  winGameSubscriptions = new WinGameSubscriber();
-  startGameSubscriptions = new StartGameSubscriber();
-  numWallChangesSubscriptions = new NumWallChangesSubscriber();
+  lockWallSubscriptions = new LockWallSubscriberClient();
+  diceRollSubscriptions = new DiceRollSubscriberClient();
+  winGameSubscriptions = new WinGameSubscriberClient();
+  startGameSubscriptions = new StartGameSubscriberClient();
+  numWallChangesSubscriptions = new NumWallChangesSubscriberClient();
 
   sessionId: string | undefined;
   gameId: string | undefined;
@@ -136,28 +119,28 @@ export class GameClient implements Game, GameControl {
   rollDice = (): Promise<DiceRollEvent> =>
     Promise.resolve(new DiceRollEvent(4));
 
-  playerMovedEventSubscription = (): PlayerEventSubscription =>
+  playerMovedEventSubscription = (): PlayerMovedSubscriberClient =>
     this.playerMovedSubscriptions;
 
-  switchTurnEventSubscription = (): SwitchTurnSubscriber =>
+  switchTurnEventSubscription = (): SwitchTurnSubscriberClient =>
     this.switchTurnSubscriptions;
 
   wallToggledEventSubscription = (): WallToggledSubscriberClient =>
     this.wallToggledSubscriptions;
 
-  lockWallEventSubscription = (): LockWallEventSubscription =>
+  lockWallEventSubscription = (): LockWallSubscriberClient =>
     this.lockWallSubscriptions;
 
-  diceRollEventSubscription = (): DiceRollEventSubscription =>
+  diceRollEventSubscription = (): DiceRollSubscriberClient =>
     this.diceRollSubscriptions;
 
-  winGameEventSubscription = (): WinGameEventSubscription =>
+  winGameEventSubscription = (): WinGameSubscriberClient =>
     this.winGameSubscriptions;
 
-  startGameEventSubscription = (): StartGameEventSubscription =>
+  startGameEventSubscription = (): StartGameSubscriberClient =>
     this.startGameSubscriptions;
 
-  numWallChangesEventSubscription = (): NumWallChangesEventSubscription =>
+  numWallChangesEventSubscription = (): NumWallChangesSubscriberClient =>
     this.numWallChangesSubscriptions;
 
   startSubscribers = (sessionId: string): void => {

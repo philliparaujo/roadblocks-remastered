@@ -30,6 +30,8 @@ function safeSend<T>(
   sender.send(value);
 }
 
+// TODO: MAKE ALL ROUTES DEFINED AS CONSTANTS IN TYPES
+
 router.post("/newGame", (req, res) => {
   let body = req.body;
   let playerName: string = body.playerName;

@@ -55,15 +55,13 @@ const PlayerRectangles: React.FC<PlayerRectangleProps> = ({
 
   useEffect(() => {
     const unsubscribe = game.diceRollEventSubscription().subscribe((e) => {
-      if (e.type === "stop") {
-        const diceValue = e.value;
-        setDiceValue(diceValue);
+      const diceValue = e.value;
+      setDiceValue(diceValue);
 
-        let updatedArray = new Array(maxRectangles).fill("locked");
-        updatedArray.fill("", 0, Math.min(maxRectangles, diceValue));
+      let updatedArray = new Array(maxRectangles).fill("locked");
+      updatedArray.fill("", 0, Math.min(maxRectangles, diceValue));
 
-        setRectangleStates(updatedArray);
-      }
+      setRectangleStates(updatedArray);
     });
     return () => unsubscribe();
   }, [game]);

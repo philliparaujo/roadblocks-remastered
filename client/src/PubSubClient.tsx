@@ -1,116 +1,72 @@
-import { DiceRollEvent, WallToggledEvent } from "@roadblocks/types";
+import {
+  DiceRollEvent,
+  LockWallEvent,
+  NumWallChangesEvent,
+  PlayerMovedEvent,
+  StartGameEvent,
+  SwitchTurnEvent,
+  TimedEvent,
+  WallToggledEvent,
+  WinGameEvent,
+} from "@roadblocks/types";
 import { myGet, serviceURL } from "./GameClient";
-
-type UnsubscribeDiceRoll = () => void;
-type UnsubscribeWallToggled = () => void;
 
 const fetchIntervalMs = 1000;
 
 export type DiceRollEventCallback = (callback: DiceRollEvent) => void;
-
-export type SubscribeDiceRoll = (
-  callback: DiceRollEventCallback
-) => UnsubscribeDiceRoll;
-
-export interface DiceRollEventSubscription {
-  subscribe: SubscribeDiceRoll;
-}
-
+export type LockWallEventCallback = (callback: LockWallEvent) => void;
+export type NumWallChangesEventCallback = (
+  callback: NumWallChangesEvent
+) => void;
+export type PlayerMovedEventCallback = (callback: PlayerMovedEvent) => void;
+export type StartGameEventCallback = (callback: StartGameEvent) => void;
+export type SwitchTurnEventCallback = (callback: SwitchTurnEvent) => void;
 export type WallToggledEventCallback = (callback: WallToggledEvent) => void;
+export type WinGameEventCallback = (callback: WinGameEvent) => void;
 
-export type SubscribeWallToggled = (
-  callback: WallToggledEventCallback
-) => UnsubscribeWallToggled;
+/* GENERIC */
+type UnsubscribeT = () => void;
 
-export interface WallToggledEventSubscription {
-  subscribe: SubscribeWallToggled;
-}
-
-export class DiceRollSubscriberClient implements DiceRollEventSubscription {
-  subscribers: ((event: DiceRollEvent) => void)[] = [];
-  pastEvents: DiceRollEvent[] = [];
+export class SubscriberClient<T extends TimedEvent> {
+  subscribers: ((event: T) => void)[] = [];
+  pastEvents: T[] = [];
   lastSeenEvent: EpochTimeStamp = Date.parse("1970-01-01T00:00:00Z");
+  timer?: NodeJS.Timer;
 
-  subscribe: (callback: (event: DiceRollEvent) => void) => UnsubscribeDiceRoll =
-    (callback) => {
-      this.subscribers.push(callback);
-      this.pastEvents.forEach((e) => callback(e));
-      return () => this.unsubscribe(callback);
-    };
+  route: string;
 
-  unsubscribe: (callback: (event: DiceRollEvent) => void) => void = (
-    callback
-  ) => {
-    this.subscribers = this.subscribers.filter(
-      (subscriber) => subscriber !== callback
-    );
-  };
+  constructor(route: string) {
+    this.route = route;
+  }
 
-  start: (sessionId: string) => void = (sessionId) => {
-    setInterval(() => {
-      const url = new URL(serviceURL);
-      url.pathname = "/pubsub/dicerolls";
-      url.searchParams.set("sessionId", sessionId);
-      url.searchParams.set("lastEventTime", this.lastSeenEvent.toString());
-
-      myGet<DiceRollEvent[]>(url).then((events) => {
-        this.pastEvents.push(...events);
-        this.lastSeenEvent = this.pastEvents.reduce(
-          (result: EpochTimeStamp, item: DiceRollEvent) => {
-            if (item.ts > result) {
-              result = item.ts;
-            }
-            return result;
-          },
-          this.lastSeenEvent
-        );
-        events.forEach((event) => {
-          this.subscribers.forEach((callback) => callback(event));
-        });
-      });
-    }, fetchIntervalMs);
-  };
-}
-
-export class WallToggledSubscriberClient
-  implements WallToggledEventSubscription
-{
-  subscribers: ((event: WallToggledEvent) => void)[] = [];
-  pastEvents: WallToggledEvent[] = [];
-  lastSeenEvent: EpochTimeStamp = Date.parse("1970-01-01T00:00:00Z");
-
-  subscribe: (
-    callback: (event: WallToggledEvent) => void
-  ) => UnsubscribeWallToggled = (callback) => {
+  subscribe: (callback: (event: T) => void) => UnsubscribeT = (callback) => {
     this.subscribers.push(callback);
     this.pastEvents.forEach((e) => callback(e));
     return () => this.unsubscribe(callback);
   };
 
-  unsubscribe: (callback: (event: WallToggledEvent) => void) => void = (
-    callback
-  ) => {
+  unsubscribe: (callback: (event: T) => void) => void = (callback) => {
     this.subscribers = this.subscribers.filter(
       (subscriber) => subscriber !== callback
     );
   };
 
   start: (sessionId: string) => void = (sessionId) => {
-    console.log("Starting PubSub client", this.constructor.name);
-    setInterval(() => {
+    console.log("starting PubSub client", this.route);
+    this.timer = setInterval(() => {
       const url = new URL(serviceURL);
-      url.pathname = "/pubsub/walltoggled";
+      url.pathname = `/pubsub/${this.route}`;
       url.searchParams.set("sessionId", sessionId);
       url.searchParams.set(
         "lastEventTime",
         new Date(this.lastSeenEvent).toISOString()
       );
 
-      console.log("Checking PubSub events", this.constructor.name);
-      myGet<WallToggledEvent[]>(url).then((events) => {
+      console.log("Checking PubSub events", this.route);
+      myGet<T[]>(url).then((events) => {
         this.pastEvents.push(...events);
         this.lastSeenEvent = this.pastEvents.reduce(
-          (result: EpochTimeStamp, item: WallToggledEvent) => {
+          (result: EpochTimeStamp, item: T) => {
             if (item.ts > result) {
               result = item.ts;
             }
@@ -124,4 +80,53 @@ export class WallToggledSubscriberClient
       });
     }, fetchIntervalMs);
   };
+
+  stop = () => {
+    if (this.timer) {
+      clearInterval(this.timer);
+      this.timer = undefined;
+    }
+  };
+}
+
+/* IMPLEMENTATIONS */
+export class DiceRollSubscriberClient extends SubscriberClient<DiceRollEvent> {
+  constructor() {
+    super("dicerolls");
+  }
+}
+export class LockWallSubscriberClient extends SubscriberClient<LockWallEvent> {
+  constructor() {
+    super("lockwall");
+  }
+}
+export class NumWallChangesSubscriberClient extends SubscriberClient<NumWallChangesEvent> {
+  constructor() {
+    super("numwallschanged");
+  }
+}
+export class PlayerMovedSubscriberClient extends SubscriberClient<PlayerMovedEvent> {
+  constructor() {
+    super("playermoved");
+  }
+}
+export class StartGameSubscriberClient extends SubscriberClient<StartGameEvent> {
+  constructor() {
+    super("startgame");
+  }
+}
+export class SwitchTurnSubscriberClient extends SubscriberClient<SwitchTurnEvent> {
+  constructor() {
+    super("turnended");
+  }
+}
+export class WallToggledSubscriberClient extends SubscriberClient<WallToggledEvent> {
+  constructor() {
+    super("walltoggled");
+  }
+}
+export class WinGameSubscriberClient extends SubscriberClient<WinGameEvent> {
+  constructor() {
+    super("wingame");
+  }
 }

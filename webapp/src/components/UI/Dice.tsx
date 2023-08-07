@@ -68,12 +68,13 @@ const Dice: React.FC<DiceProps> = ({
   /* Controls rolling stop/start */
   useEffect(() => {
     const unsubscribe = game.diceRollEventSubscription().subscribe((e) => {
-      if (e.type === "start") {
-        setRolling(true);
-      } else if (e.type === "stop") {
-        setRolling(false);
-        setValue(e.value);
-      }
+      // TODO: reimplement animations
+      // if (e.type === "start") {
+      //   setRolling(true);
+      // } else if (e.type === "stop") {
+      //   setRolling(false);
+      //   setValue(e.value);
+      // }
     });
 
     return () => unsubscribe();
