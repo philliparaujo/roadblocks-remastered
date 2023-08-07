@@ -1,8 +1,4 @@
-import {
-  GameInstance,
-  GameClient as Game,
-  GameClient,
-} from "@roadblocks/client";
+import { GameClient as Game, GameInstance } from "@roadblocks/client";
 import { Coord, equalCoords } from "@roadblocks/types";
 import { useEffect, useState } from "react";
 import "./Edge.css";

@@ -18,7 +18,6 @@ function App() {
     //   wallActionIntervalMs: 200,
     //   movementIntervalMs: 100,
     // });
-    GameInstance.newGame("John");
   }, []);
 
   return (

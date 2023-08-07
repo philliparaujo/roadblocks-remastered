@@ -3,6 +3,8 @@ import {
   AddEdgeResult,
   Coord,
   DiceRollEvent,
+  GetHeightResult,
+  GetWidthResult,
   JoinGameResult,
   LockWallEvent,
   NewGameResult,
@@ -123,6 +125,55 @@ router.post("/removeEdge", (req, res) => {
         })
         .catch((err) => res.sendStatus(400));
     });
+  } catch (e) {
+    res.sendStatus(500);
+  }
+});
+router.get("/getWidth", (req, res) => {
+  const sessionId = req.query.sessionId as string;
+
+  try {
+    sessionManager
+      .get(sessionId)
+      .then((game) => {
+        game
+          .getWidth()
+          .then((width) => {
+            safeSend<GetWidthResult>({ width }, res);
+          })
+          .catch((err) => {
+            console.error(err);
+            res.sendStatus(400);
+          });
+      })
+      .catch((err) => {
+        res.sendStatus(404);
+      });
+  } catch (e) {
+    res.sendStatus(500);
+  }
+});
+
+router.get("/getHeight", (req, res) => {
+  const sessionId = req.query.sessionId as string;
+
+  try {
+    sessionManager
+      .get(sessionId)
+      .then((game) => {
+        game
+          .getHeight()
+          .then((height) => {
+            safeSend<GetHeightResult>({ height }, res);
+          })
+          .catch((err) => {
+            console.error(err);
+            res.sendStatus(400);
+          });
+      })
+      .catch((err) => {
+        res.sendStatus(404);
+      });
   } catch (e) {
     res.sendStatus(500);
   }

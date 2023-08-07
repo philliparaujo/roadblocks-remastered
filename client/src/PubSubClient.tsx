@@ -64,14 +64,14 @@ export class SubscriberClient<T extends TimedEvent> {
     this.timer = setInterval(() => {
       const url = new URL(serviceURL);
       url.pathname = this.route;
-      url.searchParams.set("sessionId", sessionId);
+      // url.searchParams.set("sessionId", sessionId);
       url.searchParams.set(
         "lastEventTime",
         new Date(this.lastSeenEvent).toISOString()
       );
 
       console.log("Checking PubSub events", this.route);
-      myGet<T[]>(url).then((events) => {
+      myGet<T[]>(url, sessionId).then((events) => {
         this.pastEvents.push(...events);
         this.lastSeenEvent = this.pastEvents.reduce(
           (result: EpochTimeStamp, item: T) => {

@@ -69,6 +69,8 @@ export interface GameServer {
   startGame: () => Promise<StartGameResult>;
   addEdge: (coord: Coord) => Promise<EdgeResult>;
   removeEdge: (coord: Coord) => Promise<EdgeResult>;
+  getWidth: () => Promise<number>;
+  getHeight: () => Promise<number>;
 
   playerMovedSubscriptions: PlayerMovedSubscriberServer;
   switchTurnSubscriptions: SwitchTurnSubscriberServer;
@@ -415,11 +417,11 @@ export class GameServerImpl implements GameServer {
   private getDiceRolls = (player: PlayerColor): Promise<number[]> =>
     Promise.resolve(this.state.diceRolls[player]);
 
-  private getWidth = (): Promise<number> => {
+  getWidth = (): Promise<number> => {
     return Promise.resolve(this.state.width);
   };
 
-  private getHeight = (): Promise<number> => {
+  getHeight = (): Promise<number> => {
     return Promise.resolve(this.state.height);
   };
 

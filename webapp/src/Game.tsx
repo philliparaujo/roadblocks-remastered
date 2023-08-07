@@ -1,3 +1,4 @@
+import { GameInstance } from "@roadblocks/client";
 import "./Game.css";
 import NavBar from "./NavBar";
 import UIBoard from "./components/Board/UIBoard";
@@ -6,11 +7,26 @@ import LockWallsButton from "./components/UI/LockWallsButton";
 import PlayerRectangles from "./components/UI/PlayerRectangles";
 import SwitchTurnButton from "./components/UI/SwitchTurnButton";
 import WallRectangles from "./components/UI/WallRectangles";
+import { useEffect, useState } from "react";
+import { Navigate } from "react-router-dom";
 
 function Game() {
+  const [inProgress, setInProgress] = useState<boolean | undefined>(undefined);
+  useEffect(() => {
+    GameInstance.gameInProgress()
+      .then((result) => {
+        setInProgress(result);
+      })
+      .catch((err) => {
+        setInProgress(undefined);
+      });
+  }, [GameInstance]);
+
   const links = [{ name: "Home", url: "/home" }];
 
-  return (
+  return inProgress === undefined ? (
+    <div>Loading...</div>
+  ) : inProgress ? (
     <>
       <NavBar links={links} />
       <div className="Game">
@@ -35,6 +51,8 @@ function Game() {
         </div>
       </div>
     </>
+  ) : (
+    <Navigate to="/" replace={true} />
   );
 }
 

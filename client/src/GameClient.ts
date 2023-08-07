@@ -4,6 +4,8 @@ import {
   EdgeResult,
   EndTurnResult,
   Game,
+  GetHeightResult,
+  GetWidthResult,
   JoinGameResult,
   LockWallResult,
   NewGameResult,
@@ -51,6 +53,9 @@ export class GameClient implements Game, GameControl {
     this.gameId = undefined;
   }
 
+  gameInProgress = (): Promise<boolean> =>
+    Promise.resolve(this.sessionId !== undefined);
+
   newGame = (playerName: string): Promise<void> =>
     myPost<NewGameResult>("newGame", { playerName }).then((results) => {
       this.gameId = results.gameId;
@@ -68,22 +73,26 @@ export class GameClient implements Game, GameControl {
     );
 
   addEdge = (coord: Coord): Promise<EdgeResult> =>
-    myPost<EdgeResult>("addEdge", { coord, sessionId: this.sessionId }).then(
-      () => {
-        return Promise.resolve({});
-      }
-    );
+    this.sessionPost<EdgeResult>("addEdge", { coord }).then(() => {
+      return Promise.resolve({});
+    });
 
   removeEdge = (coord: Coord): Promise<EdgeResult> =>
-    myPost<EdgeResult>("removeEdge", { coord, sessionId: this.sessionId }).then(
-      () => {
-        return Promise.resolve({});
-      }
-    );
+    this.sessionPost<EdgeResult>("removeEdge", { coord }).then(() => {
+      return Promise.resolve({});
+    });
+
+  getWidth = (): Promise<number> =>
+    this.sessionGet<GetWidthResult>("getWidth").then((result) => {
+      return result.width;
+    });
+  getHeight = (): Promise<number> =>
+    this.sessionGet<GetHeightResult>("getHeight").then((result) => {
+      return result.height;
+    });
 
   // TODO: PROPERLY IMPLEMENT
-  getWidth = (): Promise<number> => Promise.resolve(7);
-  getHeight = (): Promise<number> => Promise.resolve(7);
+
   getInitialCellLocation = (player: PlayerLocation): Promise<Coord> =>
     Promise.resolve(
       player === "redplayer" ? { row: 1, col: 7 } : { row: 7, col: 1 }
@@ -146,6 +155,15 @@ export class GameClient implements Game, GameControl {
   startSubscribers = (sessionId: string): void => {
     this.wallToggledSubscriptions.start(sessionId);
   };
+
+  // Perform a post to a specific session on the server side
+  sessionPost<T>(action: string, body: any): Promise<T> {
+    return myPost<T>(action, { ...body, sessionId: this.sessionId });
+  }
+  // Perform a get to a specific session on the server side
+  sessionGet<T>(endPoint: string): Promise<T> {
+    return myGet<T>(endPoint, this.sessionId);
+  }
 }
 
 function myPost<T>(action: string, body: any): Promise<T> {
@@ -167,8 +185,16 @@ function myPost<T>(action: string, body: any): Promise<T> {
     .then(logResults(action));
 }
 
-export function myGet<T>(urlExtension: string | URL): Promise<T> {
+export function myGet<T>(
+  urlExtension: string | URL,
+  sessionId?: string
+): Promise<T> {
+  if (!sessionId) {
+    return Promise.reject("sessionId is missing");
+  }
+
   const url: URL = new URL(urlExtension, serviceURL);
+  url.searchParams.set("sessionId", sessionId);
 
   return fetch(url.toString())
     .then((res) => {

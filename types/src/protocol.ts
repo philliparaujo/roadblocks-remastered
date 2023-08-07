@@ -9,6 +9,12 @@ export interface JoinGameResult {
 
 export interface AddEdgeResult {}
 export interface RemoveEdgeResult {}
+export interface GetWidthResult {
+  width: number;
+}
+export interface GetHeightResult {
+  height: number;
+}
 
 /* From game */
 
