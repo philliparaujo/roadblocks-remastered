@@ -1,5 +1,5 @@
 import "./LockWallsButton.css";
-import GameInstance, { Game } from "../../GameEngine/Game";
+import { GameInstance, GameClient as Game } from "@roadblocks/client";
 import { useEffect, useState } from "react";
 
 export interface LockWallsButtonProps {

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import GameInstance, { Game } from "../../GameEngine/Game";
+import { GameInstance, GameClient as Game } from "@roadblocks/client";
 import "./Rectangles.css";
 
 export interface PlayerRectangleProps {

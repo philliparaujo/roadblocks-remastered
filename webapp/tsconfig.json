@@ -22,6 +22,8 @@
     "../types/src/Coord.tsx",
     "../engine/src/Types.tsx",
     "../engine.tsx",
-    "../engine/src/subscribers/DiceRollSubscriber.tsx"
+    "../client/src/subscribers/DiceRollSubscriber.tsx",
+    "../engine/src/GameServer.tsx",
+    "../engine/src/Pathfinder.tsx"
   ]
 }

@@ -1,6 +1,6 @@
 import { PlayerColor } from "@roadblocks/types";
 import { useEffect, useState } from "react";
-import GameInstance, { Game } from "../../GameEngine/Game";
+import { GameInstance, GameClient as Game } from "@roadblocks/client";
 import "./SwitchTurnButton.css";
 
 export interface SwitchTurnButtonProps {

@@ -4,7 +4,8 @@ import { Meta, StoryObj } from "@storybook/react";
 import UIBoard from "../components/Board/UIBoard";
 import LockWallsButton from "../components/UI/LockWallsButton";
 import SwitchTurnButton from "../components/UI/SwitchTurnButton";
-import { GameImpl } from "./Game";
+import { GameServer } from "@roadblocks/engine/src/Game";
+import { GameServerImpl } from "@roadblocks/engine";
 
 interface GameProps {
   height: number;
@@ -25,7 +26,7 @@ const GameStory: React.FC<GameProps> = ({
   initialBlueEndLocation,
   debug,
 }) => {
-  const gameInstance = new GameImpl(height, width);
+  const gameInstance = new GameServerImpl(width, height);
   gameInstance.getStateForTesting().playerLocations = {
     red: initialRedPlayerLocation,
     blue: initialBluePlayerLocation,

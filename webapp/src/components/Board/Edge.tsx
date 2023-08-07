@@ -1,7 +1,10 @@
-import { equalCoords } from "@roadblocks/engine";
-import { Coord } from "@roadblocks/types";
+import {
+  GameInstance,
+  GameClient as Game,
+  GameClient,
+} from "@roadblocks/client";
+import { Coord, equalCoords } from "@roadblocks/types";
 import { useEffect, useState } from "react";
-import GameInstance, { Game } from "../../GameEngine/Game";
 import "./Edge.css";
 
 type EdgeColor = "gray" | "red" | "blue" | "black" | "lightblue" | "lightred";
@@ -13,7 +16,7 @@ export interface EdgeProps {
   orientation: Orientation;
   type?: EdgeType;
   debug?: boolean;
-  game?: Game;
+  game: Game;
 }
 
 /* Determine fill of edge based on given parameters */

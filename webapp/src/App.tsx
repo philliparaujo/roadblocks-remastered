@@ -1,7 +1,7 @@
 import { useEffect } from "react";
-import GameInstance from "./GameEngine/Game";
-import { NPCImpl } from "./NPC/NPC";
-import { Client } from "../../client/src/client";
+import { GameInstance } from "@roadblocks/client";
+// import { NPCImpl } from "./NPC/NPC.tsx.OFF";
+// import { GameClient } from "../../client/src/GameClient";
 import { Routes, Route, Router, Link } from "react-router-dom";
 import Game from "./Game";
 import Home from "./Home";
@@ -18,20 +18,7 @@ function App() {
     //   wallActionIntervalMs: 200,
     //   movementIntervalMs: 100,
     // });
-    // GameInstance.startGame();
-    const client = new Client();
-
-    const fetchValue = async () => {
-      await client.newGame("John");
-      const value = await client.value();
-      console.log(value);
-
-      await client.addEdge({ row: 1, col: 4 });
-      await client.removeEdge({ row: 1, col: 4 });
-    };
-
-    setTimeout(fetchValue, 1000);
-    // fetchValue();
+    GameInstance.newGame("John");
   }, []);
 
   return (

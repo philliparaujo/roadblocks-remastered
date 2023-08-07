@@ -3,8 +3,8 @@ import {
   WallToggledEventSubscription,
 } from "@roadblocks/engine";
 import { CellElement } from "../components/Board/Cell";
-import { Board, createFromGame, createStandalone } from "./Board";
-import { Game, GameImpl } from "./Game";
+import { SmartBoard, createFromGame, createStandalone } from "./Board";
+import { Game, GameServer } from "@roadblocks/engine/src/Game";
 
 describe("board printout", () => {
   test("print to console", () => {
@@ -13,7 +13,7 @@ describe("board printout", () => {
   });
 
   test("print to console", async () => {
-    const g = new GameImpl(7, 7);
+    const g = new GameServer(7, 7);
     const b = await createFromGame(g);
     b.dump(console.log);
     b.dispose(g);
@@ -82,7 +82,7 @@ describe("board sync", () => {
   let subWalls: jest.Mock;
   let printer: CapturePrinter;
 
-  let sut: Board;
+  let sut: SmartBoard;
 
   beforeEach(async () => {
     ({ game, subPlayer, subWalls } = factory());

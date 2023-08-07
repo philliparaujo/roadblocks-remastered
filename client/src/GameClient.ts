@@ -1,9 +1,16 @@
 import {
   Coord,
+  DiceRollEvent,
   EdgeResult,
+  EndTurnResult,
   Game,
   JoinGameResult,
+  LockWallResult,
   NewGameResult,
+  PlayerColor,
+  PlayerLocation,
+  PlayerMovedResult,
+  WallLocations,
 } from "@roadblocks/types";
 import { logResults } from "./logger";
 
@@ -28,25 +35,25 @@ import {
   StartGameSubscriber,
 } from "./subscribers/StartGameSubscriber";
 import { SwitchTurnSubscriber } from "./subscribers/SwitchTurnSubscriber";
-import { WallToggledSubscriber } from "./subscribers/WallToggledSubscriber";
 import {
   WinGameEventSubscription,
   WinGameSubscriber,
 } from "./subscribers/WinGameSubscriber";
+import { WallToggledSubscriberClient } from "./PubSubClient";
 
 export const serviceURL = "http://localhost:5000";
 
-interface GameControl {
+export interface GameControl {
   newGame: (playerName: string) => Promise<void>;
   joinGame: (gameId: string, playerName: string) => Promise<void>;
   addEdge: (coord: Coord) => Promise<EdgeResult>;
   removeEdge: (coord: Coord) => Promise<EdgeResult>;
 }
 
-export class Client implements Game, GameControl {
+export class GameClient implements Game, GameControl {
   playerMovedSubscriptions = new PlayerMovedSubscriber();
   switchTurnSubscriptions = new SwitchTurnSubscriber();
-  wallToggledSubscriptions = new WallToggledSubscriber();
+  wallToggledSubscriptions = new WallToggledSubscriberClient();
   lockWallSubscriptions = new LockWallSubscriber();
   diceRollSubscriptions = new DiceRollSubscriber();
   winGameSubscriptions = new WinGameSubscriber();
@@ -65,6 +72,7 @@ export class Client implements Game, GameControl {
     myPost<NewGameResult>("newGame", { playerName }).then((results) => {
       this.gameId = results.gameId;
       this.sessionId = results.sessionId;
+      this.startSubscribers(results.sessionId);
     });
 
   joinGame = (gameId: string, playerName: string): Promise<void> =>
@@ -72,6 +80,7 @@ export class Client implements Game, GameControl {
       (results) => {
         this.gameId = gameId;
         this.sessionId = results.sessionId;
+        this.startSubscribers(results.sessionId);
       }
     );
 
@@ -89,6 +98,31 @@ export class Client implements Game, GameControl {
       }
     );
 
+  // TODO: PROPERLY IMPLEMENT
+  getWidth = (): Promise<number> => Promise.resolve(7);
+  getHeight = (): Promise<number> => Promise.resolve(7);
+  getInitialCellLocation = (player: PlayerLocation): Promise<Coord> =>
+    Promise.resolve(
+      player === "redplayer" ? { row: 1, col: 7 } : { row: 7, col: 1 }
+    );
+  getWallLocations = (): Promise<WallLocations> =>
+    Promise.resolve({ red: [], blue: [], locked: [] });
+
+  getDiceRolls = (player: PlayerColor): Promise<number[]> =>
+    Promise.resolve([1, 2, 3, 4, 5, 6]);
+
+  getTurn = (): Promise<PlayerColor> => Promise.resolve("red");
+  canEndTurn = (): Promise<boolean> => Promise.resolve(false);
+  pathExists = (player: PlayerColor): Promise<boolean> =>
+    Promise.resolve(false);
+
+  lockWalls = (): Promise<LockWallResult> => Promise.resolve({});
+
+  switchTurn = (): Promise<EndTurnResult> => Promise.resolve({});
+
+  setPlayerLocation = (coord: Coord): Promise<PlayerMovedResult> =>
+    Promise.resolve({});
+
   getStateForTesting = (): {
     sessionId: string | undefined;
     gameId: string | undefined;
@@ -99,13 +133,16 @@ export class Client implements Game, GameControl {
     };
   };
 
+  rollDice = (): Promise<DiceRollEvent> =>
+    Promise.resolve(new DiceRollEvent(4));
+
   playerMovedEventSubscription = (): PlayerEventSubscription =>
     this.playerMovedSubscriptions;
 
   switchTurnEventSubscription = (): SwitchTurnSubscriber =>
     this.switchTurnSubscriptions;
 
-  wallToggledEventSubscription = (): WallToggledSubscriber =>
+  wallToggledEventSubscription = (): WallToggledSubscriberClient =>
     this.wallToggledSubscriptions;
 
   lockWallEventSubscription = (): LockWallEventSubscription =>
@@ -122,6 +159,10 @@ export class Client implements Game, GameControl {
 
   numWallChangesEventSubscription = (): NumWallChangesEventSubscription =>
     this.numWallChangesSubscriptions;
+
+  startSubscribers = (sessionId: string): void => {
+    this.wallToggledSubscriptions.start(sessionId);
+  };
 }
 
 function myPost<T>(action: string, body: any): Promise<T> {
@@ -156,3 +197,5 @@ export function myGet<T>(urlExtension: string | URL): Promise<T> {
     .then((results) => results.json())
     .then(logResults(urlExtension.toString()));
 }
+
+export const GameInstance = new GameClient();

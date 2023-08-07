@@ -3,21 +3,6 @@ import {
   BluePlayer,
   Board,
   BoardImpl,
-  RedEnd,
-  RedPlayer,
-} from "./Board";
-
-import {
-  equalCoords,
-  isBorderEdge,
-  isEdge,
-  isValidMove,
-  isVerticalEdge,
-  randomDiceValue,
-} from "./Utils";
-
-import {
-  CellElement,
   CellLocations,
   Coord,
   DiceInfo,
@@ -29,8 +14,11 @@ import {
   LockWallResult,
   NumWallChangesEvent,
   PlayerColor,
+  PlayerLocation,
   PlayerMovedEvent,
   PlayerMovedResult,
+  RedEnd,
+  RedPlayer,
   ResetResult,
   StartGameEvent,
   StartGameResult,
@@ -39,6 +27,12 @@ import {
   WallLocations,
   WallToggledEvent,
   WinGameEvent,
+  equalCoords,
+  isBorderEdge,
+  isEdge,
+  isValidMove,
+  isVerticalEdge,
+  randomDiceValue,
 } from "@roadblocks/types";
 import { PathfinderImpl } from "./Pathfinder";
 import {
@@ -84,6 +78,8 @@ export interface GameServer {
   winGameSubscriptions: WinGameSubscriberServer;
   startGameSubscriptions: StartGameSubscriberServer;
   numWallChangesSubscriptions: NumWallChangesSubscriberServer;
+
+  wallToggledSubscriptions2: () => WallToggledSubscriberServer;
 }
 
 // export interface GameSubscriptions {}
@@ -95,6 +91,8 @@ type OverridesForTesting = {
   playerLocations?: CellLocations;
   rollDurationMs?: number;
 };
+
+var fakeToggle = false;
 
 export class GameServerImpl implements GameServer {
   playerMovedSubscriptions: PlayerMovedSubscriberServer;
@@ -160,7 +158,19 @@ export class GameServerImpl implements GameServer {
     this.winGameSubscriptions = new WinGameSubscriberServer();
     this.startGameSubscriptions = new StartGameSubscriberServer();
     this.numWallChangesSubscriptions = new NumWallChangesSubscriberServer();
+
+    setInterval(() => {
+      this.wallToggledSubscriptions.notify(
+        new WallToggledEvent({ row: 1, col: 4 }, fakeToggle)
+      );
+      this.wallToggledSubscriptions.notify(
+        new WallToggledEvent({ row: 2, col: 7 }, !fakeToggle)
+      );
+      fakeToggle = !fakeToggle;
+    }, 2000);
   }
+
+  wallToggledSubscriptions2 = () => this.wallToggledSubscriptions;
 
   static createForTesting(
     width: number,
@@ -316,26 +326,12 @@ export class GameServerImpl implements GameServer {
       });
     }
 
-    this.diceRollSubscriptions.notify(new DiceRollEvent("start"));
+    const currentDiceRolls = this.state.diceRolls[this.state.turn];
+    const newValue = randomDiceValue(currentDiceRolls);
+    this.diceRollSubscriptions.notify(new DiceRollEvent(newValue));
     this.state.diceRolled = true;
 
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        // console.time("rollDice");
-        try {
-          const currentDiceRolls = this.state.diceRolls[this.state.turn];
-          const newValue = randomDiceValue(currentDiceRolls);
-          const result = { diceValue: newValue };
-          this.diceRollSubscriptions.notify(
-            new DiceRollEvent("stop", newValue)
-          );
-          this.state.diceValue = newValue;
-          resolve(result);
-        } finally {
-          // console.timeEnd("rollDice");
-        }
-      }, this.state.rollDurationMs);
-    });
+    return Promise.resolve({ diceValue: newValue });
   };
 
   private handleEdgeAction = async (
@@ -387,7 +383,7 @@ export class GameServerImpl implements GameServer {
     Promise.resolve(this.state.endLocations[player]);
 
   private getInitialCellLocation = (
-    cellElement: CellElement
+    cellElement: PlayerLocation
   ): Promise<Coord> => {
     switch (cellElement) {
       case "redplayer":

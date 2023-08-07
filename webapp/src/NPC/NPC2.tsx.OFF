@@ -10,8 +10,8 @@ import {
   isEdge,
 } from "@roadblocks/engine";
 import { Coord, PlayerColor, WallLocations } from "@roadblocks/types";
-import { Board, createFromGame } from "../GameEngine/Board";
-import { Game } from "../GameEngine/Game";
+import { SmartBoard, createFromGame } from "../GameEngine/Board";
+import { Game } from "@roadblocks/engine/src/Game";
 import { PathfinderImpl } from "../GameEngine/Pathfinder";
 import { NPCUtils } from "./NPCUtils";
 
@@ -28,7 +28,7 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 export class NPC2Impl {
   game: Game;
   player: PlayerColor;
-  board: Board;
+  board: SmartBoard;
   utils: NPCUtils;
   mcts: MCTS;
 
@@ -50,7 +50,7 @@ export class NPC2Impl {
   private constructor(
     game: Game,
     player: PlayerColor,
-    board: Board,
+    board: SmartBoard,
     mcts: MCTS,
     durations: NPCDurations,
     disabled: boolean = false
@@ -106,7 +106,7 @@ export class NPC2Impl {
     disabled: boolean = false
   ): Promise<NPC2Impl> {
     const mcts = await MCTS.create(game, player);
-    const board: Board = await createFromGame(game);
+    const board: SmartBoard = await createFromGame(game);
     return Promise.resolve(
       new NPC2Impl(game, player, board, mcts, durations, disabled)
     );
@@ -203,7 +203,7 @@ export class NPC2Impl {
 class Node {
   game: Game;
   player: PlayerColor;
-  board: Board;
+  board: SmartBoard;
   parent: Node | null;
   children: Node[];
   action: Coord | null;
@@ -214,7 +214,7 @@ class Node {
   private constructor(
     game: Game,
     player: PlayerColor,
-    board: Board,
+    board: SmartBoard,
     parent: Node | null,
     action: Coord | null,
     walls: number
@@ -235,7 +235,7 @@ class Node {
     player: PlayerColor,
     parent: Node | null = null,
     action: Coord | null = null,
-    board?: Board,
+    board?: SmartBoard,
     walls: number = 0
   ) {
     if (!board) {
@@ -251,7 +251,7 @@ class MCTS {
   game: Game;
   player: PlayerColor;
   root: Node;
-  board: Board;
+  board: SmartBoard;
   utils: NPCUtils;
   width: number;
   height: number;
@@ -262,7 +262,7 @@ class MCTS {
     game: Game,
     player: PlayerColor,
     root: Node,
-    board: Board,
+    board: SmartBoard,
     redEndLocation: Coord,
     blueEndLocation: Coord
   ) {
@@ -278,7 +278,7 @@ class MCTS {
   }
 
   static async create(game: Game, player: PlayerColor) {
-    const board: Board = await createFromGame(game);
+    const board: SmartBoard = await createFromGame(game);
     const root = await Node.create(game, player);
 
     const redEndLocation = await game.endLocation("red");
@@ -319,7 +319,7 @@ class MCTS {
 
     for (let i = 0; i < possibleActions.length; i++) {
       const action = possibleActions[i];
-      const newBoard: Board = await this.applyWallAction(
+      const newBoard: SmartBoard = await this.applyWallAction(
         node.board,
         node.player,
         action
@@ -442,7 +442,7 @@ class MCTS {
 
   /* Helper methods */
   private async getPossibleWallActions(
-    board: Board,
+    board: SmartBoard,
     player: PlayerColor
   ): Promise<Coord[]> {
     const validWallCoords: Coord[] = this.utils.allValidWallCoords(
@@ -503,7 +503,7 @@ class MCTS {
   }
 
   private async getRandomWallAction(
-    board: Board,
+    board: SmartBoard,
     player: PlayerColor,
     walls: number
   ): Promise<Coord | null> {
@@ -518,10 +518,10 @@ class MCTS {
   }
 
   private async applyWallAction(
-    board: Board,
+    board: SmartBoard,
     player: PlayerColor,
     coord: Coord
-  ): Promise<Board> {
+  ): Promise<SmartBoard> {
     const boardCopy = board.copy();
     const allWalls: WallLocations = await this.game.getWallLocations();
     const myWalls: Coord[] = allWalls[player];
@@ -536,10 +536,10 @@ class MCTS {
   }
 
   private async applyMove(
-    board: Board,
+    board: SmartBoard,
     player: PlayerColor,
     coord: Coord
-  ): Promise<Board> {
+  ): Promise<SmartBoard> {
     const boardCopy = board.copy();
     const playerType = player === "red" ? "r" : "b";
     const oldCoord: Coord | null = this.getPlayerLocation(player, boardCopy);
@@ -571,7 +571,7 @@ class MCTS {
 
   private getPlayerLocation = (
     player: PlayerColor,
-    board: Board
+    board: SmartBoard
   ): Coord | null => {
     const lookingFor = player === "red" ? "r" : "b";
     for (let i = 0; i < 2 * board.height + 1; i++) {
@@ -587,7 +587,7 @@ class MCTS {
     return null;
   };
 
-  private getWinner = (board: Board): PlayerColor | null => {
+  private getWinner = (board: SmartBoard): PlayerColor | null => {
     const redLocation = this.getPlayerLocation("red", board);
     const blueLocation = this.getPlayerLocation("blue", board);
 
@@ -609,11 +609,11 @@ class MCTS {
     }
   };
 
-  private gameOver = (board: Board): boolean => {
+  private gameOver = (board: SmartBoard): boolean => {
     return this.getWinner(board) !== null;
   };
 
-  private getReward = (board: Board): number => {
+  private getReward = (board: SmartBoard): number => {
     const winner = this.getWinner(board);
     if (winner === this.player) {
       return 1;

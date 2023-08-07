@@ -5,6 +5,7 @@ export interface PlayerMovedEvent {
   from: Coord;
   to: Coord;
   numMovements: number;
+  ts: EpochTimeStamp;
 }
 
 export type SubscribePlayerEvent = (

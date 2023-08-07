@@ -1,0 +1,16 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "name": "Client Tests",
+      "request": "launch",
+      "program": "${workspaceFolder}/client/node_modules/jest/bin/jest",
+      "args": ["--color", "--runInBand"],
+      "cwd": "${workspaceFolder}/client",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "smartStep": false
+    }
+  ]
+}

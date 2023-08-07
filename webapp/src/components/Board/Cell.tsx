@@ -1,11 +1,9 @@
-import { equalCoords } from "@roadblocks/engine";
-import { Coord } from "@roadblocks/types";
+import { Coord, PlayerLocation, equalCoords } from "@roadblocks/types";
 import { useEffect, useState } from "react";
-import GameInstance, { Game } from "../../GameEngine/Game";
+import { GameInstance, GameClient as Game } from "@roadblocks/client";
 import "./Cell.css";
 
-export type CellElement = "redplayer" | "redend" | "blueplayer" | "blueend";
-type CellContents = CellElement[];
+type CellContents = PlayerLocation[];
 export type CellType = "normal" | "disabled";
 
 export interface CellProps {
@@ -65,7 +63,7 @@ const Cell: React.FC<CellProps> = ({
 
   useEffect(() => {
     const unsubscribe = game.playerMovedEventSubscription().subscribe((e) => {
-      const playerColor: CellElement =
+      const playerColor: PlayerLocation =
         e.player === "red" ? "redplayer" : "blueplayer";
 
       // remove player from old cell

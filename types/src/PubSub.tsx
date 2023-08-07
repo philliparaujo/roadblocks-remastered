@@ -1,5 +1,5 @@
 import { Coord } from "./Coord";
-import { PlayerColor } from "./engine";
+import { PlayerColor } from "./Types";
 
 export interface TimedEvent {
   ts: EpochTimeStamp;
@@ -14,12 +14,10 @@ class BaseEvent {
 }
 
 export class DiceRollEvent extends BaseEvent implements TimedEvent {
-  type: "start" | "stop";
-  value?: number;
+  value: number;
 
-  constructor(type: "start" | "stop", value?: number) {
+  constructor(value: number) {
     super();
-    this.type = type;
     this.value = value;
   }
 }

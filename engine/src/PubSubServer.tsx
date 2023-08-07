@@ -13,12 +13,25 @@ import {
 export class SubscriberServer<T extends TimedEvent> {
   pastEvents: T[] = [];
 
+  constructor() {
+    console.log("Created PubSub server for", this.constructor.name);
+  }
+
   notify: (event: T) => void = (event) => {
+    console.log("Pushing event", this.constructor.name, JSON.stringify(event));
     this.pastEvents.push(event);
   };
 
-  get: (ts: EpochTimeStamp) => Promise<T[]> = (ts) =>
-    Promise.resolve(this.pastEvents.filter((pastEvent) => pastEvent.ts > ts));
+  get: (ts: EpochTimeStamp) => Promise<T[]> = (ts) => {
+    console.log(
+      "Checking events for",
+      this.constructor.name,
+      this.pastEvents.length
+    );
+    return Promise.resolve(
+      this.pastEvents.filter((pastEvent) => pastEvent.ts > ts)
+    );
+  };
 }
 
 export class DiceRollSubscriberServer extends SubscriberServer<DiceRollEvent> {}

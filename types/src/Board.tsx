@@ -1,14 +1,6 @@
-import {
-  Coord,
-  PlayerColor,
-  black,
-  blue,
-  bold,
-  dim,
-  green,
-  red,
-  white,
-} from "@roadblocks/types";
+import { black, blue, bold, dim, green, red, white } from "./Colors";
+import { Coord } from "./Coord";
+import { PlayerColor } from "./Types";
 import { isCell, isCorner, isEdge } from "./Utils";
 
 export type Printer = (message?: any, ...optionalParams: any[]) => void;

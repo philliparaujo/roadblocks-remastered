@@ -1,7 +1,7 @@
-import { randomDiceValue } from "@roadblocks/engine";
+import { randomDiceValue } from "@roadblocks/types";
 import { PlayerColor } from "@roadblocks/types";
 import { useEffect, useRef, useState } from "react";
-import GameInstance, { Game } from "../../GameEngine/Game";
+import { GameInstance, GameClient as Game } from "@roadblocks/client";
 import "./Dice.css";
 
 export interface DiceProps {
@@ -96,7 +96,7 @@ const Dice: React.FC<DiceProps> = ({
   const handleClick = () => {
     game
       .rollDice()
-      .then((result) => console.log("DICE ROLLED A ", result.diceValue))
+      .then((result) => console.log("DICE ROLLED A ", result.value))
       .catch((err) => console.error("already rolled dice"));
   };
 

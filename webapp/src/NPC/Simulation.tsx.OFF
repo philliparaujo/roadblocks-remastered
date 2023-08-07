@@ -1,8 +1,7 @@
 import { WinGameEvent } from "@roadblocks/engine";
 import { PlayerColor } from "@roadblocks/types";
-import { GameImpl } from "../GameEngine/Game";
-import { NPCImpl } from "./NPC";
-import { NPC2Impl } from "./NPC2";
+import { NPCImpl } from "./NPC.tsx.OFF";
+import { NPC2Impl } from "./NPC2.tsx.OFF";
 
 type NPCType = "NPCImpl" | "NPC2Impl";
 type GameResult = { type: NPCType; color: PlayerColor };
@@ -11,7 +10,7 @@ async function simulateGame(
   npcType1: NPCType,
   npcType2: NPCType
 ): Promise<GameResult> {
-  const game = GameImpl.createForTesting(7, 7, { rollDurationMs: 1 });
+  const game = GameServerImpl.createForTesting(7, 7, { rollDurationMs: 1 });
 
   const npc1Color: PlayerColor = Math.random() > 0.5 ? "red" : "blue";
   const npc2Color: PlayerColor = npc1Color === "red" ? "blue" : "red";

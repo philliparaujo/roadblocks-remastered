@@ -8,9 +8,9 @@ import {
   equalCoords,
 } from "@roadblocks/engine";
 import { Coord, PlayerColor } from "@roadblocks/types";
-import { Game, GameState } from "../GameEngine/Game";
+import { Game, GameState } from "@roadblocks/engine/src/Game";
 import { CellElement } from "../components/Board/Cell";
-import { NPCImpl } from "./NPC";
+import { NPCImpl } from "./NPC.tsx.OFF";
 
 interface TestGame extends Game {
   state: Partial<GameState>;

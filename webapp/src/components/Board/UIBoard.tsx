@@ -1,7 +1,8 @@
-import { equalCoords, isCell, isCorner } from "@roadblocks/engine";
+import { equalCoords, isCell, isCorner } from "@roadblocks/types";
 import { useEffect, useState } from "react";
-import GameInstance, { Game } from "../../GameEngine/Game";
-import Cell, { CellElement } from "./Cell";
+import { GameInstance, GameClient as Game } from "@roadblocks/client";
+import Cell from "./Cell";
+import { PlayerLocation } from "@roadblocks/types";
 import Corner from "./Corner";
 import Edge, { EdgeType } from "./Edge";
 import { Coord } from "@roadblocks/types";
@@ -38,14 +39,14 @@ const useGameSize = (
 
 const useInitialLocations = (game: Game) => {
   const [initialCellLocations, setInitialCellLocations] = useState<{
-    [key in CellElement]?: Coord;
+    [key in PlayerLocation]?: Coord;
   }>({});
   const [initialWallLocations, setInitialWallLocations] = useState<Coord[]>([]);
   const [locationsFetched, setLocationsFetched] = useState(false);
 
   useEffect(() => {
     const fetchInitialLocations = async () => {
-      const cellLocations: { [key in CellElement]?: Coord } = {
+      const cellLocations: { [key in PlayerLocation]?: Coord } = {
         redplayer: await game.getInitialCellLocation("redplayer"),
         blueplayer: await game.getInitialCellLocation("blueplayer"),
         redend: await game.getInitialCellLocation("redend"),
@@ -77,14 +78,14 @@ const createCorner = (coord: Coord, game: Game, i: number, j: number) => {
 const createCell = (
   coord: Coord,
   game: Game,
-  initialCellLocations: { [key in CellElement]?: Coord },
+  initialCellLocations: { [key in PlayerLocation]?: Coord },
   i: number,
   j: number
 ) => {
-  let initialContents: CellElement[] = [];
+  let initialContents: PlayerLocation[] = [];
 
   for (const key in initialCellLocations) {
-    const cellElement = key as CellElement;
+    const cellElement = key as PlayerLocation;
     const cellElementCoord: Coord | undefined =
       initialCellLocations[cellElement];
     if (cellElementCoord && equalCoords(coord, cellElementCoord)) {

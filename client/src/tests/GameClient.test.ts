@@ -1,8 +1,8 @@
-import { Client } from "../client";
+import { GameClient } from "../GameClient";
 
 describe("Test /newGame", () => {
   it("returns gameId and sessionId", async () => {
-    const sut = new Client();
+    const sut = new GameClient();
 
     const before = sut.getStateForTesting();
     expect(before.sessionId).toBeUndefined();
@@ -18,7 +18,7 @@ describe("Test /newGame", () => {
   });
 
   it("throws error when creating with no name", async () => {
-    const sut = new Client();
+    const sut = new GameClient();
 
     const before = sut.getStateForTesting();
     expect(before.sessionId).toBeUndefined();
@@ -29,9 +29,9 @@ describe("Test /newGame", () => {
 });
 
 describe("Test /joinGame", () => {
-  let sut: Client;
+  let sut: GameClient;
   beforeEach(async () => {
-    sut = new Client();
+    sut = new GameClient();
     await sut.newGame("John");
   });
 

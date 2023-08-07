@@ -4,11 +4,15 @@ import {
   SwitchTurnEvent,
   WallToggledEvent,
   WinGameEvent,
-} from "@roadblocks/engine";
+} from "@roadblocks/types";
 import { Coord, PlayerColor, WallLocations } from "@roadblocks/types";
-import { Board, EdgeElement, createFromGame } from "../GameEngine/Board";
-import { Game } from "../GameEngine/Game";
-import { NPCUtils } from "./NPCUtils";
+import {
+  SmartBoard,
+  EdgeElement,
+  createFromGame,
+} from "../GameEngine/SmartBoard";
+import { GameClient as Game } from "@roadblocks/client";
+import { NPCUtils } from "./NPCUtils.tsx.OFF";
 
 export type score = number;
 
@@ -23,7 +27,7 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 export class NPCImpl {
   game: Game;
   player: PlayerColor;
-  board: Board;
+  board: SmartBoard;
   utils: NPCUtils;
 
   disabled?: boolean;
@@ -44,7 +48,7 @@ export class NPCImpl {
   private constructor(
     game: Game,
     player: PlayerColor,
-    board: Board,
+    board: SmartBoard,
     durations: NPCDurations,
     disabled: boolean = false
   ) {
@@ -97,14 +101,16 @@ export class NPCImpl {
     durations: NPCDurations = {},
     disabled: boolean = false
   ): Promise<NPCImpl> {
-    const board: Board = await createFromGame(game);
+    const board: SmartBoard = await createFromGame(game);
     return Promise.resolve(
       new NPCImpl(game, player, board, durations, disabled)
     );
   }
 
   /* Public methods */
-  public calculateScore = async (board: Board = this.board): Promise<score> => {
+  public calculateScore = async (
+    board: SmartBoard = this.board
+  ): Promise<score> => {
     const opponentColor = this.utils.getOpponent();
     const scoreVariations: score[] = [];
 
@@ -170,8 +176,8 @@ export class NPCImpl {
     this.game.rollDice().then(async (result) => {
       // console.time("__________FULL TURN");
       try {
-        const numMovements = result.diceValue;
-        const numWallChanges = 7 - result.diceValue;
+        const numMovements = result.value;
+        const numWallChanges = 7 - result.value;
 
         // console.time("moveWalls");
         for (let i = 0; i < numWallChanges; i++) {

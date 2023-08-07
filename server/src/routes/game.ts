@@ -34,7 +34,7 @@ router.post("/newGame", (req, res) => {
   let body = req.body;
   let playerName: string = body.playerName;
 
-  // console.log("Creating game for player", playerName);
+  console.log("Creating game for player", playerName);
   try {
     sessionManager
       .create(playerName)
@@ -167,7 +167,7 @@ registerPubSub<SwitchTurnEvent>(
 );
 registerPubSub<WallToggledEvent>(
   "walltoggled",
-  (game: GameServer) => game.wallToggledSubscriptions,
+  (game: GameServer) => game.wallToggledSubscriptions2(),
   router
 );
 registerPubSub<LockWallEvent>(

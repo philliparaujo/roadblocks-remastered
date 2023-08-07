@@ -1,6 +1,6 @@
 import { Coord } from "@roadblocks/types";
-import { Board } from "./Board";
-import { averageCoord, equalCoords, isInBounds } from "./Utils";
+import { Board } from "@roadblocks/types/src/Board";
+import { averageCoord, equalCoords, isInBounds } from "@roadblocks/types";
 import PriorityQueue from "js-priority-queue";
 
 type direction = Coord;
