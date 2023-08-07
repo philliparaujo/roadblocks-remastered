@@ -8,6 +8,14 @@ import {
   TimedEvent,
   WallToggledEvent,
   WinGameEvent,
+  diceRollRoute,
+  lockWallRoute,
+  numWallChangesRoute,
+  playerMovedRoute,
+  startGameRoute,
+  switchTurnRoute,
+  winGameRoute,
+  wlalToggledRoute,
 } from "@roadblocks/types";
 import { myGet, serviceURL } from "./GameClient";
 
@@ -55,7 +63,7 @@ export class SubscriberClient<T extends TimedEvent> {
     console.log("starting PubSub client", this.route);
     this.timer = setInterval(() => {
       const url = new URL(serviceURL);
-      url.pathname = `/pubsub/${this.route}`;
+      url.pathname = this.route;
       url.searchParams.set("sessionId", sessionId);
       url.searchParams.set(
         "lastEventTime",
@@ -92,41 +100,41 @@ export class SubscriberClient<T extends TimedEvent> {
 /* IMPLEMENTATIONS */
 export class DiceRollSubscriberClient extends SubscriberClient<DiceRollEvent> {
   constructor() {
-    super("dicerolls");
+    super(diceRollRoute);
   }
 }
 export class LockWallSubscriberClient extends SubscriberClient<LockWallEvent> {
   constructor() {
-    super("lockwall");
+    super(lockWallRoute);
   }
 }
 export class NumWallChangesSubscriberClient extends SubscriberClient<NumWallChangesEvent> {
   constructor() {
-    super("numwallschanged");
+    super(numWallChangesRoute);
   }
 }
 export class PlayerMovedSubscriberClient extends SubscriberClient<PlayerMovedEvent> {
   constructor() {
-    super("playermoved");
+    super(playerMovedRoute);
   }
 }
 export class StartGameSubscriberClient extends SubscriberClient<StartGameEvent> {
   constructor() {
-    super("startgame");
+    super(startGameRoute);
   }
 }
 export class SwitchTurnSubscriberClient extends SubscriberClient<SwitchTurnEvent> {
   constructor() {
-    super("turnended");
+    super(switchTurnRoute);
   }
 }
 export class WallToggledSubscriberClient extends SubscriberClient<WallToggledEvent> {
   constructor() {
-    super("walltoggled");
+    super(wlalToggledRoute);
   }
 }
 export class WinGameSubscriberClient extends SubscriberClient<WinGameEvent> {
   constructor() {
-    super("wingame");
+    super(winGameRoute);
   }
 }

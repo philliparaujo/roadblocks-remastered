@@ -4,5 +4,6 @@ export * from "./Coord";
 export * from "./Game";
 export * from "./protocol";
 export * from "./PubSub";
+export * from "./routes";
 export * from "./Types";
 export * from "./Utils";

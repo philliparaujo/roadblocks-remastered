@@ -14,6 +14,14 @@ import {
   TimedEvent,
   WallToggledEvent,
   WinGameEvent,
+  diceRollRoute,
+  lockWallRoute,
+  numWallChangesRoute,
+  playerMovedRoute,
+  startGameRoute,
+  switchTurnRoute,
+  winGameRoute,
+  wlalToggledRoute,
 } from "@roadblocks/types";
 import express from "express";
 import SessionManager from "../SessionManager";
@@ -125,7 +133,7 @@ function registerPubSub<T extends TimedEvent>(
   subscribeGetter: (game: GameServer) => SubscriberServer<T>,
   router: express.Router
 ) {
-  router.get(`/pubsub/${name}`, (req, res) => {
+  router.get(name, (req, res) => {
     let sessionId = req.query.sessionId as string;
     let lastTsString = req.query.lastEventTime as string;
     let lastTsNumber = Date.parse(lastTsString);
@@ -153,42 +161,42 @@ function registerPubSub<T extends TimedEvent>(
 }
 
 registerPubSub<DiceRollEvent>(
-  "dicerolls",
+  diceRollRoute,
   (game: GameServer) => game.diceRollSubscriptions,
   router
 );
 registerPubSub<PlayerMovedEvent>(
-  "playermoved",
+  playerMovedRoute,
   (game: GameServer) => game.playerMovedSubscriptions,
   router
 );
 registerPubSub<SwitchTurnEvent>(
-  "turnended",
+  switchTurnRoute,
   (game: GameServer) => game.switchTurnSubscriptions,
   router
 );
 registerPubSub<WallToggledEvent>(
-  "walltoggled",
+  wlalToggledRoute,
   (game: GameServer) => game.wallToggledSubscriptions2(),
   router
 );
 registerPubSub<LockWallEvent>(
-  "lockwall",
+  lockWallRoute,
   (game: GameServer) => game.lockWallSubscriptions,
   router
 );
 registerPubSub<WinGameEvent>(
-  "wingame",
+  winGameRoute,
   (game: GameServer) => game.winGameSubscriptions,
   router
 );
 registerPubSub<StartGameEvent>(
-  "startgame",
+  startGameRoute,
   (game: GameServer) => game.startGameSubscriptions,
   router
 );
 registerPubSub<NumWallChangesEvent>(
-  "numwallschanged",
+  numWallChangesRoute,
   (game: GameServer) => game.numWallChangesSubscriptions,
   router
 );
