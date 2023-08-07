@@ -16,7 +16,7 @@ import {
   WallToggledSubscriberServer,
   WinGameSubscriberServer,
 } from "@roadblocks/engine";
-import { Coord, EdgeResult } from "@roadblocks/types";
+import { Coord, EdgeResult, StartGameResult } from "@roadblocks/types";
 
 const app = express();
 app.use(bodyParser.json());
@@ -120,6 +120,7 @@ describe("Test /joinGame", () => {
 });
 
 class FakeGame implements GameServer {
+  startGame = (): Promise<StartGameResult> => Promise.resolve({});
   addEdge = (coord: Coord): Promise<EdgeResult> =>
     coord.col === 888 && coord.row === 999
       ? Promise.resolve({})

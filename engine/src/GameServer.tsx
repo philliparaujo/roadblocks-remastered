@@ -50,7 +50,7 @@ import {
   SwitchTurnSubscriberServer,
   WallToggledSubscriberServer,
   WinGameSubscriberServer,
-} from "./PubSub/SubscriberServer";
+} from "./PubSubServer";
 
 export interface GameState {
   gameOver: boolean;
@@ -72,6 +72,7 @@ export interface GameState {
 }
 
 export interface GameServer {
+  startGame: () => Promise<StartGameResult>;
   addEdge: (coord: Coord) => Promise<EdgeResult>;
   removeEdge: (coord: Coord) => Promise<EdgeResult>;
 
@@ -147,7 +148,7 @@ export class GameServerImpl implements GameServer {
   constructor(width: number, height: number) {
     this.state.width = width;
     this.state.height = height;
-    console.log("Created game object", this.state.id);
+    // console.log("Created game object", this.state.id);
     // this.generateRandomWallLocations(this.state.width, this.state.height);
     this.mirrorLockedWallLocations();
 

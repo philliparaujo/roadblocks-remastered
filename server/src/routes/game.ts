@@ -104,7 +104,7 @@ router.post("/removeEdge", (req, res) => {
   let sessionId = body.sessionId as string;
 
   try {
-    let game = sessionManager.get(sessionId).then((game) => {
+    sessionManager.get(sessionId).then((game) => {
       // console.log(game);
       game
         .removeEdge(coord)
@@ -117,23 +117,6 @@ router.post("/removeEdge", (req, res) => {
     res.sendStatus(500);
   }
 });
-
-// // TODO: add all events
-// router.get("/pubsub/dicerolls", (req, res) => {
-//   let sessionId = req.query.sessionId as string;
-//   let lastTsString = req.query.lastEventTime as string;
-//   let lastTsNumber = Date.parse(lastTsString);
-
-//   try {
-//     let game = sessionManager.get(sessionId);
-
-//     game.diceRollSubscriptions.get(lastTsNumber).then((events) => {
-//       safeSend<DiceRollEvent[]>(events, res);
-//     });
-//   } catch (e) {
-//     res.sendStatus(404);
-//   }
-// });
 
 function registerPubSub<T extends TimedEvent>(
   name: string,

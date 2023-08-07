@@ -1,24 +1,58 @@
 import {
-  AddEdgeResult,
   Coord,
   EdgeResult,
   Game,
   JoinGameResult,
   NewGameResult,
-  ValueResult,
 } from "@roadblocks/types";
 import { logResults } from "./logger";
 
-const serviceURL = "http://localhost:5000";
+import {
+  DiceRollEventSubscription,
+  DiceRollSubscriber,
+} from "./subscribers/DiceRollSubscriber";
+import {
+  LockWallEventSubscription,
+  LockWallSubscriber,
+} from "./subscribers/LockWallSubscriber";
+import {
+  NumWallChangesEventSubscription,
+  NumWallChangesSubscriber,
+} from "./subscribers/NumWallChangesSubscriber";
+import {
+  PlayerEventSubscription,
+  PlayerMovedSubscriber,
+} from "./subscribers/PlayerMovedSubscriber";
+import {
+  StartGameEventSubscription,
+  StartGameSubscriber,
+} from "./subscribers/StartGameSubscriber";
+import { SwitchTurnSubscriber } from "./subscribers/SwitchTurnSubscriber";
+import { WallToggledSubscriber } from "./subscribers/WallToggledSubscriber";
+import {
+  WinGameEventSubscription,
+  WinGameSubscriber,
+} from "./subscribers/WinGameSubscriber";
+
+export const serviceURL = "http://localhost:5000";
 
 interface GameControl {
   newGame: (playerName: string) => Promise<void>;
   joinGame: (gameId: string, playerName: string) => Promise<void>;
   addEdge: (coord: Coord) => Promise<EdgeResult>;
-  value: () => Promise<number>;
+  removeEdge: (coord: Coord) => Promise<EdgeResult>;
 }
 
 export class Client implements Game, GameControl {
+  playerMovedSubscriptions = new PlayerMovedSubscriber();
+  switchTurnSubscriptions = new SwitchTurnSubscriber();
+  wallToggledSubscriptions = new WallToggledSubscriber();
+  lockWallSubscriptions = new LockWallSubscriber();
+  diceRollSubscriptions = new DiceRollSubscriber();
+  winGameSubscriptions = new WinGameSubscriber();
+  startGameSubscriptions = new StartGameSubscriber();
+  numWallChangesSubscriptions = new NumWallChangesSubscriber();
+
   sessionId: string | undefined;
   gameId: string | undefined;
 
@@ -55,11 +89,6 @@ export class Client implements Game, GameControl {
       }
     );
 
-  value = (): Promise<number> =>
-    myFetch<ValueResult>(`testValue?sessionId=${this.sessionId}`).then(
-      (results) => results.value
-    );
-
   getStateForTesting = (): {
     sessionId: string | undefined;
     gameId: string | undefined;
@@ -69,6 +98,30 @@ export class Client implements Game, GameControl {
       gameId: this.gameId,
     };
   };
+
+  playerMovedEventSubscription = (): PlayerEventSubscription =>
+    this.playerMovedSubscriptions;
+
+  switchTurnEventSubscription = (): SwitchTurnSubscriber =>
+    this.switchTurnSubscriptions;
+
+  wallToggledEventSubscription = (): WallToggledSubscriber =>
+    this.wallToggledSubscriptions;
+
+  lockWallEventSubscription = (): LockWallEventSubscription =>
+    this.lockWallSubscriptions;
+
+  diceRollEventSubscription = (): DiceRollEventSubscription =>
+    this.diceRollSubscriptions;
+
+  winGameEventSubscription = (): WinGameEventSubscription =>
+    this.winGameSubscriptions;
+
+  startGameEventSubscription = (): StartGameEventSubscription =>
+    this.startGameSubscriptions;
+
+  numWallChangesEventSubscription = (): NumWallChangesEventSubscription =>
+    this.numWallChangesSubscriptions;
 }
 
 function myPost<T>(action: string, body: any): Promise<T> {
@@ -90,8 +143,10 @@ function myPost<T>(action: string, body: any): Promise<T> {
     .then(logResults(action));
 }
 
-function myFetch<T>(urlExtension: string): Promise<T> {
-  return fetch(`${serviceURL}/${urlExtension}`)
+export function myGet<T>(urlExtension: string | URL): Promise<T> {
+  const url: URL = new URL(urlExtension, serviceURL);
+
+  return fetch(url.toString())
     .then((res) => {
       if (!res.ok) {
         throw new Error(`Failed ${res.status}: ${res.statusText}`);
@@ -99,5 +154,5 @@ function myFetch<T>(urlExtension: string): Promise<T> {
       return res;
     })
     .then((results) => results.json())
-    .then(logResults(urlExtension));
+    .then(logResults(urlExtension.toString()));
 }

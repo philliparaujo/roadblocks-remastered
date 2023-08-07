@@ -1,4 +1,4 @@
-import { Client } from "../src/client";
+import { Client } from "../client";
 
 describe("Test /newGame", () => {
   it("returns gameId and sessionId", async () => {
@@ -16,6 +16,16 @@ describe("Test /newGame", () => {
 
     console.log("sessionId:", after.sessionId, "gameId:", after.gameId);
   });
+
+  it("throws error when creating with no name", async () => {
+    const sut = new Client();
+
+    const before = sut.getStateForTesting();
+    expect(before.sessionId).toBeUndefined();
+    expect(before.gameId).toBeUndefined();
+
+    await expect(sut.newGame("")).rejects.toThrow();
+  });
 });
 
 describe("Test /joinGame", () => {
@@ -30,6 +40,8 @@ describe("Test /joinGame", () => {
     const beforeSessionId = before.sessionId;
     const beforeGameId = before.gameId;
 
+    if (!beforeGameId) throw new Error("gameId started undefined?");
+
     await sut.joinGame(beforeGameId, "Jane");
 
     const after = sut.getStateForTesting();
@@ -40,18 +52,27 @@ describe("Test /joinGame", () => {
   it("throws error when joining with invalid gameId", async () => {
     await expect(sut.joinGame("invalid-game-id", "Jane")).rejects.toThrow();
   });
-});
 
-describe("Test /testValue", () => {
-  let sut: Client;
-  beforeEach(async () => {
-    sut = new Client();
-    await sut.newGame("John");
-  });
+  it("throws error when joining with proper game id and no name", async () => {
+    const before = sut.getStateForTesting();
+    const beforeGameId = before.gameId;
 
-  it("returns game value after creating game", async () => {
-    const value = await sut.value();
-    expect(value).toBeGreaterThanOrEqual(0);
-    expect(value).toBeLessThanOrEqual(1);
+    if (!beforeGameId) throw new Error("gameId started undefined?");
+
+    await expect(sut.joinGame(beforeGameId, "")).rejects.toThrow();
   });
 });
+
+// describe("Test /addEdge", () => {
+//   let sut: Client;
+//   beforeEach(async () => {
+//     sut = new Client();
+//     await sut.newGame("John");
+//   });
+
+//   it("returns success when adding proper red edge", async () => {
+//     const result = await sut.addEdge({ row: 1, col: 4 });
+//     expect(result).toBeDefined();
+//     expect(result).toEqual({});
+//   });
+// });
