@@ -177,38 +177,38 @@ export class GameServerImpl implements GameServer {
 
     this.startGame();
 
-    setInterval(async () => {
-      // test game here
-      this.wallToggledSubscriptions.notify(
-        new WallToggledEvent({ row: 1, col: 4 }, this.fakeToggle)
-      );
-      this.wallToggledSubscriptions.notify(
-        new WallToggledEvent({ row: 2, col: 5 }, !this.fakeToggle)
-      );
-      this.fakeToggle = !this.fakeToggle;
+    // setInterval(async () => {
+    //   // test game here
+    //   this.wallToggledSubscriptions.notify(
+    //     new WallToggledEvent({ row: 1, col: 4 }, this.fakeToggle)
+    //   );
+    //   this.wallToggledSubscriptions.notify(
+    //     new WallToggledEvent({ row: 2, col: 5 }, !this.fakeToggle)
+    //   );
+    //   this.fakeToggle = !this.fakeToggle;
 
-      this.fakeToggle
-        ? this.playerMovedSubscriptions.notify(
-            new PlayerMovedEvent(
-              "red",
-              { row: 7, col: 1 },
-              { row: 9, col: 1 },
-              1
-            )
-          )
-        : this.playerMovedSubscriptions.notify(
-            new PlayerMovedEvent(
-              "red",
-              { row: 9, col: 1 },
-              { row: 7, col: 1 },
-              0
-            )
-          );
-    }, 2000);
+    //   this.fakeToggle
+    //     ? this.playerMovedSubscriptions.notify(
+    //         new PlayerMovedEvent(
+    //           "red",
+    //           { row: 7, col: 1 },
+    //           { row: 9, col: 1 },
+    //           1
+    //         )
+    //       )
+    //     : this.playerMovedSubscriptions.notify(
+    //         new PlayerMovedEvent(
+    //           "red",
+    //           { row: 9, col: 1 },
+    //           { row: 7, col: 1 },
+    //           0
+    //         )
+    //       );
+    // }, 2000);
 
-    setInterval(() => {
-      this.wallToggledSubscriptions.reset();
-    }, 2000 * 3);
+    // setInterval(() => {
+    //   this.wallToggledSubscriptions.reset();
+    // }, 2000 * 3);
   }
 
   static createForTesting(
@@ -355,16 +355,14 @@ export class GameServerImpl implements GameServer {
     if (this.state.gameOver) return Promise.reject("Game over");
 
     if (this.state.diceRolled) {
-      console.warn("Dice already rolled");
-      return Promise.resolve({
-        diceValue: this.state.diceValue,
-      });
+      return Promise.reject("Dice already rolled");
     }
 
     const currentDiceRolls = this.state.diceRolls[this.state.turn];
     const newValue = randomDiceValue(currentDiceRolls);
     this.diceRollSubscriptions.notify(new DiceRollEvent(newValue));
     this.state.diceRolled = true;
+    this.state.diceValue = newValue;
 
     return Promise.resolve({ diceValue: newValue });
   };

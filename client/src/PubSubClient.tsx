@@ -70,7 +70,7 @@ export class SubscriberClient<T extends TimedEvent> {
         new Date(this.lastSeenEvent).toISOString()
       );
 
-      console.log("Checking PubSub events", this.route);
+      // console.log("Checking PubSub events", this.route);
       myGet<T[]>(url, { sessionId }).then((events) => {
         events.forEach((event) => {
           if (event.reset) {

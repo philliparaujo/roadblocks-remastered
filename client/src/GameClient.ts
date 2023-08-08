@@ -212,6 +212,7 @@ export class GameClient implements Game, GameControl {
   startSubscribers = (sessionId: string): void => {
     this.wallToggledSubscriptions.start(sessionId);
     this.playerMovedSubscriptions.start(sessionId);
+    this.diceRollSubscriptions.start(sessionId);
   };
 
   // TODO: implement stop subscribers and call it sometime when game ends
@@ -271,8 +272,8 @@ export function myGet<T>(
       }
       return res;
     })
-    .then((results) => results.json())
-    .then(logResults(url.toString()));
+    .then((results) => results.json());
+  // .then(logResults(url.toString()));
 }
 
 export const GameInstance = new GameClient();
