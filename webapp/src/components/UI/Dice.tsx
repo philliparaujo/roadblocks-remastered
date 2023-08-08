@@ -8,6 +8,8 @@ export interface DiceProps {
   game?: Game;
 }
 
+export const rollDurationMs = 2000;
+
 const Dice: React.FC<DiceProps> = ({ game = GameInstance }) => {
   const [currentTurn, setCurrentTurn] = useState<PlayerColor>("red");
 
@@ -20,7 +22,7 @@ const Dice: React.FC<DiceProps> = ({ game = GameInstance }) => {
   const [lastValue, setLastValue] = useState<number>(1);
   const [rolling, setRolling] = useState<boolean>(false);
 
-  const rollSpeed = 200;
+  const rollSpeedMs = 200;
 
   /* Gets correct turn on game start */
   useEffect(() => {
@@ -61,7 +63,7 @@ const Dice: React.FC<DiceProps> = ({ game = GameInstance }) => {
       setLastValue(e.value);
       setTimeout(() => {
         setRolling(false);
-      }, 3000);
+      }, rollDurationMs);
     });
 
     return () => unsubscribe();
@@ -79,7 +81,7 @@ const Dice: React.FC<DiceProps> = ({ game = GameInstance }) => {
       const currentRolls = currentTurn === "red" ? redFaces : blueFaces;
       rollInterval.current = setInterval(() => {
         setFaceDisplay(randomDiceValue(currentRolls));
-      }, rollSpeed);
+      }, rollSpeedMs);
     } else if (rollInterval.current) {
       clearInterval(rollInterval.current);
       rollInterval.current = null;

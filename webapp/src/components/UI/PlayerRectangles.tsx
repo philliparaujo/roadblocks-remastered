@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { GameInstance, GameClient as Game } from "@roadblocks/client";
 import "./Rectangles.css";
+import { rollDurationMs } from "./Dice";
 
 export interface PlayerRectangleProps {
   game?: Game;
@@ -55,13 +56,15 @@ const PlayerRectangles: React.FC<PlayerRectangleProps> = ({
 
   useEffect(() => {
     const unsubscribe = game.diceRollEventSubscription().subscribe((e) => {
-      const diceValue = e.value;
-      setDiceValue(diceValue);
+      setTimeout(() => {
+        const diceValue = e.value;
+        setDiceValue(diceValue);
 
-      let updatedArray = new Array(maxRectangles).fill("locked");
-      updatedArray.fill("", 0, Math.min(maxRectangles, diceValue));
+        let updatedArray = new Array(maxRectangles).fill("locked");
+        updatedArray.fill("", 0, Math.min(maxRectangles, diceValue));
 
-      setRectangleStates(updatedArray);
+        setRectangleStates(updatedArray);
+      }, rollDurationMs);
     });
     return () => unsubscribe();
   }, [game]);
