@@ -3,6 +3,7 @@ import {
   BluePlayer,
   Board,
   BoardImpl,
+  CanEndTurnResult,
   CellLocations,
   Coord,
   CoordResult,
@@ -16,6 +17,7 @@ import {
   LockWallEvent,
   LockWallResult,
   NumWallChangesEvent,
+  PathExistsResult,
   PlayerColor,
   PlayerLocation,
   PlayerMovedEvent,
@@ -24,9 +26,9 @@ import {
   RedPlayer,
   ResetResult,
   StartGameEvent,
-  StartGameResult,
   SwitchTurnEvent,
   TurnPhase,
+  TurnResult,
   WallLocations,
   WallLocationsResult,
   WallToggledEvent,
@@ -78,6 +80,12 @@ export interface GameServer {
   getCellLocation: (player: PlayerLocation) => Promise<CoordResult>;
   getWallLocations: () => Promise<WallLocationsResult>;
   getDice: (player: PlayerColor) => Promise<DiceResult>;
+  getTurn: () => Promise<TurnResult>;
+  canEndTurn: () => Promise<CanEndTurnResult>;
+  pathExists: (player: PlayerColor) => Promise<PathExistsResult>;
+  lockWalls: () => Promise<LockWallResult>;
+  switchTurn: () => Promise<EndTurnResult>;
+  setPlayerLocation: (coord: Coord) => Promise<PlayerMovedResult>;
 
   playerMovedSubscriptions: PlayerMovedSubscriberServer;
   switchTurnSubscriptions: SwitchTurnSubscriberServer;
@@ -168,7 +176,9 @@ export class GameServerImpl implements GameServer {
     this.startGameSubscriptions = new StartGameSubscriberServer();
     this.numWallChangesSubscriptions = new NumWallChangesSubscriberServer();
 
-    setInterval(() => {
+    this.startGame();
+
+    setInterval(async () => {
       // test game here
       this.wallToggledSubscriptions.notify(
         new WallToggledEvent({ row: 1, col: 4 }, this.fakeToggle)
@@ -177,6 +187,24 @@ export class GameServerImpl implements GameServer {
         new WallToggledEvent({ row: 2, col: 5 }, !this.fakeToggle)
       );
       this.fakeToggle = !this.fakeToggle;
+
+      this.fakeToggle
+        ? this.playerMovedSubscriptions.notify(
+            new PlayerMovedEvent(
+              "red",
+              { row: 7, col: 1 },
+              { row: 9, col: 1 },
+              1
+            )
+          )
+        : this.playerMovedSubscriptions.notify(
+            new PlayerMovedEvent(
+              "red",
+              { row: 9, col: 1 },
+              { row: 7, col: 1 },
+              0
+            )
+          );
     }, 2000);
 
     setInterval(() => {
@@ -202,6 +230,15 @@ export class GameServerImpl implements GameServer {
     return result;
   }
 
+  private startGame = (): void => {
+    this.state.gameOver = false;
+    this.startGameSubscriptions.notify(new StartGameEvent(this.state.turn));
+    this.initFromGame().then((board) => {
+      this.state.oldBoard = board;
+      this.state.currentBoard = board.copy();
+    });
+  };
+
   addEdge = (coord: Coord): Promise<EdgeResult> => {
     if (this.state.gameOver) return Promise.reject("Game over");
     if (!this.state.diceRolled) return Promise.reject("Dice not rolled");
@@ -214,7 +251,7 @@ export class GameServerImpl implements GameServer {
     return this.handleEdgeAction(coord, false);
   };
 
-  private lockWalls = (): Promise<LockWallResult> => {
+  lockWalls = (): Promise<LockWallResult> => {
     if (this.state.gameOver) return Promise.reject("Game over");
     if (!this.state.diceRolled) return Promise.reject("Dice not rolled");
     this.canEndTurn().then((canI) => {
@@ -235,7 +272,7 @@ export class GameServerImpl implements GameServer {
     );
   };
 
-  private switchTurn = (): Promise<EndTurnResult> => {
+  switchTurn = (): Promise<EndTurnResult> => {
     if (this.state.gameOver) return Promise.reject("Game over");
     this.canEndTurn().then((canI) => {
       if (!canI) return Promise.reject("Too many wall or player movements");
@@ -275,7 +312,7 @@ export class GameServerImpl implements GameServer {
     return Promise.resolve({});
   };
 
-  private setPlayerLocation = (coord: Coord): Promise<PlayerMovedResult> => {
+  setPlayerLocation = (coord: Coord): Promise<PlayerMovedResult> => {
     if (this.state.gameOver) return Promise.reject("Game over");
     if (!this.state.diceRolled) return Promise.reject("Dice not rolled");
 
@@ -374,8 +411,8 @@ export class GameServerImpl implements GameServer {
     return Promise.resolve({});
   };
 
-  private getTurn = (): Promise<PlayerColor> =>
-    Promise.resolve(this.state.turn);
+  getTurn = (): Promise<TurnResult> =>
+    Promise.resolve({ turn: this.state.turn });
 
   private playerLocation = (player: PlayerColor): Promise<Coord> =>
     Promise.resolve(this.state.playerLocations[player]);
@@ -486,7 +523,7 @@ export class GameServerImpl implements GameServer {
     console.timeEnd(`_________________FULL GAME ${this.state.id}`);
   };
 
-  private pathExists = (player: PlayerColor): Promise<boolean> => {
+  pathExists = (player: PlayerColor): Promise<PathExistsResult> => {
     const board = this.state.currentBoard;
     if (board == null) throw new Error("board is null");
 
@@ -496,29 +533,29 @@ export class GameServerImpl implements GameServer {
       board
     );
 
-    return Promise.resolve(!!path);
+    return Promise.resolve({ pathExists: !!path });
   };
 
   private getOldBoard = (): Promise<Board | null> => {
     return Promise.resolve(this.state.oldBoard);
   };
 
-  private getNumWallChanges = async (): Promise<number> => {
+  private getNumWallChanges = (): Promise<number> => {
     const oldBoard: Board | null = this.state.oldBoard;
     const newBoard: Board | null = this.state.currentBoard;
 
     if (oldBoard == null) throw new Error("could not get old board");
     if (newBoard == null) throw new Error("could not get new board");
 
-    return newBoard.compareEdges(oldBoard);
+    return Promise.resolve(newBoard.compareEdges(oldBoard));
   };
 
-  private canEndTurn = async (): Promise<boolean> => {
+  canEndTurn = (): Promise<CanEndTurnResult> => {
     const dice = this.state.diceValue;
     const playerMovements = this.state.movements;
-    const wallChanges = await this.getNumWallChanges();
-
-    return playerMovements <= dice && wallChanges <= 7 - dice;
+    return this.getNumWallChanges().then((wallChanges) => {
+      return { canEndTurn: playerMovements <= dice && wallChanges <= 7 - dice };
+    });
   };
 
   private initFromGame = (): Promise<Board> => {

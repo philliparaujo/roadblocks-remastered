@@ -25,6 +25,15 @@ import {
   getCellLocationRoute,
   getWallLocationRoute,
   getDiceRoute,
+  TurnResult,
+  getTurnRoute,
+  CanEndTurnResult,
+  canEndTurnRoute,
+  PathExistsResult,
+  pathExistsRoute,
+  lockWallsRoute,
+  switchTurnRoute,
+  setPlayerLocationRoute,
 } from "@roadblocks/types";
 import { logResults } from "./logger";
 import {
@@ -123,19 +132,41 @@ export class GameClient implements Game, GameControl {
       return result.faces;
     });
 
-  // TODO: PROPERLY IMPLEMENT
+  getTurn = (): Promise<PlayerColor> =>
+    this.sessionGet<TurnResult>(getTurnRoute).then((result) => {
+      return result.turn;
+    });
 
-  getTurn = (): Promise<PlayerColor> => Promise.resolve("red");
-  canEndTurn = (): Promise<boolean> => Promise.resolve(false);
+  canEndTurn = (): Promise<boolean> =>
+    this.sessionGet<CanEndTurnResult>(canEndTurnRoute).then((result) => {
+      return result.canEndTurn;
+    });
+
   pathExists = (player: PlayerColor): Promise<boolean> =>
-    Promise.resolve(false);
+    this.sessionGet<PathExistsResult>(pathExistsRoute, { player }).then(
+      (result) => {
+        return result.pathExists;
+      }
+    );
 
-  lockWalls = (): Promise<LockWallResult> => Promise.resolve({});
+  lockWalls = (): Promise<LockWallResult> =>
+    this.sessionPost(lockWallsRoute, {}).then(() => {
+      return Promise.resolve({});
+    });
 
-  switchTurn = (): Promise<EndTurnResult> => Promise.resolve({});
+  switchTurn = (): Promise<EndTurnResult> =>
+    this.sessionPost(switchTurnRoute, {}).then(() => {
+      return Promise.resolve({});
+    });
 
   setPlayerLocation = (coord: Coord): Promise<PlayerMovedResult> =>
-    Promise.resolve({});
+    this.sessionPost<PlayerMovedResult>(setPlayerLocationRoute, { coord }).then(
+      () => {
+        return Promise.resolve({});
+      }
+    );
+
+  // TODO: PROPERLY IMPLEMENT
 
   getStateForTesting = (): {
     sessionId: string | undefined;
@@ -176,7 +207,10 @@ export class GameClient implements Game, GameControl {
 
   startSubscribers = (sessionId: string): void => {
     this.wallToggledSubscriptions.start(sessionId);
+    this.playerMovedSubscriptions.start(sessionId);
   };
+
+  // TODO: implement stop subscribers and call it sometime when game ends
 
   // Perform a post to a specific session on the server side
   sessionPost<T>(action: string, body: any): Promise<T> {

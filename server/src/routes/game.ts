@@ -38,6 +38,18 @@ import {
   getCellLocationRoute,
   getWallLocationRoute,
   getDiceRoute,
+  getTurnRoute,
+  TurnResult,
+  canEndTurnRoute,
+  CanEndTurnResult,
+  pathExistsRoute,
+  PathExistsResult,
+  lockWallsRoute,
+  LockWallResult,
+  switchTurnRoute,
+  EndTurnResult,
+  setPlayerLocationRoute,
+  PlayerMovedResult,
 } from "@roadblocks/types";
 import express from "express";
 import SessionManager from "../SessionManager";
@@ -265,6 +277,153 @@ router.get(getDiceRoute, (req, res) => {
       .catch((err) => {
         res.sendStatus(404);
       });
+  } catch (e) {
+    res.sendStatus(500);
+  }
+});
+
+router.get(getTurnRoute, (req, res) => {
+  const sessionId = req.query.sessionId as string;
+
+  try {
+    sessionManager
+      .get(sessionId)
+      .then((game) => {
+        game
+          .getTurn()
+          .then((result) => {
+            safeSend<TurnResult>(result, res);
+          })
+          .catch((err) => {
+            console.error(err);
+            res.sendStatus(400);
+          });
+      })
+      .catch((err) => {
+        res.sendStatus(404);
+      });
+  } catch (e) {
+    res.sendStatus(500);
+  }
+});
+
+router.get(canEndTurnRoute, (req, res) => {
+  const sessionId = req.query.sessionId as string;
+
+  try {
+    sessionManager
+      .get(sessionId)
+      .then((game) => {
+        game
+          .canEndTurn()
+          .then((result) => {
+            safeSend<CanEndTurnResult>(result, res);
+          })
+          .catch((err) => {
+            console.error(err);
+            res.sendStatus(400);
+          });
+      })
+      .catch((err) => {
+        res.sendStatus(404);
+      });
+  } catch (e) {
+    res.sendStatus(500);
+  }
+});
+
+router.get(pathExistsRoute, (req, res) => {
+  const sessionId = req.query.sessionId as string;
+  const player = req.query.player as PlayerColor;
+
+  try {
+    sessionManager
+      .get(sessionId)
+      .then((game) => {
+        game
+          .pathExists(player)
+          .then((result) => {
+            safeSend<PathExistsResult>(result, res);
+          })
+          .catch((err) => {
+            console.error(err);
+            res.sendStatus(400);
+          });
+      })
+      .catch((err) => {
+        res.sendStatus(404);
+      });
+  } catch (e) {
+    res.sendStatus(500);
+  }
+});
+
+router.post(lockWallsRoute, (req, res) => {
+  let body = req.body;
+  let sessionId = body.sessionId as string;
+
+  try {
+    sessionManager
+      .get(sessionId)
+      .then((game) => {
+        game
+          .lockWalls()
+          .then(() => {
+            safeSend<LockWallResult>({}, res);
+          })
+          .catch((err) => {
+            console.error(err);
+            res.sendStatus(400);
+          });
+      })
+      .catch((err) => {
+        res.sendStatus(404);
+      });
+  } catch (e) {
+    res.sendStatus(500);
+  }
+});
+
+router.post(switchTurnRoute, (req, res) => {
+  let body = req.body;
+  let sessionId = body.sessionId as string;
+
+  try {
+    sessionManager
+      .get(sessionId)
+      .then((game) => {
+        game
+          .switchTurn()
+          .then(() => {
+            safeSend<EndTurnResult>({}, res);
+          })
+          .catch((err) => {
+            console.error(err);
+            res.sendStatus(400);
+          });
+      })
+      .catch((err) => {
+        res.sendStatus(404);
+      });
+  } catch (e) {
+    res.sendStatus(500);
+  }
+});
+
+router.post(setPlayerLocationRoute, (req, res) => {
+  let body = req.body;
+  let coord: Coord = body.coord;
+  let sessionId = body.sessionId as string;
+
+  try {
+    sessionManager.get(sessionId).then((game) => {
+      game
+        .setPlayerLocation(coord)
+        .then(() => {
+          safeSend<PlayerMovedResult>({ coord }, res);
+        })
+        .catch((err) => res.sendStatus(400));
+    });
   } catch (e) {
     res.sendStatus(500);
   }
