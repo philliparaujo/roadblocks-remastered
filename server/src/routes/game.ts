@@ -287,7 +287,7 @@ registerPubSub<SwitchTurnEvent>(
 );
 registerPubSub<WallToggledEvent>(
   wlalToggledPubSubRoute,
-  (game: GameServer) => game.wallToggledSubscriptions2(),
+  (game: GameServer) => game.wallToggledSubscriptions,
   router
 );
 registerPubSub<LockWallEvent>(

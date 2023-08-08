@@ -16,7 +16,25 @@ import {
   WallToggledSubscriberServer,
   WinGameSubscriberServer,
 } from "@roadblocks/engine";
-import { Coord, EdgeResult, StartGameResult } from "@roadblocks/types";
+import {
+  CanEndTurnResult,
+  Coord,
+  CoordResult,
+  DiceResult,
+  DiceRollResult,
+  EdgeResult,
+  EndTurnResult,
+  HeightResult,
+  LockWallResult,
+  PathExistsResult,
+  PlayerColor,
+  PlayerLocation,
+  PlayerMovedResult,
+  StartGameResult,
+  TurnResult,
+  WallLocationsResult,
+  WidthResult,
+} from "@roadblocks/types";
 
 const app = express();
 app.use(bodyParser.json());
@@ -126,6 +144,24 @@ class FakeGame implements GameServer {
       ? Promise.resolve({})
       : Promise.reject("Where's my data?");
   removeEdge = (coord: Coord): Promise<EdgeResult> => Promise.resolve({});
+  getWidth = (): Promise<WidthResult> => Promise.resolve({ width: 7 });
+  getHeight = (): Promise<HeightResult> => Promise.resolve({ height: 7 });
+  getCellLocation = (player: PlayerLocation): Promise<CoordResult> =>
+    Promise.resolve({ coord: { row: 7, col: 1 } });
+  getWallLocations = (): Promise<WallLocationsResult> =>
+    Promise.resolve({ locations: { red: [], blue: [], locked: [] } });
+  getDice = (player: PlayerColor): Promise<DiceResult> =>
+    Promise.resolve({ faces: [1, 2, 3, 4, 5, 6] });
+  getTurn = (): Promise<TurnResult> => Promise.resolve({ turn: "red" });
+  canEndTurn = (): Promise<CanEndTurnResult> =>
+    Promise.resolve({ canEndTurn: true });
+  pathExists = (player: PlayerColor): Promise<PathExistsResult> =>
+    Promise.resolve({ pathExists: true });
+  lockWalls = (): Promise<LockWallResult> => Promise.resolve({});
+  switchTurn = (): Promise<EndTurnResult> => Promise.resolve({});
+  setPlayerLocation = (coord: Coord): Promise<PlayerMovedResult> =>
+    Promise.resolve({});
+  rollDice = (): Promise<DiceRollResult> => Promise.resolve({ diceValue: 4 });
   playerMovedSubscriptions = new PlayerMovedSubscriberServer();
   switchTurnSubscriptions = new SwitchTurnSubscriberServer();
   wallToggledSubscriptions = new WallToggledSubscriberServer();

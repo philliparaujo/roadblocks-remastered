@@ -96,8 +96,6 @@ export interface GameServer {
   winGameSubscriptions: WinGameSubscriberServer;
   startGameSubscriptions: StartGameSubscriberServer;
   numWallChangesSubscriptions: NumWallChangesSubscriberServer;
-
-  wallToggledSubscriptions2: () => WallToggledSubscriberServer;
 }
 
 // export interface GameSubscriptions {}
@@ -212,8 +210,6 @@ export class GameServerImpl implements GameServer {
       this.wallToggledSubscriptions.reset();
     }, 2000 * 3);
   }
-
-  wallToggledSubscriptions2 = () => this.wallToggledSubscriptions;
 
   static createForTesting(
     width: number,
