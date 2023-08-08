@@ -47,10 +47,10 @@ const useInitialLocations = (game: Game) => {
   useEffect(() => {
     const fetchInitialLocations = async () => {
       const cellLocations: { [key in PlayerLocation]?: Coord } = {
-        redplayer: await game.getInitialCellLocation("redplayer"),
-        blueplayer: await game.getInitialCellLocation("blueplayer"),
-        redend: await game.getInitialCellLocation("redend"),
-        blueend: await game.getInitialCellLocation("blueend"),
+        redplayer: await game.getCellLocation("redplayer"),
+        blueplayer: await game.getCellLocation("blueplayer"),
+        redend: await game.getCellLocation("redend"),
+        blueend: await game.getCellLocation("blueend"),
       };
       setInitialCellLocations(cellLocations);
 

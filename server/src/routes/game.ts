@@ -2,6 +2,7 @@ import { GameServer, SubscriberServer } from "@roadblocks/engine";
 import {
   AddEdgeResult,
   Coord,
+  CoordResult,
   DiceRollEvent,
   GetHeightResult,
   GetWidthResult,
@@ -9,11 +10,13 @@ import {
   LockWallEvent,
   NewGameResult,
   NumWallChangesEvent,
+  PlayerLocation,
   PlayerMovedEvent,
   RemoveEdgeResult,
   StartGameEvent,
   SwitchTurnEvent,
   TimedEvent,
+  WallLocationsResult,
   WallToggledEvent,
   WinGameEvent,
   diceRollRoute,
@@ -165,6 +168,57 @@ router.get("/getHeight", (req, res) => {
           .getHeight()
           .then((height) => {
             safeSend<GetHeightResult>({ height }, res);
+          })
+          .catch((err) => {
+            console.error(err);
+            res.sendStatus(400);
+          });
+      })
+      .catch((err) => {
+        res.sendStatus(404);
+      });
+  } catch (e) {
+    res.sendStatus(500);
+  }
+});
+
+router.get("/getCellLocation", (req, res) => {
+  const sessionId = req.query.sessionId as string;
+  const player = req.query.player as PlayerLocation;
+
+  try {
+    sessionManager
+      .get(sessionId)
+      .then((game) => {
+        game
+          .getCellLocation(player)
+          .then((location) => {
+            safeSend<CoordResult>({ coord: location }, res);
+          })
+          .catch((err) => {
+            console.error(err);
+            res.sendStatus(400);
+          });
+      })
+      .catch((err) => {
+        res.sendStatus(404);
+      });
+  } catch (e) {
+    res.sendStatus(500);
+  }
+});
+
+router.get("/getWallLocations", (req, res) => {
+  const sessionId = req.query.sessionId as string;
+
+  try {
+    sessionManager
+      .get(sessionId)
+      .then((game) => {
+        game
+          .getWallLocations()
+          .then((locations) => {
+            safeSend<WallLocationsResult>({ locations }, res);
           })
           .catch((err) => {
             console.error(err);

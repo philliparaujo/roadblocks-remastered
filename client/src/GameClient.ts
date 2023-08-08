@@ -1,5 +1,6 @@
 import {
   Coord,
+  CoordResult,
   DiceRollEvent,
   EdgeResult,
   EndTurnResult,
@@ -13,6 +14,7 @@ import {
   PlayerLocation,
   PlayerMovedResult,
   WallLocations,
+  WallLocationsResult,
 } from "@roadblocks/types";
 import { logResults } from "./logger";
 import {
@@ -86,19 +88,25 @@ export class GameClient implements Game, GameControl {
     this.sessionGet<GetWidthResult>("getWidth").then((result) => {
       return result.width;
     });
+
   getHeight = (): Promise<number> =>
     this.sessionGet<GetHeightResult>("getHeight").then((result) => {
       return result.height;
     });
 
-  // TODO: PROPERLY IMPLEMENT
-
-  getInitialCellLocation = (player: PlayerLocation): Promise<Coord> =>
-    Promise.resolve(
-      player === "redplayer" ? { row: 1, col: 7 } : { row: 7, col: 1 }
+  getCellLocation = (player: PlayerLocation): Promise<Coord> =>
+    this.sessionGet<CoordResult>(`getCellLocation?player=${player}`).then(
+      (result) => {
+        return result.coord;
+      }
     );
+
   getWallLocations = (): Promise<WallLocations> =>
-    Promise.resolve({ red: [], blue: [], locked: [] });
+    this.sessionGet<WallLocationsResult>("getWallLocations").then((result) => {
+      return result.locations;
+    });
+
+  // TODO: PROPERLY IMPLEMENT
 
   getDiceRolls = (player: PlayerColor): Promise<number[]> =>
     Promise.resolve([1, 2, 3, 4, 5, 6]);

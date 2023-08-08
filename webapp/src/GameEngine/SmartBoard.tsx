@@ -62,23 +62,19 @@ class SmartBoardImpl extends BoardImpl implements SmartBoard {
   }
 
   public async initFromGame(game: Game): Promise<void> {
-    const redPlayerCoord: Coord = await game.getInitialCellLocation(
-      "redplayer"
-    );
+    const redPlayerCoord: Coord = await game.getCellLocation("redplayer");
     const redplayer: RedPlayer = "r";
     this.addToCell(redPlayerCoord, redplayer);
 
-    const bluePlayerCoord: Coord = await game.getInitialCellLocation(
-      "blueplayer"
-    );
+    const bluePlayerCoord: Coord = await game.getCellLocation("blueplayer");
     const blueplayer: BluePlayer = "b";
     this.addToCell(bluePlayerCoord, blueplayer);
 
-    const redEndCoord: Coord = await game.getInitialCellLocation("redend");
+    const redEndCoord: Coord = await game.getCellLocation("redend");
     const redend: RedEnd = "R";
     this.addToCell(redEndCoord, redend);
 
-    const blueEndCoord: Coord = await game.getInitialCellLocation("blueend");
+    const blueEndCoord: Coord = await game.getCellLocation("blueend");
     const blueend: BlueEnd = "B";
     this.addToCell(blueEndCoord, blueend);
 

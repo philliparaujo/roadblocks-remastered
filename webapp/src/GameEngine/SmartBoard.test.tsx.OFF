@@ -45,7 +45,7 @@ const factory = (): {
     game: {
       getHeight: jest.fn().mockResolvedValue(Promise.resolve(7)),
       getWidth: jest.fn().mockResolvedValue(Promise.resolve(7)),
-      getInitialCellLocation: jest.fn((cellElement: CellElement) => {
+      getCellLocation: jest.fn((cellElement: CellElement) => {
         switch (cellElement) {
           case "redplayer":
             return Promise.resolve({ row: 7, col: 1 });

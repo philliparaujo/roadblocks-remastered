@@ -1,3 +1,6 @@
+import { Coord } from "./Coord";
+import { WallLocations } from "./Types";
+
 export interface NewGameResult {
   sessionId: string;
   gameId: string;
@@ -14,6 +17,12 @@ export interface GetWidthResult {
 }
 export interface GetHeightResult {
   height: number;
+}
+export interface CoordResult {
+  coord: Coord;
+}
+export interface WallLocationsResult {
+  locations: WallLocations;
 }
 
 /* From game */

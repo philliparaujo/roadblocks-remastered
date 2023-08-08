@@ -71,6 +71,8 @@ export interface GameServer {
   removeEdge: (coord: Coord) => Promise<EdgeResult>;
   getWidth: () => Promise<number>;
   getHeight: () => Promise<number>;
+  getCellLocation: (player: PlayerLocation) => Promise<Coord>;
+  getWallLocations: () => Promise<WallLocations>;
 
   playerMovedSubscriptions: PlayerMovedSubscriberServer;
   switchTurnSubscriptions: SwitchTurnSubscriberServer;
@@ -385,9 +387,7 @@ export class GameServerImpl implements GameServer {
   private endLocation = (player: PlayerColor): Promise<Coord> =>
     Promise.resolve(this.state.endLocations[player]);
 
-  private getInitialCellLocation = (
-    cellElement: PlayerLocation
-  ): Promise<Coord> => {
+  getCellLocation = (cellElement: PlayerLocation): Promise<Coord> => {
     switch (cellElement) {
       case "redplayer":
         return Promise.resolve(
@@ -408,7 +408,7 @@ export class GameServerImpl implements GameServer {
     }
   };
 
-  private getWallLocations = (): Promise<WallLocations> => {
+  getWallLocations = (): Promise<WallLocations> => {
     return Promise.resolve(
       JSON.parse(JSON.stringify(this.state.wallLocations))
     );
@@ -538,23 +538,19 @@ export class GameServerImpl implements GameServer {
   private initFromGame = async (): Promise<Board> => {
     const board: Board = new BoardImpl(this.state.width, this.state.height);
 
-    const redPlayerCoord: Coord = await this.getInitialCellLocation(
-      "redplayer"
-    );
+    const redPlayerCoord: Coord = await this.getCellLocation("redplayer");
     const redplayer: RedPlayer = "r";
     board.addToCell(redPlayerCoord, redplayer);
 
-    const bluePlayerCoord: Coord = await this.getInitialCellLocation(
-      "blueplayer"
-    );
+    const bluePlayerCoord: Coord = await this.getCellLocation("blueplayer");
     const blueplayer: BluePlayer = "b";
     board.addToCell(bluePlayerCoord, blueplayer);
 
-    const redEndCoord: Coord = await this.getInitialCellLocation("redend");
+    const redEndCoord: Coord = await this.getCellLocation("redend");
     const redend: RedEnd = "R";
     board.addToCell(redEndCoord, redend);
 
-    const blueEndCoord: Coord = await this.getInitialCellLocation("blueend");
+    const blueEndCoord: Coord = await this.getCellLocation("blueend");
     const blueend: BlueEnd = "B";
     board.addToCell(blueEndCoord, blueend);
 
