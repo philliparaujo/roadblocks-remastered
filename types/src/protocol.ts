@@ -39,12 +39,12 @@ export interface PathExistsResult {
 export interface LockWallResult {}
 export interface EndTurnResult {}
 export interface PlayerMovedResult {}
+export interface DiceRollResult {
+  diceValue: number;
+}
 
 /* From game */
 
 export interface StartGameResult {}
 export interface EdgeResult {}
 export interface ResetResult {}
-export interface DiceRollResult {
-  diceValue: number;
-}

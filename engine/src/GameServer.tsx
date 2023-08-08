@@ -86,6 +86,7 @@ export interface GameServer {
   lockWalls: () => Promise<LockWallResult>;
   switchTurn: () => Promise<EndTurnResult>;
   setPlayerLocation: (coord: Coord) => Promise<PlayerMovedResult>;
+  rollDice: () => Promise<DiceRollResult>;
 
   playerMovedSubscriptions: PlayerMovedSubscriberServer;
   switchTurnSubscriptions: SwitchTurnSubscriberServer;
@@ -354,7 +355,7 @@ export class GameServerImpl implements GameServer {
     return Promise.resolve({});
   };
 
-  private rollDice = (): Promise<DiceRollResult> => {
+  rollDice = (): Promise<DiceRollResult> => {
     if (this.state.gameOver) return Promise.reject("Game over");
 
     if (this.state.diceRolled) {

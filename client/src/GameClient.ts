@@ -34,6 +34,8 @@ import {
   lockWallsRoute,
   switchTurnRoute,
   setPlayerLocationRoute,
+  DiceRollResult,
+  rollDiceRoute,
 } from "@roadblocks/types";
 import { logResults } from "./logger";
 import {
@@ -166,6 +168,11 @@ export class GameClient implements Game, GameControl {
       }
     );
 
+  rollDice = (): Promise<DiceRollResult> =>
+    this.sessionPost<DiceRollResult>(rollDiceRoute, {}).then((result) => {
+      return Promise.resolve({ diceValue: result.diceValue });
+    });
+
   // TODO: PROPERLY IMPLEMENT
 
   getStateForTesting = (): {
@@ -177,9 +184,6 @@ export class GameClient implements Game, GameControl {
       gameId: this.gameId,
     };
   };
-
-  rollDice = (): Promise<DiceRollEvent> =>
-    Promise.resolve(new DiceRollEvent(4));
 
   playerMovedEventSubscription = (): PlayerMovedSubscriberClient =>
     this.playerMovedSubscriptions;

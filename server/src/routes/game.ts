@@ -1,55 +1,57 @@
 import { GameServer, SubscriberServer } from "@roadblocks/engine";
 import {
   AddEdgeResult,
+  CanEndTurnResult,
   Coord,
   CoordResult,
   DiceResult,
   DiceRollEvent,
+  DiceRollResult,
+  EndTurnResult,
   HeightResult,
-  WidthResult,
   JoinGameResult,
   LockWallEvent,
+  LockWallResult,
   NewGameResult,
   NumWallChangesEvent,
+  PathExistsResult,
   PlayerColor,
   PlayerLocation,
   PlayerMovedEvent,
+  PlayerMovedResult,
   RemoveEdgeResult,
   StartGameEvent,
   SwitchTurnEvent,
   TimedEvent,
+  TurnResult,
   WallLocationsResult,
   WallToggledEvent,
+  WidthResult,
   WinGameEvent,
+  addEdgeRoute,
+  canEndTurnRoute,
   diceRollPubSubRoute,
+  getCellLocationRoute,
+  getDiceRoute,
+  getHeightRoute,
+  getTurnRoute,
+  getWallLocationRoute,
+  getWidthRoute,
+  joinGameRoute,
   lockWallPubSubRoute,
+  lockWallsRoute,
+  newGameRoute,
   numWallChangesPubSubRoute,
+  pathExistsRoute,
   playerMovedPubSubRoute,
+  removeEdgeRoute,
+  rollDiceRoute,
+  setPlayerLocationRoute,
   startGamePubSubRoute,
   switchTurnPubSubRoute,
+  switchTurnRoute,
   winGamePubSubRoute,
   wlalToggledPubSubRoute,
-  newGameRoute,
-  joinGameRoute,
-  addEdgeRoute,
-  removeEdgeRoute,
-  getWidthRoute,
-  getHeightRoute,
-  getCellLocationRoute,
-  getWallLocationRoute,
-  getDiceRoute,
-  getTurnRoute,
-  TurnResult,
-  canEndTurnRoute,
-  CanEndTurnResult,
-  pathExistsRoute,
-  PathExistsResult,
-  lockWallsRoute,
-  LockWallResult,
-  switchTurnRoute,
-  EndTurnResult,
-  setPlayerLocationRoute,
-  PlayerMovedResult,
 } from "@roadblocks/types";
 import express from "express";
 import SessionManager from "../SessionManager";
@@ -65,8 +67,6 @@ function safeSend<T>(
 ): void {
   sender.send(value);
 }
-
-// TODO: MAKE ALL ROUTES DEFINED AS CONSTANTS IN TYPES
 
 router.post(newGameRoute, (req, res) => {
   let body = req.body;
@@ -116,318 +116,49 @@ router.post(joinGameRoute, (req, res) => {
   }
 });
 
-router.post(addEdgeRoute, (req, res) => {
-  let body = req.body;
-  let coord: Coord = body.coord;
-  let sessionId = body.sessionId as string;
+function myPost<T>(
+  name: string,
+  callback: (game: GameServer, body: any) => Promise<T>,
+  router: express.Router
+) {
+  router.post(name, (req, res) => {
+    let body = req.body;
+    let sessionId = body.sessionId as string;
 
-  try {
-    sessionManager.get(sessionId).then((game) => {
-      // console.log(game);
-      game
-        .addEdge(coord)
-        .then(() => {
-          safeSend<AddEdgeResult>({ coord }, res);
-        })
-        .catch((err) => res.sendStatus(400));
-    });
-  } catch (e) {
-    res.sendStatus(500);
-  }
-});
-
-router.post(removeEdgeRoute, (req, res) => {
-  let body = req.body;
-  let coord: Coord = body.coord;
-  let sessionId = body.sessionId as string;
-
-  try {
-    sessionManager.get(sessionId).then((game) => {
-      // console.log(game);
-      game
-        .removeEdge(coord)
-        .then(() => {
-          safeSend<RemoveEdgeResult>({ coord }, res);
-        })
-        .catch((err) => res.sendStatus(400));
-    });
-  } catch (e) {
-    res.sendStatus(500);
-  }
-});
-router.get(getWidthRoute, (req, res) => {
-  const sessionId = req.query.sessionId as string;
-
-  try {
     sessionManager
       .get(sessionId)
-      .then((game) => {
-        game
-          .getWidth()
-          .then((result) => {
-            safeSend<WidthResult>(result, res);
-          })
-          .catch((err) => {
-            console.error(err);
-            res.sendStatus(400);
-          });
-      })
+      .then((game) => callback(game, body))
+      .then((result) => safeSend<T>(result, res))
       .catch((err) => {
-        res.sendStatus(404);
+        console.error(err);
+        res.sendStatus(500);
       });
-  } catch (e) {
-    res.sendStatus(500);
-  }
-});
+  });
+}
 
-router.get(getHeightRoute, (req, res) => {
-  const sessionId = req.query.sessionId as string;
+function myGet<T>(
+  route: string,
+  callback: (game: GameServer, query: any) => Promise<T>,
+  router: express.Router
+) {
+  router.get(route, (req, res) => {
+    const sessionId = req.query.sessionId as string;
 
-  try {
-    sessionManager
-      .get(sessionId)
-      .then((game) => {
-        game
-          .getHeight()
-          .then((result) => {
-            safeSend<HeightResult>(result, res);
-          })
-          .catch((err) => {
-            console.error(err);
-            res.sendStatus(400);
-          });
-      })
-      .catch((err) => {
-        res.sendStatus(404);
-      });
-  } catch (e) {
-    res.sendStatus(500);
-  }
-});
-
-router.get(getCellLocationRoute, (req, res) => {
-  const sessionId = req.query.sessionId as string;
-  const player = req.query.player as PlayerLocation;
-
-  try {
-    sessionManager
-      .get(sessionId)
-      .then((game) => {
-        game
-          .getCellLocation(player)
-          .then((result) => {
-            safeSend<CoordResult>(result, res);
-          })
-          .catch((err) => {
-            console.error(err);
-            res.sendStatus(400);
-          });
-      })
-      .catch((err) => {
-        res.sendStatus(404);
-      });
-  } catch (e) {
-    res.sendStatus(500);
-  }
-});
-
-router.get(getWallLocationRoute, (req, res) => {
-  const sessionId = req.query.sessionId as string;
-
-  try {
-    sessionManager
-      .get(sessionId)
-      .then((game) => {
-        game
-          .getWallLocations()
-          .then((result) => {
-            safeSend<WallLocationsResult>(result, res);
-          })
-          .catch((err) => {
-            console.error(err);
-            res.sendStatus(400);
-          });
-      })
-      .catch((err) => {
-        res.sendStatus(404);
-      });
-  } catch (e) {
-    res.sendStatus(500);
-  }
-});
-
-router.get(getDiceRoute, (req, res) => {
-  const sessionId = req.query.sessionId as string;
-  const player = req.query.player as PlayerColor;
-
-  try {
-    sessionManager
-      .get(sessionId)
-      .then((game) => {
-        game
-          .getDice(player)
-          .then((result) => {
-            safeSend<DiceResult>(result, res);
-          })
-          .catch((err) => {
-            console.error(err);
-            res.sendStatus(400);
-          });
-      })
-      .catch((err) => {
-        res.sendStatus(404);
-      });
-  } catch (e) {
-    res.sendStatus(500);
-  }
-});
-
-router.get(getTurnRoute, (req, res) => {
-  const sessionId = req.query.sessionId as string;
-
-  try {
-    sessionManager
-      .get(sessionId)
-      .then((game) => {
-        game
-          .getTurn()
-          .then((result) => {
-            safeSend<TurnResult>(result, res);
-          })
-          .catch((err) => {
-            console.error(err);
-            res.sendStatus(400);
-          });
-      })
-      .catch((err) => {
-        res.sendStatus(404);
-      });
-  } catch (e) {
-    res.sendStatus(500);
-  }
-});
-
-router.get(canEndTurnRoute, (req, res) => {
-  const sessionId = req.query.sessionId as string;
-
-  try {
-    sessionManager
-      .get(sessionId)
-      .then((game) => {
-        game
-          .canEndTurn()
-          .then((result) => {
-            safeSend<CanEndTurnResult>(result, res);
-          })
-          .catch((err) => {
-            console.error(err);
-            res.sendStatus(400);
-          });
-      })
-      .catch((err) => {
-        res.sendStatus(404);
-      });
-  } catch (e) {
-    res.sendStatus(500);
-  }
-});
-
-router.get(pathExistsRoute, (req, res) => {
-  const sessionId = req.query.sessionId as string;
-  const player = req.query.player as PlayerColor;
-
-  try {
-    sessionManager
-      .get(sessionId)
-      .then((game) => {
-        game
-          .pathExists(player)
-          .then((result) => {
-            safeSend<PathExistsResult>(result, res);
-          })
-          .catch((err) => {
-            console.error(err);
-            res.sendStatus(400);
-          });
-      })
-      .catch((err) => {
-        res.sendStatus(404);
-      });
-  } catch (e) {
-    res.sendStatus(500);
-  }
-});
-
-router.post(lockWallsRoute, (req, res) => {
-  let body = req.body;
-  let sessionId = body.sessionId as string;
-
-  try {
-    sessionManager
-      .get(sessionId)
-      .then((game) => {
-        game
-          .lockWalls()
-          .then(() => {
-            safeSend<LockWallResult>({}, res);
-          })
-          .catch((err) => {
-            console.error(err);
-            res.sendStatus(400);
-          });
-      })
-      .catch((err) => {
-        res.sendStatus(404);
-      });
-  } catch (e) {
-    res.sendStatus(500);
-  }
-});
-
-router.post(switchTurnRoute, (req, res) => {
-  let body = req.body;
-  let sessionId = body.sessionId as string;
-
-  try {
-    sessionManager
-      .get(sessionId)
-      .then((game) => {
-        game
-          .switchTurn()
-          .then(() => {
-            safeSend<EndTurnResult>({}, res);
-          })
-          .catch((err) => {
-            console.error(err);
-            res.sendStatus(400);
-          });
-      })
-      .catch((err) => {
-        res.sendStatus(404);
-      });
-  } catch (e) {
-    res.sendStatus(500);
-  }
-});
-
-router.post(setPlayerLocationRoute, (req, res) => {
-  let body = req.body;
-  let coord: Coord = body.coord;
-  let sessionId = body.sessionId as string;
-
-  try {
-    sessionManager.get(sessionId).then((game) => {
-      game
-        .setPlayerLocation(coord)
-        .then(() => {
-          safeSend<PlayerMovedResult>({ coord }, res);
-        })
-        .catch((err) => res.sendStatus(400));
-    });
-  } catch (e) {
-    res.sendStatus(500);
-  }
-});
+    try {
+      sessionManager
+        .get(sessionId)
+        .then((game) => callback(game, req.query))
+        .then((result) => safeSend<T>(result, res))
+        .catch((err) => {
+          console.error(err);
+          res.sendStatus(400);
+        });
+    } catch (e) {
+      console.error(e);
+      res.sendStatus(500);
+    }
+  });
+}
 
 function registerPubSub<T extends TimedEvent>(
   name: string,
@@ -460,6 +191,84 @@ function registerPubSub<T extends TimedEvent>(
     }
   });
 }
+
+myPost<AddEdgeResult>(
+  addEdgeRoute,
+  (game, body) =>
+    game.addEdge(body.coord as Coord).then(() => ({ coord: body.coord })),
+  router
+);
+
+myPost<RemoveEdgeResult>(
+  removeEdgeRoute,
+  (game, body) =>
+    game.removeEdge(body.coord as Coord).then(() => ({ coord: body.coord })),
+  router
+);
+
+myPost<LockWallResult>(
+  lockWallsRoute,
+  (game, body) => game.lockWalls().then(() => ({})),
+  router
+);
+
+myPost<EndTurnResult>(
+  switchTurnRoute,
+  (game, body) => game.switchTurn().then(() => ({})),
+  router
+);
+
+myPost<PlayerMovedResult>(
+  setPlayerLocationRoute,
+  (game, body) =>
+    game
+      .setPlayerLocation(body.coord as Coord)
+      .then(() => ({ coord: body.coord })),
+  router
+);
+
+myPost<DiceRollResult>(
+  rollDiceRoute,
+  (game, body) =>
+    game.rollDice().then((result) => ({ diceValue: result.diceValue })),
+  router
+);
+
+myGet<WidthResult>(getWidthRoute, (game, query) => game.getWidth(), router);
+
+myGet<HeightResult>(getHeightRoute, (game, query) => game.getHeight(), router);
+
+myGet<CoordResult>(
+  getCellLocationRoute,
+  (game, query) => game.getCellLocation(query.player as PlayerLocation),
+  router
+);
+
+myGet<WallLocationsResult>(
+  getWallLocationRoute,
+  (game, query) => game.getWallLocations(),
+  router
+);
+
+myGet<DiceResult>(
+  getDiceRoute,
+  (game, query) => game.getDice(query.player as PlayerColor),
+  router
+);
+
+myGet<TurnResult>(getTurnRoute, (game, query) => game.getTurn(), router);
+
+myGet<CanEndTurnResult>(
+  canEndTurnRoute,
+  (game, query) => game.canEndTurn(),
+  router
+);
+
+myGet<PathExistsResult>(
+  pathExistsRoute,
+  (game, query) => game.pathExists(query.player as PlayerColor),
+  router
+);
 
 registerPubSub<DiceRollEvent>(
   diceRollPubSubRoute,
@@ -502,6 +311,7 @@ registerPubSub<NumWallChangesEvent>(
   router
 );
 
+/* Has to be last route */
 router.use("/", (req, res) => {
   console.log("Server endpoint does not exist. Sorry.", req.url);
   res.status(404).send("Not found");

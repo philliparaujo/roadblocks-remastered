@@ -27,3 +27,4 @@ export const pathExistsRoute = "/pathExists";
 export const lockWallsRoute = "/lockWalls";
 export const switchTurnRoute = "/switchTurn";
 export const setPlayerLocationRoute = "/setPlayerLocation";
+export const rollDiceRoute = "/rollDice";

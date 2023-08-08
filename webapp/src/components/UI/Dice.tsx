@@ -82,7 +82,7 @@ const Dice: React.FC<DiceProps> = ({ game = GameInstance }) => {
   const handleClick = () => {
     game
       .rollDice()
-      .then((result) => console.log("DICE ROLLED A ", result.value))
+      .then((result) => console.log("DICE ROLLED A ", result.diceValue))
       .catch((err) => console.error("already rolled dice"));
   };
 
