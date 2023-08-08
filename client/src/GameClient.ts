@@ -1,12 +1,13 @@
 import {
   Coord,
   CoordResult,
+  DiceResult,
   DiceRollEvent,
   EdgeResult,
   EndTurnResult,
   Game,
-  GetHeightResult,
-  GetWidthResult,
+  HeightResult,
+  WidthResult,
   JoinGameResult,
   LockWallResult,
   NewGameResult,
@@ -15,6 +16,15 @@ import {
   PlayerMovedResult,
   WallLocations,
   WallLocationsResult,
+  newGameRoute,
+  joinGameRoute,
+  addEdgeRoute,
+  removeEdgeRoute,
+  getWidthRoute,
+  getHeightRoute,
+  getCellLocationRoute,
+  getWallLocationRoute,
+  getDiceRoute,
 } from "@roadblocks/types";
 import { logResults } from "./logger";
 import {
@@ -59,14 +69,14 @@ export class GameClient implements Game, GameControl {
     Promise.resolve(this.sessionId !== undefined);
 
   newGame = (playerName: string): Promise<void> =>
-    myPost<NewGameResult>("newGame", { playerName }).then((results) => {
+    myPost<NewGameResult>(newGameRoute, { playerName }).then((results) => {
       this.gameId = results.gameId;
       this.sessionId = results.sessionId;
       this.startSubscribers(results.sessionId);
     });
 
   joinGame = (gameId: string, playerName: string): Promise<void> =>
-    myPost<JoinGameResult>("joinGame", { gameId, playerName }).then(
+    myPost<JoinGameResult>(joinGameRoute, { gameId, playerName }).then(
       (results) => {
         this.gameId = gameId;
         this.sessionId = results.sessionId;
@@ -75,41 +85,45 @@ export class GameClient implements Game, GameControl {
     );
 
   addEdge = (coord: Coord): Promise<EdgeResult> =>
-    this.sessionPost<EdgeResult>("addEdge", { coord }).then(() => {
+    this.sessionPost<EdgeResult>(addEdgeRoute, { coord }).then(() => {
       return Promise.resolve({});
     });
 
   removeEdge = (coord: Coord): Promise<EdgeResult> =>
-    this.sessionPost<EdgeResult>("removeEdge", { coord }).then(() => {
+    this.sessionPost<EdgeResult>(removeEdgeRoute, { coord }).then(() => {
       return Promise.resolve({});
     });
 
   getWidth = (): Promise<number> =>
-    this.sessionGet<GetWidthResult>("getWidth").then((result) => {
+    this.sessionGet<WidthResult>(getWidthRoute).then((result) => {
       return result.width;
     });
 
   getHeight = (): Promise<number> =>
-    this.sessionGet<GetHeightResult>("getHeight").then((result) => {
+    this.sessionGet<HeightResult>(getHeightRoute).then((result) => {
       return result.height;
     });
 
   getCellLocation = (player: PlayerLocation): Promise<Coord> =>
-    this.sessionGet<CoordResult>(`getCellLocation?player=${player}`).then(
+    this.sessionGet<CoordResult>(getCellLocationRoute, { player }).then(
       (result) => {
         return result.coord;
       }
     );
 
   getWallLocations = (): Promise<WallLocations> =>
-    this.sessionGet<WallLocationsResult>("getWallLocations").then((result) => {
-      return result.locations;
+    this.sessionGet<WallLocationsResult>(getWallLocationRoute).then(
+      (result) => {
+        return result.locations;
+      }
+    );
+
+  getDice = (player: PlayerColor): Promise<number[]> =>
+    this.sessionGet<DiceResult>(getDiceRoute, { player }).then((result) => {
+      return result.faces;
     });
 
   // TODO: PROPERLY IMPLEMENT
-
-  getDiceRolls = (player: PlayerColor): Promise<number[]> =>
-    Promise.resolve([1, 2, 3, 4, 5, 6]);
 
   getTurn = (): Promise<PlayerColor> => Promise.resolve("red");
   canEndTurn = (): Promise<boolean> => Promise.resolve(false);
@@ -169,14 +183,23 @@ export class GameClient implements Game, GameControl {
     return myPost<T>(action, { ...body, sessionId: this.sessionId });
   }
   // Perform a get to a specific session on the server side
-  sessionGet<T>(endPoint: string): Promise<T> {
-    return myGet<T>(endPoint, this.sessionId);
+  sessionGet<T>(
+    endPoint: string,
+    params: { [key: string]: string } = {}
+  ): Promise<T> {
+    if (!this.sessionId) {
+      return Promise.reject("sessionId is missing");
+    }
+    params.sessionId = this.sessionId;
+    return myGet<T>(endPoint, params);
   }
 }
 
 function myPost<T>(action: string, body: any): Promise<T> {
+  const url: URL = new URL(action, serviceURL);
+
   console.log("trying", action);
-  return fetch(`${serviceURL}/${action}`, {
+  return fetch(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -195,16 +218,15 @@ function myPost<T>(action: string, body: any): Promise<T> {
 
 export function myGet<T>(
   urlExtension: string | URL,
-  sessionId?: string
+  params: { [key: string]: string } = {}
 ): Promise<T> {
-  if (!sessionId) {
-    return Promise.reject("sessionId is missing");
+  const url: URL = new URL(urlExtension, serviceURL);
+
+  for (const [key, value] of Object.entries(params)) {
+    url.searchParams.set(key, value);
   }
 
-  const url: URL = new URL(urlExtension, serviceURL);
-  url.searchParams.set("sessionId", sessionId);
-
-  return fetch(url.toString())
+  return fetch(url)
     .then((res) => {
       if (!res.ok) {
         throw new Error(`Failed ${res.status}: ${res.statusText}`);
@@ -212,7 +234,7 @@ export function myGet<T>(
       return res;
     })
     .then((results) => results.json())
-    .then(logResults(urlExtension.toString()));
+    .then(logResults(url.toString()));
 }
 
 export const GameInstance = new GameClient();

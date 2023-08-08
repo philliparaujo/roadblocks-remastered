@@ -3,6 +3,7 @@ import { PlayerColor } from "./Types";
 
 export interface TimedEvent {
   ts: EpochTimeStamp;
+  reset?: boolean;
 }
 
 class BaseEvent {

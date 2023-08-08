@@ -12,10 +12,10 @@ export interface JoinGameResult {
 
 export interface AddEdgeResult {}
 export interface RemoveEdgeResult {}
-export interface GetWidthResult {
+export interface WidthResult {
   width: number;
 }
-export interface GetHeightResult {
+export interface HeightResult {
   height: number;
 }
 export interface CoordResult {
@@ -23,6 +23,9 @@ export interface CoordResult {
 }
 export interface WallLocationsResult {
   locations: WallLocations;
+}
+export interface DiceResult {
+  faces: number[];
 }
 
 /* From game */

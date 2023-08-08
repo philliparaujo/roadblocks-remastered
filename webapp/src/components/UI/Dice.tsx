@@ -6,24 +6,14 @@ import "./Dice.css";
 
 export interface DiceProps {
   game?: Game;
-  initialVisualRedRolls?: number[];
-  initialVisualBlueRolls?: number[];
 }
 
-const Dice: React.FC<DiceProps> = ({
-  game = GameInstance,
-  initialVisualRedRolls = [],
-  initialVisualBlueRolls = [],
-}) => {
+const Dice: React.FC<DiceProps> = ({ game = GameInstance }) => {
   const [value, setValue] = useState<number>(1);
   const [rolling, setRolling] = useState<boolean>(false);
   const [currentTurn, setCurrentTurn] = useState<PlayerColor>("red");
-  const [visualRedRolls, setVisualRedRolls] = useState<number[]>(
-    initialVisualRedRolls
-  );
-  const [visualBlueRolls, setVisualBlueRolls] = useState<number[]>(
-    initialVisualBlueRolls
-  );
+  const [visualRedRolls, setVisualRedRolls] = useState<number[]>([]);
+  const [visualBlueRolls, setVisualBlueRolls] = useState<number[]>([]);
   const rollInterval = useRef<NodeJS.Timeout | null>(null);
 
   const rollSpeed = 200;
@@ -39,18 +29,13 @@ const Dice: React.FC<DiceProps> = ({
 
   /* Gets visualDiceRolls on game start if none provided */
   useEffect(() => {
-    const fetchDiceRolls = async () => {
-      if (initialVisualRedRolls.length === 0) {
-        const red = await game.getDiceRolls("red");
-        setVisualRedRolls(red);
-      }
-      if (initialVisualBlueRolls.length === 0) {
-        const blue = await game.getDiceRolls("blue");
-        setVisualBlueRolls(blue);
-      }
-    };
-    fetchDiceRolls();
-  }, [game, initialVisualRedRolls, initialVisualBlueRolls]);
+    game.getDice("red").then((redFaces) => {
+      setVisualRedRolls(redFaces);
+    });
+    game.getDice("blue").then((blueFaces) => {
+      setVisualBlueRolls(blueFaces);
+    });
+  }, [game]);
 
   /* Keeps current turn updated */
   useEffect(() => {

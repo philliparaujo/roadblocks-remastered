@@ -1,10 +1,23 @@
+/* PubSub routes */
 const pubSubRoute = "/pubsub";
 
-export const diceRollRoute = `${pubSubRoute}/dicerolls`;
-export const playerMovedRoute = `${pubSubRoute}/playermoved`;
-export const switchTurnRoute = `${pubSubRoute}/turnended`;
-export const wlalToggledRoute = `${pubSubRoute}/walltoggled`;
-export const lockWallRoute = `${pubSubRoute}/lockwall`;
-export const winGameRoute = `${pubSubRoute}/wingame`;
-export const startGameRoute = `${pubSubRoute}/startgame`;
-export const numWallChangesRoute = `${pubSubRoute}/numwallschanged`;
+export const diceRollPubSubRoute = `${pubSubRoute}/dicerolls`;
+export const playerMovedPubSubRoute = `${pubSubRoute}/playermoved`;
+export const switchTurnPubSubRoute = `${pubSubRoute}/turnended`;
+export const wlalToggledPubSubRoute = `${pubSubRoute}/walltoggled`;
+export const lockWallPubSubRoute = `${pubSubRoute}/lockwall`;
+export const winGamePubSubRoute = `${pubSubRoute}/wingame`;
+export const startGamePubSubRoute = `${pubSubRoute}/startgame`;
+export const numWallChangesPubSubRoute = `${pubSubRoute}/numwallschanged`;
+
+/* API routes */
+export const newGameRoute = "/newGame";
+export const joinGameRoute = "/joinGame";
+
+export const addEdgeRoute = "/addEdge";
+export const removeEdgeRoute = "/removeEdge";
+export const getWidthRoute = "/width";
+export const getHeightRoute = "/height";
+export const getCellLocationRoute = "/cellLocation";
+export const getWallLocationRoute = "/wallLocations";
+export const getDiceRoute = "/dice";

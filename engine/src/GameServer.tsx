@@ -5,11 +5,14 @@ import {
   BoardImpl,
   CellLocations,
   Coord,
+  CoordResult,
   DiceInfo,
+  DiceResult,
   DiceRollEvent,
   DiceRollResult,
   EdgeResult,
   EndTurnResult,
+  HeightResult,
   LockWallEvent,
   LockWallResult,
   NumWallChangesEvent,
@@ -25,7 +28,9 @@ import {
   SwitchTurnEvent,
   TurnPhase,
   WallLocations,
+  WallLocationsResult,
   WallToggledEvent,
+  WidthResult,
   WinGameEvent,
   equalCoords,
   isBorderEdge,
@@ -66,13 +71,13 @@ export interface GameState {
 }
 
 export interface GameServer {
-  startGame: () => Promise<StartGameResult>;
   addEdge: (coord: Coord) => Promise<EdgeResult>;
   removeEdge: (coord: Coord) => Promise<EdgeResult>;
-  getWidth: () => Promise<number>;
-  getHeight: () => Promise<number>;
-  getCellLocation: (player: PlayerLocation) => Promise<Coord>;
-  getWallLocations: () => Promise<WallLocations>;
+  getWidth: () => Promise<WidthResult>;
+  getHeight: () => Promise<HeightResult>;
+  getCellLocation: (player: PlayerLocation) => Promise<CoordResult>;
+  getWallLocations: () => Promise<WallLocationsResult>;
+  getDice: (player: PlayerColor) => Promise<DiceResult>;
 
   playerMovedSubscriptions: PlayerMovedSubscriberServer;
   switchTurnSubscriptions: SwitchTurnSubscriberServer;
@@ -96,8 +101,6 @@ type OverridesForTesting = {
   rollDurationMs?: number;
 };
 
-var fakeToggle = false;
-
 export class GameServerImpl implements GameServer {
   playerMovedSubscriptions: PlayerMovedSubscriberServer;
   switchTurnSubscriptions: SwitchTurnSubscriberServer;
@@ -107,6 +110,8 @@ export class GameServerImpl implements GameServer {
   winGameSubscriptions: WinGameSubscriberServer;
   startGameSubscriptions: StartGameSubscriberServer;
   numWallChangesSubscriptions: NumWallChangesSubscriberServer;
+
+  fakeToggle: boolean = false;
 
   private state: GameState = {
     gameOver: true,
@@ -166,13 +171,17 @@ export class GameServerImpl implements GameServer {
     setInterval(() => {
       // test game here
       this.wallToggledSubscriptions.notify(
-        new WallToggledEvent({ row: 1, col: 4 }, fakeToggle)
+        new WallToggledEvent({ row: 1, col: 4 }, this.fakeToggle)
       );
       this.wallToggledSubscriptions.notify(
-        new WallToggledEvent({ row: 2, col: 7 }, !fakeToggle)
+        new WallToggledEvent({ row: 2, col: 5 }, !this.fakeToggle)
       );
-      fakeToggle = !fakeToggle;
+      this.fakeToggle = !this.fakeToggle;
     }, 2000);
+
+    setInterval(() => {
+      this.wallToggledSubscriptions.reset();
+    }, 2000 * 3);
   }
 
   wallToggledSubscriptions2 = () => this.wallToggledSubscriptions;
@@ -192,17 +201,6 @@ export class GameServerImpl implements GameServer {
     }
     return result;
   }
-
-  startGame = async (): Promise<StartGameResult> => {
-    this.state.gameOver = false;
-    this.startGameSubscriptions.notify(new StartGameEvent(this.state.turn));
-    this.state.oldBoard = await this.initFromGame();
-
-    this.state.currentBoard = this.state.oldBoard.copy();
-
-    console.time(`_________________FULL GAME ${this.state.id}`);
-    return Promise.resolve({});
-  };
 
   addEdge = (coord: Coord): Promise<EdgeResult> => {
     if (this.state.gameOver) return Promise.reject("Game over");
@@ -277,9 +275,7 @@ export class GameServerImpl implements GameServer {
     return Promise.resolve({});
   };
 
-  private setPlayerLocation = async (
-    coord: Coord
-  ): Promise<PlayerMovedResult> => {
+  private setPlayerLocation = (coord: Coord): Promise<PlayerMovedResult> => {
     if (this.state.gameOver) return Promise.reject("Game over");
     if (!this.state.diceRolled) return Promise.reject("Dice not rolled");
 
@@ -295,8 +291,8 @@ export class GameServerImpl implements GameServer {
         oldLocation,
         coord,
         this.state.wallLocations,
-        2 * (await this.getWidth()) + 1,
-        2 * (await this.getHeight()) + 1
+        2 * this.state.width + 1,
+        2 * this.state.height + 1
       )
     ) {
       return Promise.reject("NOT ADJACENT CELL");
@@ -387,42 +383,32 @@ export class GameServerImpl implements GameServer {
   private endLocation = (player: PlayerColor): Promise<Coord> =>
     Promise.resolve(this.state.endLocations[player]);
 
-  getCellLocation = (cellElement: PlayerLocation): Promise<Coord> => {
+  getCellLocation = (cellElement: PlayerLocation): Promise<CoordResult> => {
     switch (cellElement) {
       case "redplayer":
-        return Promise.resolve(
-          JSON.parse(JSON.stringify(this.state.playerLocations.red))
-        );
+        return Promise.resolve({ coord: this.state.playerLocations.red });
       case "blueplayer":
-        return Promise.resolve(
-          JSON.parse(JSON.stringify(this.state.playerLocations.blue))
-        );
+        return Promise.resolve({ coord: this.state.playerLocations.blue });
       case "redend":
-        return Promise.resolve(
-          JSON.parse(JSON.stringify(this.state.endLocations.red))
-        );
+        return Promise.resolve({ coord: this.state.endLocations.red });
       case "blueend":
-        return Promise.resolve(
-          JSON.parse(JSON.stringify(this.state.endLocations.blue))
-        );
+        return Promise.resolve({ coord: this.state.endLocations.blue });
     }
   };
 
-  getWallLocations = (): Promise<WallLocations> => {
-    return Promise.resolve(
-      JSON.parse(JSON.stringify(this.state.wallLocations))
-    );
+  getWallLocations = (): Promise<WallLocationsResult> => {
+    return Promise.resolve({ locations: this.state.wallLocations });
   };
 
-  private getDiceRolls = (player: PlayerColor): Promise<number[]> =>
-    Promise.resolve(this.state.diceRolls[player]);
+  getDice = (player: PlayerColor): Promise<DiceResult> =>
+    Promise.resolve({ faces: this.state.diceRolls[player] });
 
-  getWidth = (): Promise<number> => {
-    return Promise.resolve(this.state.width);
+  getWidth = (): Promise<WidthResult> => {
+    return Promise.resolve({ width: this.state.width });
   };
 
-  getHeight = (): Promise<number> => {
-    return Promise.resolve(this.state.height);
+  getHeight = (): Promise<HeightResult> => {
+    return Promise.resolve({ height: this.state.height });
   };
 
   // playerMovedEventSubscription = (): PlayerEventSubscription =>
@@ -535,26 +521,26 @@ export class GameServerImpl implements GameServer {
     return playerMovements <= dice && wallChanges <= 7 - dice;
   };
 
-  private initFromGame = async (): Promise<Board> => {
+  private initFromGame = (): Promise<Board> => {
     const board: Board = new BoardImpl(this.state.width, this.state.height);
 
-    const redPlayerCoord: Coord = await this.getCellLocation("redplayer");
+    const redPlayerCoord: Coord = this.state.playerLocations.red;
     const redplayer: RedPlayer = "r";
     board.addToCell(redPlayerCoord, redplayer);
 
-    const bluePlayerCoord: Coord = await this.getCellLocation("blueplayer");
+    const bluePlayerCoord: Coord = this.state.playerLocations.blue;
     const blueplayer: BluePlayer = "b";
     board.addToCell(bluePlayerCoord, blueplayer);
 
-    const redEndCoord: Coord = await this.getCellLocation("redend");
+    const redEndCoord: Coord = this.state.endLocations.red;
     const redend: RedEnd = "R";
     board.addToCell(redEndCoord, redend);
 
-    const blueEndCoord: Coord = await this.getCellLocation("blueend");
+    const blueEndCoord: Coord = this.state.endLocations.blue;
     const blueend: BlueEnd = "B";
     board.addToCell(blueEndCoord, blueend);
 
-    const wallLocations = await this.getWallLocations();
+    const wallLocations: WallLocations = this.state.wallLocations;
     for (const wall of wallLocations.locked) {
       board.set(wall, "#");
     }
@@ -565,6 +551,6 @@ export class GameServerImpl implements GameServer {
       board.set(blueWall, "-");
     }
 
-    return board;
+    return Promise.resolve(board);
   };
 }

@@ -3,13 +3,15 @@ import {
   AddEdgeResult,
   Coord,
   CoordResult,
+  DiceResult,
   DiceRollEvent,
-  GetHeightResult,
-  GetWidthResult,
+  HeightResult,
+  WidthResult,
   JoinGameResult,
   LockWallEvent,
   NewGameResult,
   NumWallChangesEvent,
+  PlayerColor,
   PlayerLocation,
   PlayerMovedEvent,
   RemoveEdgeResult,
@@ -19,14 +21,23 @@ import {
   WallLocationsResult,
   WallToggledEvent,
   WinGameEvent,
-  diceRollRoute,
-  lockWallRoute,
-  numWallChangesRoute,
-  playerMovedRoute,
-  startGameRoute,
-  switchTurnRoute,
-  winGameRoute,
-  wlalToggledRoute,
+  diceRollPubSubRoute,
+  lockWallPubSubRoute,
+  numWallChangesPubSubRoute,
+  playerMovedPubSubRoute,
+  startGamePubSubRoute,
+  switchTurnPubSubRoute,
+  winGamePubSubRoute,
+  wlalToggledPubSubRoute,
+  newGameRoute,
+  joinGameRoute,
+  addEdgeRoute,
+  removeEdgeRoute,
+  getWidthRoute,
+  getHeightRoute,
+  getCellLocationRoute,
+  getWallLocationRoute,
+  getDiceRoute,
 } from "@roadblocks/types";
 import express from "express";
 import SessionManager from "../SessionManager";
@@ -45,7 +56,7 @@ function safeSend<T>(
 
 // TODO: MAKE ALL ROUTES DEFINED AS CONSTANTS IN TYPES
 
-router.post("/newGame", (req, res) => {
+router.post(newGameRoute, (req, res) => {
   let body = req.body;
   let playerName: string = body.playerName;
 
@@ -70,7 +81,7 @@ router.post("/newGame", (req, res) => {
   }
 });
 
-router.post("/joinGame", (req, res) => {
+router.post(joinGameRoute, (req, res) => {
   let body = req.body;
   let playerName = body.playerName;
   let gameId = body.gameId;
@@ -93,7 +104,7 @@ router.post("/joinGame", (req, res) => {
   }
 });
 
-router.post("/addEdge", (req, res) => {
+router.post(addEdgeRoute, (req, res) => {
   let body = req.body;
   let coord: Coord = body.coord;
   let sessionId = body.sessionId as string;
@@ -113,7 +124,7 @@ router.post("/addEdge", (req, res) => {
   }
 });
 
-router.post("/removeEdge", (req, res) => {
+router.post(removeEdgeRoute, (req, res) => {
   let body = req.body;
   let coord: Coord = body.coord;
   let sessionId = body.sessionId as string;
@@ -132,7 +143,7 @@ router.post("/removeEdge", (req, res) => {
     res.sendStatus(500);
   }
 });
-router.get("/getWidth", (req, res) => {
+router.get(getWidthRoute, (req, res) => {
   const sessionId = req.query.sessionId as string;
 
   try {
@@ -141,8 +152,8 @@ router.get("/getWidth", (req, res) => {
       .then((game) => {
         game
           .getWidth()
-          .then((width) => {
-            safeSend<GetWidthResult>({ width }, res);
+          .then((result) => {
+            safeSend<WidthResult>(result, res);
           })
           .catch((err) => {
             console.error(err);
@@ -157,7 +168,7 @@ router.get("/getWidth", (req, res) => {
   }
 });
 
-router.get("/getHeight", (req, res) => {
+router.get(getHeightRoute, (req, res) => {
   const sessionId = req.query.sessionId as string;
 
   try {
@@ -166,8 +177,8 @@ router.get("/getHeight", (req, res) => {
       .then((game) => {
         game
           .getHeight()
-          .then((height) => {
-            safeSend<GetHeightResult>({ height }, res);
+          .then((result) => {
+            safeSend<HeightResult>(result, res);
           })
           .catch((err) => {
             console.error(err);
@@ -182,7 +193,7 @@ router.get("/getHeight", (req, res) => {
   }
 });
 
-router.get("/getCellLocation", (req, res) => {
+router.get(getCellLocationRoute, (req, res) => {
   const sessionId = req.query.sessionId as string;
   const player = req.query.player as PlayerLocation;
 
@@ -192,8 +203,8 @@ router.get("/getCellLocation", (req, res) => {
       .then((game) => {
         game
           .getCellLocation(player)
-          .then((location) => {
-            safeSend<CoordResult>({ coord: location }, res);
+          .then((result) => {
+            safeSend<CoordResult>(result, res);
           })
           .catch((err) => {
             console.error(err);
@@ -208,7 +219,7 @@ router.get("/getCellLocation", (req, res) => {
   }
 });
 
-router.get("/getWallLocations", (req, res) => {
+router.get(getWallLocationRoute, (req, res) => {
   const sessionId = req.query.sessionId as string;
 
   try {
@@ -217,8 +228,34 @@ router.get("/getWallLocations", (req, res) => {
       .then((game) => {
         game
           .getWallLocations()
-          .then((locations) => {
-            safeSend<WallLocationsResult>({ locations }, res);
+          .then((result) => {
+            safeSend<WallLocationsResult>(result, res);
+          })
+          .catch((err) => {
+            console.error(err);
+            res.sendStatus(400);
+          });
+      })
+      .catch((err) => {
+        res.sendStatus(404);
+      });
+  } catch (e) {
+    res.sendStatus(500);
+  }
+});
+
+router.get(getDiceRoute, (req, res) => {
+  const sessionId = req.query.sessionId as string;
+  const player = req.query.player as PlayerColor;
+
+  try {
+    sessionManager
+      .get(sessionId)
+      .then((game) => {
+        game
+          .getDice(player)
+          .then((result) => {
+            safeSend<DiceResult>(result, res);
           })
           .catch((err) => {
             console.error(err);
@@ -266,42 +303,42 @@ function registerPubSub<T extends TimedEvent>(
 }
 
 registerPubSub<DiceRollEvent>(
-  diceRollRoute,
+  diceRollPubSubRoute,
   (game: GameServer) => game.diceRollSubscriptions,
   router
 );
 registerPubSub<PlayerMovedEvent>(
-  playerMovedRoute,
+  playerMovedPubSubRoute,
   (game: GameServer) => game.playerMovedSubscriptions,
   router
 );
 registerPubSub<SwitchTurnEvent>(
-  switchTurnRoute,
+  switchTurnPubSubRoute,
   (game: GameServer) => game.switchTurnSubscriptions,
   router
 );
 registerPubSub<WallToggledEvent>(
-  wlalToggledRoute,
+  wlalToggledPubSubRoute,
   (game: GameServer) => game.wallToggledSubscriptions2(),
   router
 );
 registerPubSub<LockWallEvent>(
-  lockWallRoute,
+  lockWallPubSubRoute,
   (game: GameServer) => game.lockWallSubscriptions,
   router
 );
 registerPubSub<WinGameEvent>(
-  winGameRoute,
+  winGamePubSubRoute,
   (game: GameServer) => game.winGameSubscriptions,
   router
 );
 registerPubSub<StartGameEvent>(
-  startGameRoute,
+  startGamePubSubRoute,
   (game: GameServer) => game.startGameSubscriptions,
   router
 );
 registerPubSub<NumWallChangesEvent>(
-  numWallChangesRoute,
+  numWallChangesPubSubRoute,
   (game: GameServer) => game.numWallChangesSubscriptions,
   router
 );

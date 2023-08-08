@@ -8,14 +8,14 @@ import {
   TimedEvent,
   WallToggledEvent,
   WinGameEvent,
-  diceRollRoute,
-  lockWallRoute,
-  numWallChangesRoute,
-  playerMovedRoute,
-  startGameRoute,
-  switchTurnRoute,
-  winGameRoute,
-  wlalToggledRoute,
+  diceRollPubSubRoute,
+  lockWallPubSubRoute,
+  numWallChangesPubSubRoute,
+  playerMovedPubSubRoute,
+  startGamePubSubRoute,
+  switchTurnPubSubRoute,
+  winGamePubSubRoute,
+  wlalToggledPubSubRoute,
 } from "@roadblocks/types";
 import { myGet, serviceURL } from "./GameClient";
 
@@ -71,8 +71,15 @@ export class SubscriberClient<T extends TimedEvent> {
       );
 
       console.log("Checking PubSub events", this.route);
-      myGet<T[]>(url, sessionId).then((events) => {
-        this.pastEvents.push(...events);
+      myGet<T[]>(url, { sessionId }).then((events) => {
+        events.forEach((event) => {
+          if (event.reset) {
+            this.pastEvents = [];
+          } else {
+            this.pastEvents.push(event);
+          }
+        });
+
         this.lastSeenEvent = this.pastEvents.reduce(
           (result: EpochTimeStamp, item: T) => {
             if (item.ts > result) {
@@ -100,41 +107,41 @@ export class SubscriberClient<T extends TimedEvent> {
 /* IMPLEMENTATIONS */
 export class DiceRollSubscriberClient extends SubscriberClient<DiceRollEvent> {
   constructor() {
-    super(diceRollRoute);
+    super(diceRollPubSubRoute);
   }
 }
 export class LockWallSubscriberClient extends SubscriberClient<LockWallEvent> {
   constructor() {
-    super(lockWallRoute);
+    super(lockWallPubSubRoute);
   }
 }
 export class NumWallChangesSubscriberClient extends SubscriberClient<NumWallChangesEvent> {
   constructor() {
-    super(numWallChangesRoute);
+    super(numWallChangesPubSubRoute);
   }
 }
 export class PlayerMovedSubscriberClient extends SubscriberClient<PlayerMovedEvent> {
   constructor() {
-    super(playerMovedRoute);
+    super(playerMovedPubSubRoute);
   }
 }
 export class StartGameSubscriberClient extends SubscriberClient<StartGameEvent> {
   constructor() {
-    super(startGameRoute);
+    super(startGamePubSubRoute);
   }
 }
 export class SwitchTurnSubscriberClient extends SubscriberClient<SwitchTurnEvent> {
   constructor() {
-    super(switchTurnRoute);
+    super(switchTurnPubSubRoute);
   }
 }
 export class WallToggledSubscriberClient extends SubscriberClient<WallToggledEvent> {
   constructor() {
-    super(wlalToggledRoute);
+    super(wlalToggledPubSubRoute);
   }
 }
 export class WinGameSubscriberClient extends SubscriberClient<WinGameEvent> {
   constructor() {
-    super(winGameRoute);
+    super(winGamePubSubRoute);
   }
 }
