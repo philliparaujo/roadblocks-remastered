@@ -36,15 +36,17 @@ export interface CanEndTurnResult {
 export interface PathExistsResult {
   pathExists: boolean;
 }
-export interface LockWallResult {}
+export interface LockWallResult {
+  locked: boolean;
+}
 export interface EndTurnResult {}
 export interface PlayerMovedResult {}
 export interface DiceRollResult {
   diceValue: number;
 }
+export interface ResetTurnResult {}
 
 /* From game */
 
 export interface StartGameResult {}
 export interface EdgeResult {}
-export interface ResetResult {}

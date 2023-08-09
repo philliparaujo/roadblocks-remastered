@@ -23,7 +23,14 @@ export class DiceRollEvent extends BaseEvent implements TimedEvent {
   }
 }
 
-export class LockWallEvent extends BaseEvent implements TimedEvent {}
+export class LockWallEvent extends BaseEvent implements TimedEvent {
+  locked: boolean;
+
+  constructor(locked: boolean) {
+    super();
+    this.locked = locked;
+  }
+}
 
 export class NumWallChangesEvent extends BaseEvent implements TimedEvent {
   wallChanges: number;

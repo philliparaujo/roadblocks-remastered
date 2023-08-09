@@ -15,9 +15,10 @@ import {
   StartGameAlert,
   SwitchTurnAlert,
   WinGameAlert,
-} from "./components/UI/GameAlert";
+} from "./components/UI/Alert";
 import { AlertProvider } from "./components/UI/AlertContext";
 import { AlertDisplay } from "./components/UI/AlertDisplay";
+import ResetTurnButton from "./components/UI/ResetTurnButton";
 
 function Game() {
   const [inProgress, setInProgress] = useState<boolean | undefined>(undefined);
@@ -57,6 +58,7 @@ function Game() {
           <div>
             <LockWallsButton />
             <SwitchTurnButton />
+            <ResetTurnButton />
           </div>
         </div>
       </div>

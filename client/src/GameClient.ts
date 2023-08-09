@@ -36,6 +36,8 @@ import {
   setPlayerLocationRoute,
   DiceRollResult,
   rollDiceRoute,
+  ResetTurnResult,
+  resetTurnRoute,
 } from "@roadblocks/types";
 import { logResults } from "./logger";
 import {
@@ -153,7 +155,7 @@ export class GameClient implements Game, GameControl {
 
   lockWalls = (): Promise<LockWallResult> =>
     this.sessionPost(lockWallsRoute, {}).then(() => {
-      return Promise.resolve({});
+      return Promise.resolve({ locked: true });
     });
 
   switchTurn = (): Promise<EndTurnResult> =>
@@ -171,6 +173,11 @@ export class GameClient implements Game, GameControl {
   rollDice = (): Promise<DiceRollResult> =>
     this.sessionPost<DiceRollResult>(rollDiceRoute, {}).then((result) => {
       return Promise.resolve({ diceValue: result.diceValue });
+    });
+
+  resetTurn = (): Promise<ResetTurnResult> =>
+    this.sessionPost<ResetTurnResult>(resetTurnRoute, {}).then((result) => {
+      return Promise.resolve({});
     });
 
   // TODO: PROPERLY IMPLEMENT

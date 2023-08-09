@@ -28,3 +28,4 @@ export const lockWallsRoute = "/lockWalls";
 export const switchTurnRoute = "/switchTurn";
 export const setPlayerLocationRoute = "/setPlayerLocation";
 export const rollDiceRoute = "/rollDice";
+export const resetTurnRoute = "/resetTurn";

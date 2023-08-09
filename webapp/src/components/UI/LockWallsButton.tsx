@@ -1,4 +1,4 @@
-import "./LockWallsButton.css";
+import "./Button.css";
 import { GameInstance, GameClient as Game } from "@roadblocks/client";
 import { useEffect, useState } from "react";
 
@@ -20,7 +20,7 @@ const LockWallsButton: React.FC<LockWallsButtonProps> = ({
 
   useEffect(() => {
     const unsubscribe = game.lockWallEventSubscription().subscribe((e) => {
-      setDisabled(true);
+      setDisabled(e.locked);
     });
     return () => unsubscribe();
   }, [game]);

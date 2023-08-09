@@ -20,6 +20,7 @@ import {
   PlayerMovedEvent,
   PlayerMovedResult,
   RemoveEdgeResult,
+  ResetTurnResult,
   StartGameEvent,
   SwitchTurnEvent,
   TimedEvent,
@@ -45,6 +46,7 @@ import {
   pathExistsRoute,
   playerMovedPubSubRoute,
   removeEdgeRoute,
+  resetTurnRoute,
   rollDiceRoute,
   setPlayerLocationRoute,
   startGamePubSubRoute,
@@ -213,7 +215,7 @@ myPost<RemoveEdgeResult>(
 
 myPost<LockWallResult>(
   lockWallsRoute,
-  (game, body) => game.lockWalls().then(() => ({})),
+  (game, body) => game.lockWalls().then(() => ({ locked: true })),
   router
 );
 
@@ -236,6 +238,12 @@ myPost<DiceRollResult>(
   rollDiceRoute,
   (game, body) =>
     game.rollDice().then((result) => ({ diceValue: result.diceValue })),
+  router
+);
+
+myPost<ResetTurnResult>(
+  resetTurnRoute,
+  (game, body) => game.resetTurn().then(() => ({})),
   router
 );
 

@@ -5,6 +5,7 @@ import {
 } from "@roadblocks/client";
 import {
   DiceRollEvent,
+  LockWallEvent,
   SwitchTurnEvent,
   TimedEvent,
   WinGameEvent,
@@ -12,7 +13,7 @@ import {
 import { useEffect } from "react";
 import { useAlerts } from "./AlertContext";
 import { rollDurationMs } from "./Dice";
-import "./GameAlert.css";
+import "./Alert.css";
 
 interface GameAlertProps<T extends TimedEvent> {
   subscription: SubscriberClient<T>;
@@ -108,7 +109,9 @@ export const LockWallsAlert: React.FC<AlertProps> = ({
 }) => (
   <GameAlert
     subscription={game.lockWallEventSubscription()}
-    messageBuilder={staticMessageBuilder("Walls locked!")}
+    messageBuilder={(e: LockWallEvent) =>
+      e.locked ? "Walls locked!" : "Walls unlocked!"
+    }
   />
 );
 

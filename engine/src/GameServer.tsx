@@ -24,7 +24,7 @@ import {
   PlayerMovedResult,
   RedEnd,
   RedPlayer,
-  ResetResult,
+  ResetTurnResult,
   StartGameEvent,
   SwitchTurnEvent,
   TurnPhase,
@@ -62,11 +62,17 @@ export interface GameState {
   width: number;
   height: number;
   id: number;
-  playerLocations: CellLocations;
   endLocations: CellLocations;
+
+  oldPlayerLocations: CellLocations;
+  playerLocations: CellLocations;
+
+  oldWallLocations: WallLocations;
   wallLocations: WallLocations;
+
   oldBoard: Board | null;
   currentBoard: Board | null;
+
   movements: number;
   diceRolls: DiceInfo;
   rollDurationMs: number;
@@ -87,6 +93,7 @@ export interface GameServer {
   switchTurn: () => Promise<EndTurnResult>;
   setPlayerLocation: (coord: Coord) => Promise<PlayerMovedResult>;
   rollDice: () => Promise<DiceRollResult>;
+  resetTurn: () => Promise<ResetTurnResult>;
 
   playerMovedSubscriptions: PlayerMovedSubscriberServer;
   switchTurnSubscriptions: SwitchTurnSubscriberServer;
@@ -130,8 +137,27 @@ export class GameServerImpl implements GameServer {
     height: 7,
     id: id++,
     playerLocations: { red: { row: 7, col: 1 }, blue: { row: 1, col: 7 } },
+    oldPlayerLocations: { red: { row: 7, col: 1 }, blue: { row: 1, col: 7 } },
     endLocations: { red: { row: 7, col: 13 }, blue: { row: 13, col: 7 } },
     wallLocations: {
+      red: [],
+      blue: [],
+      locked: [
+        { row: 1, col: 10 },
+        { row: 2, col: 1 },
+        { row: 2, col: 7 },
+        { row: 2, col: 11 },
+        { row: 3, col: 12 },
+        { row: 4, col: 5 },
+        { row: 4, col: 9 },
+        { row: 4, col: 13 },
+        { row: 6, col: 7 },
+        { row: 7, col: 12 },
+        { row: 9, col: 10 },
+        { row: 12, col: 13 },
+      ],
+    },
+    oldWallLocations: {
       red: [],
       blue: [],
       locked: [
@@ -176,39 +202,6 @@ export class GameServerImpl implements GameServer {
     this.numWallChangesSubscriptions = new NumWallChangesSubscriberServer();
 
     this.startGame();
-
-    // setInterval(async () => {
-    //   // test game here
-    //   this.wallToggledSubscriptions.notify(
-    //     new WallToggledEvent({ row: 1, col: 4 }, this.fakeToggle)
-    //   );
-    //   this.wallToggledSubscriptions.notify(
-    //     new WallToggledEvent({ row: 2, col: 5 }, !this.fakeToggle)
-    //   );
-    //   this.fakeToggle = !this.fakeToggle;
-
-    //   this.fakeToggle
-    //     ? this.playerMovedSubscriptions.notify(
-    //         new PlayerMovedEvent(
-    //           "red",
-    //           { row: 7, col: 1 },
-    //           { row: 9, col: 1 },
-    //           1
-    //         )
-    //       )
-    //     : this.playerMovedSubscriptions.notify(
-    //         new PlayerMovedEvent(
-    //           "red",
-    //           { row: 9, col: 1 },
-    //           { row: 7, col: 1 },
-    //           0
-    //         )
-    //       );
-    // }, 2000);
-
-    // setInterval(() => {
-    //   this.wallToggledSubscriptions.reset();
-    // }, 2000 * 3);
   }
 
   static createForTesting(
@@ -262,9 +255,9 @@ export class GameServerImpl implements GameServer {
         }
 
         this.state.phase = "movingPlayer";
-        this.lockWallSubscriptions.notify(new LockWallEvent());
+        this.lockWallSubscriptions.notify(new LockWallEvent(true));
 
-        return {};
+        return { locked: true };
       }
     );
   };
@@ -297,16 +290,18 @@ export class GameServerImpl implements GameServer {
           });
         }
 
+        this.state.oldPlayerLocations.red = this.state.playerLocations.red;
+        this.state.oldPlayerLocations.blue = this.state.playerLocations.blue;
+
+        this.state.oldWallLocations.red = [...this.state.wallLocations.red];
+        this.state.oldWallLocations.blue = [...this.state.wallLocations.blue];
+        this.state.oldWallLocations.locked = [
+          ...this.state.wallLocations.locked,
+        ];
+
         return {};
       }
     );
-  };
-
-  private reset = (): Promise<ResetResult> => {
-    // needs to be modified!!!
-    this.state.turn = "red";
-    this.state.phase = "placingWalls";
-    return Promise.resolve({});
   };
 
   setPlayerLocation = (coord: Coord): Promise<PlayerMovedResult> => {
@@ -406,6 +401,63 @@ export class GameServerImpl implements GameServer {
     return Promise.resolve({});
   };
 
+  resetTurn = (): Promise<ResetTurnResult> => {
+    // unlock walls
+    this.state.phase = "placingWalls";
+    this.lockWallSubscriptions.notify(new LockWallEvent(false));
+
+    // reset current board state
+    if (this.state.oldBoard) {
+      this.state.currentBoard = this.state.oldBoard.copy();
+    } else {
+      this.initFromGame().then((board) => {
+        this.state.oldBoard = board;
+        this.state.currentBoard = board.copy();
+      });
+    }
+
+    // reset player position
+    const newLocation = this.state.playerLocations[this.state.turn];
+    const oldLocation = this.state.oldPlayerLocations[this.state.turn];
+
+    this.state.playerLocations[this.state.turn] = oldLocation;
+
+    const playerType = this.state.turn === "red" ? "r" : "b";
+    this.state.currentBoard?.removeFromCell(newLocation, playerType);
+    this.state.currentBoard?.addToCell(oldLocation, playerType);
+
+    this.playerMovedSubscriptions.notify(
+      new PlayerMovedEvent(this.state.turn, newLocation, oldLocation, 0)
+    );
+
+    // reset wall positions
+    const newWalls = this.state.wallLocations[this.state.turn];
+    const oldWalls = this.state.oldWallLocations[this.state.turn];
+
+    // 1) for every wall in newWalls NOT in oldWalls, notify a deletion
+    for (let coord of newWalls) {
+      if (!oldWalls.some((oldCoord) => equalCoords(oldCoord, coord))) {
+        this.wallToggledSubscriptions.notify(
+          new WallToggledEvent(coord, false)
+        );
+      }
+    }
+    // 2) for every wall in oldWalls NOT in newWalls, notify an addition
+    for (let coord of oldWalls) {
+      if (!newWalls.some((newCoord) => equalCoords(newCoord, coord))) {
+        this.wallToggledSubscriptions.notify(new WallToggledEvent(coord, true));
+      }
+    }
+
+    this.state.wallLocations[this.state.turn] = oldWalls;
+
+    // reset number of actions made in turn
+    this.numWallChangesSubscriptions.notify(new NumWallChangesEvent(0));
+    this.state.movements = 0;
+
+    return Promise.resolve({});
+  };
+
   getTurn = (): Promise<TurnResult> =>
     Promise.resolve({ turn: this.state.turn });
 
@@ -442,30 +494,6 @@ export class GameServerImpl implements GameServer {
   getHeight = (): Promise<HeightResult> => {
     return Promise.resolve({ height: this.state.height });
   };
-
-  // playerMovedEventSubscription = (): PlayerEventSubscription =>
-  //   this.state.playerMovedSubscriptions;
-
-  // switchTurnEventSubscription = (): SwitchTurnSubscriber =>
-  //   this.state.switchTurnSubscriptions;
-
-  // wallToggledEventSubscription = (): WallToggledSubscriber =>
-  //   this.state.wallToggledSubscriptions;
-
-  // lockWallEventSubscription = (): LockWallEventSubscription =>
-  //   this.state.lockWallSubscriptions;
-
-  // diceRollEventSubscription = (): DiceRollEventSubscription =>
-  //   this.state.diceRollSubscriptions;
-
-  // winGameEventSubscription = (): WinGameEventSubscription =>
-  //   this.state.winGameSubscriptions;
-
-  // startGameEventSubscription = (): StartGameEventSubscription =>
-  //   this.state.startGameSubscriptions;
-
-  // numWallChangesEventSubscription = (): NumWallChangesEventSubscription =>
-  //   this.state.numWallChangesSubscriptions;
 
   private notifyWallToggled = (
     coord: Coord,
