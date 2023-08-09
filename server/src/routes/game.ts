@@ -125,14 +125,19 @@ function myPost<T>(
     let body = req.body;
     let sessionId = body.sessionId as string;
 
-    sessionManager
-      .get(sessionId)
-      .then((game) => callback(game, body))
-      .then((result) => safeSend<T>(result, res))
-      .catch((err) => {
-        console.error(err);
-        res.sendStatus(500);
-      });
+    try {
+      sessionManager
+        .get(sessionId)
+        .then((game) => callback(game, body))
+        .then((result) => safeSend<T>(result, res))
+        .catch((err) => {
+          console.error(err);
+          res.sendStatus(400);
+        });
+    } catch (e) {
+      console.error(e);
+      res.sendStatus(500);
+    }
   });
 }
 

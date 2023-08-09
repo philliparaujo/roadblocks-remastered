@@ -7,6 +7,8 @@ type EdgeColor = "gray" | "red" | "blue" | "black" | "lightblue" | "lightred";
 export type Orientation = "horizontal" | "vertical";
 export type EdgeType = "normal" | "locked" | "disabled";
 
+type Toggle = "on" | "pending" | "off";
+
 export interface EdgeProps {
   coord: Coord;
   orientation: Orientation;
@@ -20,22 +22,31 @@ const getFill = (
   orientation: Orientation,
   type: EdgeType,
   debug: boolean,
-  toggled: boolean
-) => {
-  return toggled
-    ? getToggledFill(orientation)
-    : getUntoggledFill(orientation, type, debug);
+  toggled: Toggle
+): EdgeColor => {
+  switch (toggled) {
+    case "on":
+      return getToggledFill(orientation);
+    case "pending":
+      return getPendingFill(orientation);
+    case "off":
+      return getUntoggledFill(orientation, type, debug);
+  }
 };
 
-const getToggledFill = (orientation: Orientation) => {
+const getToggledFill = (orientation: Orientation): EdgeColor => {
   return orientation === "horizontal" ? "blue" : "red";
+};
+
+const getPendingFill = (orientation: Orientation): EdgeColor => {
+  return orientation === "horizontal" ? "lightblue" : "lightred";
 };
 
 const getUntoggledFill = (
   orientation: Orientation,
   type: EdgeType,
   debug: boolean
-) => {
+): EdgeColor => {
   const untoggledUnlockedFill = debug
     ? orientation === "horizontal"
       ? "lightblue"
@@ -52,7 +63,7 @@ const Edge: React.FC<EdgeProps> = ({
   debug = false,
   game = GameInstance,
 }) => {
-  const [toggled, setToggled] = useState<boolean>(false);
+  const [toggled, setToggled] = useState<Toggle>("off");
   const [fill, setFill] = useState<EdgeColor>(
     getFill(orientation, type, debug, toggled)
   );
@@ -60,7 +71,7 @@ const Edge: React.FC<EdgeProps> = ({
   useEffect(() => {
     const unsubscribe = game.wallToggledEventSubscription().subscribe((e) => {
       if (equalCoords(e.wall, coord)) {
-        setToggled(e.isToggled);
+        setToggled(e.isToggled ? "on" : "off");
       }
     });
     return () => unsubscribe();
@@ -76,21 +87,23 @@ const Edge: React.FC<EdgeProps> = ({
       return;
     }
 
-    if (toggled) {
+    setToggled("pending");
+
+    if (toggled === "on") {
       game
         .removeEdge(coord)
-        .then((ok) => {
-          setToggled(false);
-        })
+        // .then((ok) => {
+        //   setToggled("off");
+        // })
         .catch((err) => {
           console.error(`NAY(${err})! edge: (${coord.row}, ${coord.col})`);
         });
     } else {
       game
         .addEdge(coord)
-        .then((ok) => {
-          setToggled(true);
-        })
+        // .then((ok) => {
+        //   setToggled("on");
+        // })
         .catch((err) => {
           console.error(`NAY(${err})! edge: (${coord.row}, ${coord.col})`);
         });

@@ -1,6 +1,6 @@
+import { GameClient as Game, GameInstance } from "@roadblocks/client";
 import { Coord, PlayerLocation, equalCoords } from "@roadblocks/types";
 import { useEffect, useState } from "react";
-import { GameInstance, GameClient as Game } from "@roadblocks/client";
 import "./Cell.css";
 
 type CellContents = PlayerLocation[];
@@ -20,45 +20,33 @@ const Cell: React.FC<CellProps> = ({
   game = GameInstance,
 }) => {
   const [contents, setContents] = useState<CellContents>(initialContents);
+  const [pending, setPending] = useState<boolean>(false);
+  const [pendingColor, setPendingColor] = useState<PlayerLocation | null>(null);
+
+  const pendingOpacity: number = 0.3;
+
+  const iconMapping: Record<PlayerLocation, string> = {
+    redplayer: "🔴",
+    redend: "🟥",
+    blueplayer: "🔵",
+    blueend: "🟦",
+  };
+
+  const generateIconSpan = (
+    icon: string,
+    label: PlayerLocation,
+    index: number = 0,
+    opacity = 1
+  ): JSX.Element => (
+    <span key={label + index} role="img" aria-label={label} style={{ opacity }}>
+      {icon}
+    </span>
+  );
 
   const generateCellContents = (): JSX.Element[] => {
-    let result: JSX.Element[] = [];
-
-    for (let i = 0; i < contents.length; i++) {
-      let element = contents[i];
-      switch (element) {
-        case "redplayer":
-          result.push(
-            <span key={i} role="img" aria-label="redplayer">
-              🔴
-            </span>
-          );
-          break;
-        case "redend":
-          result.push(
-            <span key={i} role="img" aria-label="redend">
-              🟥
-            </span>
-          );
-          break;
-        case "blueplayer":
-          result.push(
-            <span key={i} role="img" aria-label="blueplayer">
-              🔵
-            </span>
-          );
-          break;
-        case "blueend":
-          result.push(
-            <span key={i} role="img" aria-label="blueend">
-              🟦
-            </span>
-          );
-          break;
-      }
-    }
-
-    return result;
+    return contents.map((element, i) =>
+      generateIconSpan(iconMapping[element], element, i)
+    );
   };
 
   useEffect(() => {
@@ -66,17 +54,18 @@ const Cell: React.FC<CellProps> = ({
       const playerColor: PlayerLocation =
         e.player === "red" ? "redplayer" : "blueplayer";
 
-      // remove player from old cell
       if (equalCoords(coord, e.from)) {
         setContents((oldContents) =>
           oldContents.filter((element) => element !== playerColor)
         );
       }
 
-      // add player to new cell
       if (equalCoords(coord, e.to)) {
         setContents((oldContents) => [...oldContents, playerColor]);
       }
+
+      setPending(false);
+      setPendingColor(null);
     });
     return () => unsubscribe();
   }, [game]);
@@ -86,14 +75,29 @@ const Cell: React.FC<CellProps> = ({
       return;
     }
 
+    setPending(true);
+    game.getTurn().then((player) => {
+      setPendingColor(player === "red" ? "redplayer" : "blueplayer");
+    });
+
     game.setPlayerLocation(coord).catch((err) => {
       console.error(`NAY(${err})! cell: (${coord.row}, ${coord.col})`);
+      setPending(false);
+      setPendingColor(null);
     });
   };
 
   return (
     <div className="cell" onClick={handleClick}>
       {generateCellContents()}
+      {pending &&
+        pendingColor &&
+        generateIconSpan(
+          iconMapping[pendingColor],
+          pendingColor,
+          0,
+          pendingOpacity
+        )}
     </div>
   );
 };
