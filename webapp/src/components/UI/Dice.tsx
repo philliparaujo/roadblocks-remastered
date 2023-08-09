@@ -7,7 +7,6 @@ import "./Dice.css";
 export interface DiceProps {
   game?: Game;
 }
-
 export const rollDurationMs = 2000;
 
 const Dice: React.FC<DiceProps> = ({ game = GameInstance }) => {
@@ -23,6 +22,8 @@ const Dice: React.FC<DiceProps> = ({ game = GameInstance }) => {
   const [rolling, setRolling] = useState<boolean>(false);
 
   const rollSpeedMs = 200;
+
+  const rollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   /* Gets correct turn on game start */
   useEffect(() => {
@@ -51,6 +52,12 @@ const Dice: React.FC<DiceProps> = ({ game = GameInstance }) => {
       } else if (e.turn === "blue") {
         setCurrentTurn("blue");
       }
+
+      // Clear any timeouts and set rolling to false when the turn switches
+      if (rollTimeoutRef.current) {
+        clearTimeout(rollTimeoutRef.current);
+      }
+      setRolling(false);
     });
 
     return () => unsubscribe();
@@ -61,12 +68,17 @@ const Dice: React.FC<DiceProps> = ({ game = GameInstance }) => {
     const unsubscribe = game.diceRollEventSubscription().subscribe((e) => {
       setRolling(true);
       setLastValue(e.value);
-      setTimeout(() => {
+      rollTimeoutRef.current = setTimeout(() => {
         setRolling(false);
       }, rollDurationMs);
     });
 
-    return () => unsubscribe();
+    return () => {
+      unsubscribe();
+      if (rollTimeoutRef.current) {
+        clearTimeout(rollTimeoutRef.current);
+      }
+    };
   }, [game]);
 
   useEffect(() => {
