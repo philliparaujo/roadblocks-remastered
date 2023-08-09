@@ -1,9 +1,17 @@
 import { GameClient as Game, GameInstance } from "@roadblocks/client";
 import { Coord, equalCoords } from "@roadblocks/types";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./Edge.css";
 
-type EdgeColor = "gray" | "red" | "blue" | "black" | "lightblue" | "lightred";
+type EdgeColor =
+  | "gray"
+  | "red"
+  | "blue"
+  | "black"
+  | "lightred"
+  | "lightblue"
+  | "lightred-pending"
+  | "lightblue-pending";
 export type Orientation = "horizontal" | "vertical";
 export type EdgeType = "normal" | "locked" | "disabled";
 
@@ -22,7 +30,8 @@ const getFill = (
   orientation: Orientation,
   type: EdgeType,
   debug: boolean,
-  toggled: Toggle
+  toggled: Toggle,
+  startedOn: boolean
 ): EdgeColor => {
   switch (toggled) {
     case "on":
@@ -30,7 +39,7 @@ const getFill = (
     case "pending":
       return getPendingFill(orientation);
     case "off":
-      return getUntoggledFill(orientation, type, debug);
+      return getUntoggledFill(orientation, type, debug, startedOn);
   }
 };
 
@@ -39,19 +48,29 @@ const getToggledFill = (orientation: Orientation): EdgeColor => {
 };
 
 const getPendingFill = (orientation: Orientation): EdgeColor => {
-  return orientation === "horizontal" ? "lightblue" : "lightred";
+  return orientation === "horizontal"
+    ? "lightblue-pending"
+    : "lightred-pending";
 };
 
 const getUntoggledFill = (
   orientation: Orientation,
   type: EdgeType,
-  debug: boolean
+  debug: boolean,
+  startedOn: boolean
 ): EdgeColor => {
-  const untoggledUnlockedFill = debug
-    ? orientation === "horizontal"
-      ? "lightblue"
-      : "lightred"
-    : "gray";
+  const debugFill: EdgeColor =
+    orientation === "horizontal" ? "lightblue" : "lightred";
+  const normalFill: EdgeColor =
+    orientation === "horizontal"
+      ? startedOn
+        ? "lightblue"
+        : "gray"
+      : startedOn
+      ? "lightred"
+      : "gray";
+
+  const untoggledUnlockedFill = debug ? debugFill : normalFill;
   return type === "locked" ? "black" : untoggledUnlockedFill;
 };
 
@@ -64,10 +83,13 @@ const Edge: React.FC<EdgeProps> = ({
   game = GameInstance,
 }) => {
   const [toggled, setToggled] = useState<Toggle>("off");
+  const toggledRef = useRef<Toggle>("off");
+  const [startedOn, setStartedOn] = useState<boolean>(toggled === "on");
   const [fill, setFill] = useState<EdgeColor>(
-    getFill(orientation, type, debug, toggled)
+    getFill(orientation, type, debug, toggled, startedOn)
   );
 
+  /* Handle fill based on event */
   useEffect(() => {
     const unsubscribe = game.wallToggledEventSubscription().subscribe((e) => {
       if (equalCoords(e.wall, coord)) {
@@ -77,36 +99,47 @@ const Edge: React.FC<EdgeProps> = ({
     return () => unsubscribe();
   }, [game]);
 
+  /* Reset fill of removed startedOn edges (from light to gray) */
+  useEffect(() => {
+    const unsubscribe = game.lockWallEventSubscription().subscribe((e) => {
+      setStartedOn(toggledRef.current === "on");
+    });
+    return () => unsubscribe();
+  }, [game, toggledRef]);
+
+  useEffect(() => {
+    const unsubscribe = game.switchTurnEventSubscription().subscribe((e) => {
+      setStartedOn(toggledRef.current === "on");
+    });
+    return () => unsubscribe();
+  }, [game, toggledRef]);
+
   /* Updates color of edge whenever a change occurs */
   useEffect(() => {
-    setFill(getFill(orientation, type, debug, toggled));
-  }, [orientation, type, debug, toggled]);
+    setFill(getFill(orientation, type, debug, toggled, startedOn));
+  }, [orientation, type, debug, toggled, startedOn]);
 
+  useEffect(() => {
+    toggledRef.current = toggled;
+  }, [toggled]);
+
+  /* First set to pending, then an event triggers */
   const handleClick = () => {
     if (type === "locked" || type === "disabled") {
       return;
     }
-
     setToggled("pending");
 
     if (toggled === "on") {
-      game
-        .removeEdge(coord)
-        // .then((ok) => {
-        //   setToggled("off");
-        // })
-        .catch((err) => {
-          console.error(`NAY(${err})! edge: (${coord.row}, ${coord.col})`);
-        });
+      game.removeEdge(coord).catch((err) => {
+        console.error(`NAY(${err})! edge: (${coord.row}, ${coord.col})`);
+        setToggled("on");
+      });
     } else {
-      game
-        .addEdge(coord)
-        // .then((ok) => {
-        //   setToggled("on");
-        // })
-        .catch((err) => {
-          console.error(`NAY(${err})! edge: (${coord.row}, ${coord.col})`);
-        });
+      game.addEdge(coord).catch((err) => {
+        console.error(`NAY(${err})! edge: (${coord.row}, ${coord.col})`);
+        setToggled("off");
+      });
     }
   };
 
