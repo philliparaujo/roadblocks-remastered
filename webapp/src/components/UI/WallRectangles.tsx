@@ -31,7 +31,6 @@ const WallRectangles: React.FC<WallRectanglesProps> = ({
   const createEmptyArray = (): rectangleState[] => {
     let initialArray = new Array(maxRectangles).fill("locked");
     initialArray.fill("", 0, 7 - diceValueRef.current);
-
     return initialArray;
   };
 

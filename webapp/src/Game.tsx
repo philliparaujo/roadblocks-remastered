@@ -9,6 +9,13 @@ import SwitchTurnButton from "./components/UI/SwitchTurnButton";
 import WallRectangles from "./components/UI/WallRectangles";
 import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
+import {
+  DiceRollAlert,
+  LockWallsAlert,
+  StartGameAlert,
+  SwitchTurnAlert,
+  WinGameAlert,
+} from "./components/UI/GameAlert";
 
 function Game() {
   const [inProgress, setInProgress] = useState<boolean | undefined>(undefined);
@@ -29,6 +36,7 @@ function Game() {
   ) : inProgress ? (
     <>
       <NavBar links={links} />
+
       <div className="Game">
         <div className="game-column">
           <h2>Game</h2>
@@ -50,6 +58,12 @@ function Game() {
           </div>
         </div>
       </div>
+
+      <StartGameAlert />
+      <DiceRollAlert />
+      <LockWallsAlert />
+      <SwitchTurnAlert />
+      <WinGameAlert />
     </>
   ) : (
     <Navigate to="/" replace={true} />

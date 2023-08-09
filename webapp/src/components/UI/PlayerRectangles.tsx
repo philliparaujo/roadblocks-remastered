@@ -52,6 +52,7 @@ const PlayerRectangles: React.FC<PlayerRectangleProps> = ({
     const unsubscribe = game.switchTurnEventSubscription().subscribe((e) => {
       updateRectangleStates(0);
     });
+    return () => unsubscribe();
   }, [game]);
 
   useEffect(() => {
@@ -73,6 +74,7 @@ const PlayerRectangles: React.FC<PlayerRectangleProps> = ({
     const unsubscribe = game.playerMovedEventSubscription().subscribe((e) => {
       updateRectangleStates(e.numMovements);
     });
+    return () => unsubscribe();
   }, [game]);
 
   return (

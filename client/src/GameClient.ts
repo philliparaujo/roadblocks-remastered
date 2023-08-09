@@ -213,6 +213,11 @@ export class GameClient implements Game, GameControl {
     this.wallToggledSubscriptions.start(sessionId);
     this.playerMovedSubscriptions.start(sessionId);
     this.diceRollSubscriptions.start(sessionId);
+    this.numWallChangesSubscriptions.start(sessionId);
+    this.lockWallSubscriptions.start(sessionId);
+    this.switchTurnSubscriptions.start(sessionId);
+    this.winGameSubscriptions.start(sessionId);
+    this.startGameSubscriptions.start(sessionId);
   };
 
   // TODO: implement stop subscribers and call it sometime when game ends
