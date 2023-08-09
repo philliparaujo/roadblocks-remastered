@@ -1,28 +1,28 @@
 import {
-  GameInstance,
   GameClient as Game,
+  GameInstance,
   SubscriberClient,
 } from "@roadblocks/client";
-import { useEffect, useState } from "react";
-import "./GameAlert.css";
 import {
   DiceRollEvent,
-  LockWallEvent,
-  PlayerColor,
-  StartGameEvent,
   SwitchTurnEvent,
   TimedEvent,
   WinGameEvent,
 } from "@roadblocks/types";
+import { useEffect } from "react";
+import { useAlerts } from "./AlertContext";
 import { rollDurationMs } from "./Dice";
+import "./GameAlert.css";
 
 interface GameAlertProps<T extends TimedEvent> {
   subscription: SubscriberClient<T>;
-  messageBuilder: (event: T) => string;
-  classBuilder?: (event: T) => string;
+  messageBuilder: (event: T) => string; // Create a function determining the message output
+  classBuilder?: (event: T) => string; // Create a function determining the message class (for color)
   game?: Game;
   delay?: number;
 }
+
+const displayTimeMs: number = 3000;
 
 const GameAlert: React.FC<GameAlertProps<any>> = ({
   subscription,
@@ -31,32 +31,35 @@ const GameAlert: React.FC<GameAlertProps<any>> = ({
   game = GameInstance,
   delay = 0,
 }) => {
-  const [isVisible, setIsVisible] = useState(false);
-  const [alertMessage, setAlertMessage] = useState("");
-  const [alertClass, setAlertClass] = useState("");
+  const { addAlert, removeAlert, updateAlertClass } = useAlerts();
 
   useEffect(() => {
     const unsubscribe = subscription.subscribe((e: any) => {
       setTimeout(() => {
-        setAlertMessage(messageBuilder(e));
-        if (classBuilder) {
-          setAlertClass(classBuilder(e));
-        }
-        setIsVisible(true);
+        const alertMessage = messageBuilder(e);
+        let alertClass = classBuilder ? classBuilder(e) : undefined;
+        const id = addAlert({ message: alertMessage, className: alertClass });
+
         setTimeout(() => {
-          setIsVisible(false);
-        }, 3000);
+          alertClass += " fade-out";
+          if (!alertClass) {
+            console.error("NO ALERT CLASS");
+            return;
+          }
+          updateAlertClass(id, alertClass);
+
+          setTimeout(() => {
+            removeAlert(id);
+          }, 800); // Duration of fade-out
+        }, displayTimeMs - 800);
       }, delay);
     });
 
     return () => unsubscribe();
   }, [game, delay]);
 
-  if (!isVisible) {
-    return null;
-  }
-
-  return <div className={`custom-alert ${alertClass}`}>{alertMessage}</div>;
+  // No need to render anything here. Rendering is handled by AlertDisplay.
+  return null;
 };
 
 interface AlertProps {

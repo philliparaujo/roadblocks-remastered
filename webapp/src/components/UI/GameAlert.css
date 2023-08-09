@@ -1,16 +1,26 @@
-.custom-alert {
+.alert-container {
   position: fixed;
   top: 10%;
   left: 50%;
   transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 1000;
+}
+
+.custom-alert {
   background-color: #222;
   color: white;
   padding: 16px 20px;
   border-radius: 4px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   font-size: 18px;
-  z-index: 1000;
-  animation: fadeInOut 4s forwards;
+  animation: fadeIn 0.8s forwards; /* 0.8s is just an example; adjust as desired */
+}
+
+.fade-out {
+  animation: fadeOut 0.8s forwards;
 }
 
 .custom-alert.red {
@@ -21,17 +31,20 @@
   background-color: rgb(128, 128, 255);
 }
 
-@keyframes fadeInOut {
-  0% {
+@keyframes fadeIn {
+  from {
     opacity: 0;
   }
-  20% {
+  to {
     opacity: 1;
   }
-  80% {
+}
+
+@keyframes fadeOut {
+  from {
     opacity: 1;
   }
-  100% {
+  to {
     opacity: 0;
   }
 }

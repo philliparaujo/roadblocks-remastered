@@ -16,6 +16,8 @@ import {
   SwitchTurnAlert,
   WinGameAlert,
 } from "./components/UI/GameAlert";
+import { AlertProvider } from "./components/UI/AlertContext";
+import { AlertDisplay } from "./components/UI/AlertDisplay";
 
 function Game() {
   const [inProgress, setInProgress] = useState<boolean | undefined>(undefined);
@@ -59,11 +61,15 @@ function Game() {
         </div>
       </div>
 
-      <StartGameAlert />
-      <DiceRollAlert />
-      <LockWallsAlert />
-      <SwitchTurnAlert />
-      <WinGameAlert />
+      <AlertProvider>
+        <AlertDisplay />
+
+        <StartGameAlert />
+        <DiceRollAlert />
+        <LockWallsAlert />
+        <SwitchTurnAlert />
+        <WinGameAlert />
+      </AlertProvider>
     </>
   ) : (
     <Navigate to="/" replace={true} />
