@@ -49,18 +49,18 @@ function Game() {
         <div className="actions-column">
           <Dice2 />
           <div>
+            <LockWallsButton />
+            <SwitchTurnButton />
+            <ResetTurnButton />
+          </div>
+          <hr />
+          <div>
             <h3>Wall Moves:</h3>
             <WallRectangles />
           </div>
           <div>
             <h3>Player Moves:</h3>
             <PlayerRectangles />
-          </div>
-          <div style={{ marginTop: 18 }}></div>
-          <div>
-            <LockWallsButton />
-            <SwitchTurnButton />
-            <ResetTurnButton />
           </div>
         </div>
       </div>

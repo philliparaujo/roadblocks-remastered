@@ -8,7 +8,6 @@ function Home() {
   const [error, setError] = useState<string>("");
 
   const links = [
-    { name: "Start Game", url: "/game" },
     { name: "Settings", url: "/settings" },
     { name: "About", url: "/about" },
   ];

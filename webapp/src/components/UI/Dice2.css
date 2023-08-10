@@ -88,14 +88,15 @@ input[type="radio"] {
   display: none;
 }
 #view {
-  height: 200px;
+  height: 250px;
   perspective: 600px;
   scale: 0.75;
 }
 #dice {
   width: 200px;
   height: 200px;
-  margin-left: 50px;
+  margin-left: 90px;
+  margin-bottom: 50px;
   position: relative;
   transform-style: preserve-3d;
   transition: transform 0.5s;
