@@ -36,6 +36,13 @@ const LockWallsButton: React.FC<LockWallsButtonProps> = ({
   }, [game]);
 
   useEffect(() => {
+    const unsubscribe = game.winGameEventSubscription().subscribe((e) => {
+      setDisabled(true);
+    });
+    return () => unsubscribe();
+  }, [game]);
+
+  useEffect(() => {
     const updateDisabledState = () => {
       Promise.all([game.pathExists("red"), game.pathExists("blue")])
         .then(([redPathExists, bluePathExists]) => {

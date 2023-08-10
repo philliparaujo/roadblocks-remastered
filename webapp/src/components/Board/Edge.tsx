@@ -89,6 +89,8 @@ const Edge: React.FC<EdgeProps> = ({
     getFill(orientation, type, debug, toggled, startedOn)
   );
 
+  const [disabled, setDisabled] = useState<boolean>(true);
+
   /* Handle fill based on event */
   useEffect(() => {
     const unsubscribe = game.wallToggledEventSubscription().subscribe((e) => {
@@ -103,6 +105,7 @@ const Edge: React.FC<EdgeProps> = ({
   useEffect(() => {
     const unsubscribe = game.lockWallEventSubscription().subscribe((e) => {
       setStartedOn(toggledRef.current === "on");
+      setDisabled(e.locked);
     });
     return () => unsubscribe();
   }, [game, toggledRef]);
@@ -110,9 +113,24 @@ const Edge: React.FC<EdgeProps> = ({
   useEffect(() => {
     const unsubscribe = game.switchTurnEventSubscription().subscribe((e) => {
       setStartedOn(toggledRef.current === "on");
+      setDisabled(true);
     });
     return () => unsubscribe();
   }, [game, toggledRef]);
+
+  useEffect(() => {
+    const unsubscribe = game.diceRollEventSubscription().subscribe((e) => {
+      setDisabled(false);
+    });
+    return () => unsubscribe();
+  }, [game]);
+
+  useEffect(() => {
+    const unsubscribe = game.winGameEventSubscription().subscribe((e) => {
+      setDisabled(true);
+    });
+    return () => unsubscribe();
+  }, [game]);
 
   /* Updates color of edge whenever a change occurs */
   useEffect(() => {
@@ -144,7 +162,10 @@ const Edge: React.FC<EdgeProps> = ({
   };
 
   return (
-    <div className={`edge ${orientation} ${fill}`} onClick={handleClick}></div>
+    <div
+      className={`edge ${orientation} ${fill} ${disabled ? "disabled" : ""}`}
+      onClick={handleClick}
+    ></div>
   );
 };
 

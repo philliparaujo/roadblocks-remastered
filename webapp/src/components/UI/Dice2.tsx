@@ -21,7 +21,7 @@ const Dice2: React.FC<DiceProps> = ({ game = GameInstance }) => {
   const rollSpeedMs = 200;
   const rollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const [disabled, setDisabled] = useState<boolean>(false);
+  const [disabled, setDisabled] = useState<boolean>(true);
 
   const getRandomIndex = (): number => {
     return randomDiceValue() - 1;
@@ -124,13 +124,29 @@ const Dice2: React.FC<DiceProps> = ({ game = GameInstance }) => {
     setFaceIndex(index);
   }, [rolling, lastValue]);
 
+  useEffect(() => {
+    const unsubscribe = game.startGameEventSubscription().subscribe((e) => {
+      setDisabled(false);
+    });
+    return () => unsubscribe();
+  }, [game]);
+
+  useEffect(() => {
+    const unsubscribe = game.winGameEventSubscription().subscribe((e) => {
+      setDisabled(true);
+    });
+    return () => unsubscribe();
+  }, [game]);
+
   const handleClick = () => {
-    game
-      .rollDice()
-      .then((result) => {
-        console.log("DICE ROLLED A ", result.diceValue);
-      })
-      .catch((err) => console.error("already rolled dice"));
+    if (!disabled) {
+      game
+        .rollDice()
+        .then((result) => {
+          console.log("DICE ROLLED A ", result.diceValue);
+        })
+        .catch((err) => console.error("already rolled dice"));
+    }
   };
 
   return (

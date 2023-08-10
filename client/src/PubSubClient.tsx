@@ -70,8 +70,14 @@ export class SubscriberClient<T extends TimedEvent> {
         new Date(this.lastSeenEvent).toISOString()
       );
 
-      // console.log("Checking PubSub events", this.route);
+      console.log("Checking PubSub events", this.route);
       myGet<T[]>(url, { sessionId }).then((events) => {
+        events.forEach((event) => {
+          {
+            console.log("Received event", event, "for", this.constructor.name);
+          }
+        });
+
         events.forEach((event) => {
           if (event.reset) {
             this.pastEvents = [];

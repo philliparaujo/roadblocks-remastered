@@ -4,6 +4,16 @@
   background-color: #f8f8f8;
   display: flex;
   flex-wrap: wrap;
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.cell:not(.disabled):hover {
+  background-color: #eaeaea;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.cell.disabled {
+  cursor: not-allowed;
 }
 
 span {

@@ -11,7 +11,7 @@ const SwitchTurnButton: React.FC<SwitchTurnButtonProps> = ({
   game = GameInstance,
 }) => {
   const [player, setPlayer] = useState<PlayerColor>("red");
-  const [disabled, setDisabled] = useState<boolean>(false);
+  const [disabled, setDisabled] = useState<boolean>(true);
   const playerColor: PlayerColor = player;
 
   useEffect(() => {
@@ -25,6 +25,20 @@ const SwitchTurnButton: React.FC<SwitchTurnButtonProps> = ({
       setPlayer(e.turn);
     });
 
+    return () => unsubscribe();
+  }, [game]);
+
+  useEffect(() => {
+    const unsubscribe = game.startGameEventSubscription().subscribe((e) => {
+      setDisabled(false);
+    });
+    return () => unsubscribe();
+  }, [game]);
+
+  useEffect(() => {
+    const unsubscribe = game.winGameEventSubscription().subscribe((e) => {
+      setDisabled(true);
+    });
     return () => unsubscribe();
   }, [game]);
 

@@ -23,6 +23,8 @@ const Cell: React.FC<CellProps> = ({
   const [pending, setPending] = useState<boolean>(false);
   const [pendingColor, setPendingColor] = useState<PlayerLocation | null>(null);
 
+  const [disabled, setDisabled] = useState<boolean>(true);
+
   const pendingOpacity: number = 0.3;
 
   const iconMapping: Record<PlayerLocation, string> = {
@@ -70,6 +72,27 @@ const Cell: React.FC<CellProps> = ({
     return () => unsubscribe();
   }, [game]);
 
+  useEffect(() => {
+    const unsubscribe = game.lockWallEventSubscription().subscribe((e) => {
+      setDisabled(!e.locked);
+    });
+    return () => unsubscribe();
+  }, [game]);
+
+  useEffect(() => {
+    const unsubscribe = game.switchTurnEventSubscription().subscribe((e) => {
+      setDisabled(true);
+    });
+    return () => unsubscribe();
+  }, [game]);
+
+  useEffect(() => {
+    const unsubscribe = game.winGameEventSubscription().subscribe((e) => {
+      setDisabled(true);
+    });
+    return () => unsubscribe();
+  }, [game]);
+
   const handleClick = () => {
     if (type === "disabled") {
       return;
@@ -88,7 +111,7 @@ const Cell: React.FC<CellProps> = ({
   };
 
   return (
-    <div className="cell" onClick={handleClick}>
+    <div className={`cell ${disabled ? "disabled" : ""}`} onClick={handleClick}>
       {generateCellContents()}
       {pending &&
         pendingColor &&
