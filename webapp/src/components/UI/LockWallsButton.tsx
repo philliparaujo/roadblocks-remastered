@@ -1,6 +1,7 @@
 import "./Button.css";
 import { GameInstance, GameClient as Game } from "@roadblocks/client";
 import { useEffect, useState } from "react";
+import { rollDurationMs } from "./Dice";
 
 export interface LockWallsButtonProps {
   game?: Game;
@@ -9,11 +10,20 @@ export interface LockWallsButtonProps {
 const LockWallsButton: React.FC<LockWallsButtonProps> = ({
   game = GameInstance,
 }) => {
-  const [disabled, setDisabled] = useState<boolean>(false);
+  const [disabled, setDisabled] = useState<boolean>(true);
 
   useEffect(() => {
     const unsubscribe = game.switchTurnEventSubscription().subscribe((e) => {
-      setDisabled(false);
+      setDisabled(true);
+    });
+    return () => unsubscribe();
+  }, [game]);
+
+  useEffect(() => {
+    const unsubscribe = game.diceRollEventSubscription().subscribe((e) => {
+      setTimeout(() => {
+        setDisabled(false);
+      }, rollDurationMs);
     });
     return () => unsubscribe();
   }, [game]);

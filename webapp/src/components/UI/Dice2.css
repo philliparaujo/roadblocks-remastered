@@ -1,0 +1,197 @@
+:root {
+  --opacity: 1;
+  --hue-intensity: 230;
+
+  --brightness-1: 40;
+  --brightness-2: 55;
+  --brightness-3: 70;
+  --brightness-4: 85;
+  --brightness-5: 100;
+  --brightness-6: 115;
+
+  --shade-red-1: rgba(
+    var(--hue-intensity),
+    var(--brightness-1),
+    var(--brightness-1),
+    var(--opacity)
+  );
+  --shade-red-2: rgba(
+    var(--hue-intensity),
+    var(--brightness-2),
+    var(--brightness-2),
+    var(--opacity)
+  );
+  --shade-red-3: rgba(
+    var(--hue-intensity),
+    var(--brightness-3),
+    var(--brightness-3),
+    var(--opacity)
+  );
+  --shade-red-4: rgba(
+    var(--hue-intensity),
+    var(--brightness-4),
+    var(--brightness-4),
+    var(--opacity)
+  );
+  --shade-red-5: rgba(
+    var(--hue-intensity),
+    var(--brightness-5),
+    var(--brightness-5),
+    var(--opacity)
+  );
+  --shade-red-6: rgba(
+    var(--hue-intensity),
+    var(--brightness-6),
+    var(--brightness-6),
+    var(--opacity)
+  );
+
+  --shade-blue-1: rgba(
+    var(--brightness-1),
+    var(--brightness-1),
+    var(--hue-intensity),
+    var(--opacity)
+  );
+  --shade-blue-2: rgba(
+    var(--brightness-2),
+    var(--brightness-2),
+    var(--hue-intensity),
+    var(--opacity)
+  );
+  --shade-blue-3: rgba(
+    var(--brightness-3),
+    var(--brightness-3),
+    var(--hue-intensity),
+    var(--opacity)
+  );
+  --shade-blue-4: rgba(
+    var(--brightness-4),
+    var(--brightness-4),
+    var(--hue-intensity),
+    var(--opacity)
+  );
+  --shade-blue-5: rgba(
+    var(--brightness-5),
+    var(--brightness-5),
+    var(--hue-intensity),
+    var(--opacity)
+  );
+  --shade-blue-6: rgba(
+    var(--brightness-6),
+    var(--brightness-6),
+    var(--hue-intensity),
+    var(--opacity)
+  );
+}
+
+input[type="radio"] {
+  display: none;
+}
+#view {
+  height: 200px;
+  perspective: 600px;
+  scale: 0.75;
+}
+#dice {
+  width: 200px;
+  height: 200px;
+  margin-left: 50px;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.5s;
+}
+#btnFront:checked ~ #view > #dice {
+  transform: rotateY(360deg) !important;
+}
+#btnRight:checked ~ #view > #dice {
+  transform: rotateY(-90deg) !important;
+}
+#btnBack:checked ~ #view > #dice {
+  transform: rotateY(180deg) !important;
+}
+#btnLeft:checked ~ #view > #dice {
+  transform: rotateY(90deg) !important;
+}
+#btnTop:checked ~ #view > #dice {
+  transform: rotateX(-90deg) !important;
+}
+#btnBottom:checked ~ #view > #dice {
+  transform: rotateX(90deg) !important;
+}
+.diceFace {
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  text-align: center;
+  line-height: 200px;
+  font-size: 60px;
+  font-weight: 600;
+  border: 2px solid #000;
+}
+
+#front {
+  transform: rotateY(0deg) translateZ(100px);
+}
+#right {
+  transform: rotateY(90deg) translateZ(100px);
+}
+#back {
+  transform: rotateY(180deg) translateZ(100px);
+}
+#left {
+  transform: rotateY(-90deg) translateZ(100px);
+}
+#top {
+  transform: rotateX(90deg) translateZ(100px);
+}
+#bottom {
+  transform: rotateX(-90deg) translateZ(100px);
+}
+
+#dice .red#front {
+  background-color: var(--shade-red-1);
+}
+#dice .red#right {
+  background-color: var(--shade-red-2);
+}
+#dice .red#top {
+  background-color: var(--shade-red-3);
+}
+#dice .red#bottom {
+  background-color: var(--shade-red-4);
+}
+#dice .red#left {
+  background-color: var(--shade-red-5);
+}
+#dice .red#back {
+  background-color: var(--shade-red-6);
+}
+
+#dice .blue#front {
+  background-color: var(--shade-blue-1);
+}
+#dice .blue#right {
+  background-color: var(--shade-blue-2);
+}
+#dice .blue#top {
+  background-color: var(--shade-blue-3);
+}
+#dice .blue#bottom {
+  background-color: var(--shade-blue-4);
+}
+#dice .blue#left {
+  background-color: var(--shade-blue-5);
+}
+#dice .blue#back {
+  background-color: var(--shade-blue-6);
+}
+#test:checked + #test2 {
+  display: block;
+  width: 80px;
+  background-color: #0aa;
+}
+input[type="radio"] {
+  transform: scale(2, 2);
+  margin: 10px;
+  color: red;
+}

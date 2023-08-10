@@ -2,7 +2,7 @@ import { randomDiceValue } from "@roadblocks/types";
 import { PlayerColor } from "@roadblocks/types";
 import { useEffect, useRef, useState } from "react";
 import { GameInstance, GameClient as Game } from "@roadblocks/client";
-import "./Dice.css";
+import "./Dice2.css";
 
 export interface DiceProps {
   game?: Game;

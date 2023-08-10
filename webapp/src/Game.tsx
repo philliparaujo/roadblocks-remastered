@@ -19,6 +19,7 @@ import {
 import { AlertProvider } from "./components/UI/AlertContext";
 import { AlertDisplay } from "./components/UI/AlertDisplay";
 import ResetTurnButton from "./components/UI/ResetTurnButton";
+import Dice2 from "./components/UI/Dice2";
 
 function Game() {
   const [inProgress, setInProgress] = useState<boolean | undefined>(undefined);
@@ -46,7 +47,7 @@ function Game() {
           <UIBoard debug={false} />
         </div>
         <div className="actions-column">
-          <Dice />
+          <Dice2 />
           <div>
             <h3>Wall Moves:</h3>
             <WallRectangles />
@@ -55,6 +56,7 @@ function Game() {
             <h3>Player Moves:</h3>
             <PlayerRectangles />
           </div>
+          <div style={{ marginTop: 18 }}></div>
           <div>
             <LockWallsButton />
             <SwitchTurnButton />
