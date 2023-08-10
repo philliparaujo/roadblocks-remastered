@@ -21,6 +21,8 @@ const Dice2: React.FC<DiceProps> = ({ game = GameInstance }) => {
   const rollSpeedMs = 200;
   const rollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  const [disabled, setDisabled] = useState<boolean>(false);
+
   const getRandomIndex = (): number => {
     return randomDiceValue() - 1;
   };
@@ -69,6 +71,7 @@ const Dice2: React.FC<DiceProps> = ({ game = GameInstance }) => {
         clearTimeout(rollTimeoutRef.current);
       }
       setRolling(false);
+      setDisabled(false);
     });
 
     return () => unsubscribe();
@@ -79,6 +82,7 @@ const Dice2: React.FC<DiceProps> = ({ game = GameInstance }) => {
     const unsubscribe = game.diceRollEventSubscription().subscribe((e) => {
       setLastValue(e.value);
       setRolling(true);
+      setDisabled(true);
 
       rollTimeoutRef.current = setTimeout(() => {
         setRolling(false);
@@ -174,7 +178,7 @@ const Dice2: React.FC<DiceProps> = ({ game = GameInstance }) => {
         id="btnBack"
       />
       <div id="view">
-        <div id="dice">
+        <div id="dice" className={disabled ? "disabled" : ""}>
           <div className={`diceFace ${diceColor}`} id="front">
             {currentFaces[0]}
           </div>

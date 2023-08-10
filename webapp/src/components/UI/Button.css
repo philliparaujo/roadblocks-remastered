@@ -28,3 +28,9 @@
 .button.disabled {
   background-color: rgb(164, 164, 164);
 }
+
+.button:not(.disabled):hover {
+  opacity: 0.8;
+  cursor: pointer;
+  transform: scale(1.05);
+}

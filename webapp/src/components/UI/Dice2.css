@@ -196,3 +196,11 @@ input[type="radio"] {
   margin: 10px;
   color: red;
 }
+
+#dice:hover:not(.disabled) .diceFace {
+  box-shadow: 0px 0px 15px 0px rgba(0, 0, 0, 0.5);
+}
+#dice.disabled .diceFace {
+  pointer-events: none;
+  cursor: not-allowed;
+}
