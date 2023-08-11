@@ -18,6 +18,7 @@ code {
   align-items: center; /* Centers items horizontally */
   justify-content: center; /* Centers items vertically */
   height: 100vh; /* Takes the full viewport height */
+  position: relative;
 }
 
 .home #background {
@@ -51,6 +52,91 @@ code {
 .home #logo {
   width: 600px;
   margin: 2rem;
+}
+
+.home .about-icon {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  cursor: pointer;
+  font-size: 36px; /* adjust size of the icon */
+  z-index: 1000; /* ensure it's above other content */
+}
+
+.home .about-popup {
+  width: 70%; /* making it 70% of the screen width */
+  max-width: 600px; /* Optional: a max width so it doesn't get too wide on large screens */
+  background-color: #ddd; /* white background */
+  border-radius: 15px; /* rounded corners */
+  padding: 25px; /* spacing inside the popup */
+  padding-left: 35px;
+  padding-right: 35px;
+  position: relative; /* to position the close button absolutely within this popup */
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); /* shadow for a pop effect */
+  opacity: 0.95;
+  display: flex; /* makes sure content is vertically centered */
+  justify-content: center; /* centers content horizontally */
+  align-items: center; /* centers content vertically */
+  max-height: 70vh;
+  height: auto; /* lets it adapt to content */
+  overflow-y: auto; /* in case content is too much for the popup */
+}
+.home .about-container {
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 20px;
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.home .about-header,
+.how-to-play-header {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 16px;
+  border-bottom: 2px solid #333;
+  padding-bottom: 10px;
+}
+
+.home .description {
+  font-size: 18px;
+  margin-bottom: 24px;
+  line-height: 1.3;
+  color: #666;
+}
+
+.home .how-to-play-list {
+  font-size: 18px;
+  margin-bottom: 20px;
+  color: #444;
+}
+
+.home .how-to-play-list li {
+  margin-bottom: 12px;
+  line-height: 1.3;
+}
+
+.home .overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.7); /* semi-transparent black */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 998; /* make sure this is below the popup and above other content */
+}
+
+.home .popup-close {
+  cursor: pointer;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 24px; /* adjust size of the x icon */
+  z-index: 1001; /* ensure it's above the popup */
 }
 
 .game #background {
