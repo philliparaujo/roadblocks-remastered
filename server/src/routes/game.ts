@@ -57,6 +57,8 @@ import {
   errorRoute,
   ErrorEvent,
   errorPubSubRoute,
+  listGamesRoute,
+  ListGamesResult,
 } from "@roadblocks/types";
 import express from "express";
 import SessionManager from "../SessionManager";
@@ -117,6 +119,23 @@ router.post(joinGameRoute, (req, res) => {
         }
       });
   } catch (e) {
+    res.sendStatus(500);
+  }
+});
+
+router.get(listGamesRoute, (req, res) => {
+  try {
+    sessionManager
+      .listGames()
+      .then((games) => {
+        safeSend<ListGamesResult>({ games }, res);
+      })
+      .catch((err) => {
+        console.error(err);
+        res.sendStatus(400);
+      });
+  } catch (e) {
+    console.error(e);
     res.sendStatus(500);
   }
 });

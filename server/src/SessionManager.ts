@@ -3,6 +3,7 @@ import {
   GameServerImpl as GameServer,
   GameServer as Game,
 } from "@roadblocks/engine";
+import { GameInfo } from "@roadblocks/types";
 
 type Session = { sessionId: string; name: string; gameId: string; game: Game };
 
@@ -15,6 +16,7 @@ export interface SessionManager {
   join: (gameId: string, name: string) => Promise<{ sessionId: string }>;
   delete: (sessionId: string) => Promise<void>;
   get: (sessionId: string) => Promise<Game>;
+  listGames: () => Promise<GameInfo[]>;
 }
 
 class SessionManagerImpl implements SessionManager {
@@ -86,6 +88,26 @@ class SessionManagerImpl implements SessionManager {
     if (!session) return Promise.reject("Session with given ID doesn't exist");
     return Promise.resolve(session.game);
   }
+
+  listGames = (): Promise<GameInfo[]> =>
+    Promise.resolve(
+      this.sessions
+        .reduce((result: string[], current: Session) => {
+          if (!result.includes(current.gameId)) {
+            result.push(current.gameId);
+          }
+          return result;
+        }, [])
+        .map((gameId: string) => ({
+          gameId,
+          users: this.sessions
+            .filter((session) => session.gameId === gameId)
+            .map((session, index) => ({
+              playerName: session.name,
+              role: index === 0 ? "red" : index === 1 ? "blue" : "watcher",
+            })),
+        }))
+    );
 
   getSessionsForTesting(): Session[] {
     return this.sessions;

@@ -11,3 +11,7 @@ export type WallLocations = {
 export type DiceInfo = {
   [key in PlayerColor]: number[];
 };
+
+export type UserRole = "red" | "blue" | "watcher";
+export type UserInfo = { playerName: string; role: UserRole };
+export type GameInfo = { gameId: string; users: UserInfo[] };

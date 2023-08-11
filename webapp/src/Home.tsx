@@ -1,14 +1,18 @@
 import { GameInstance } from "@roadblocks/client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faQuestionCircle, faTimes } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { GameInfo, UserRole } from "@roadblocks/types";
 import "./Home.css";
 
 function Home() {
-  const [gameReady, setGameReady] = useState<boolean>(false);
+  const [role, setRole] = useState<UserRole | undefined>();
   const [error, setError] = useState<string>("");
+
+  const [onlineGames, setOnlineGames] = useState<GameInfo[]>();
+  const refreshGamesTimerMs = 1000;
 
   const [showAbout, setShowAbout] = useState(false);
   const toggleAbout = () => {
@@ -18,17 +22,59 @@ function Home() {
   const startGame = () => {
     GameInstance.newGame("John")
       .then(() => {
-        setGameReady(true);
+        setRole("red");
       })
       .catch((err) => {
         setError(err);
       });
   };
 
+  const joinGame = (gameId: string, watcher: boolean) => {
+    GameInstance.joinGame(gameId, "Jill")
+      .then(() => {
+        setRole(watcher ? "watcher" : "blue");
+      })
+      .catch((err) => {
+        setError(err);
+      });
+  };
+
+  const fetchGames = () => {
+    GameInstance.listGames().then((result) => {
+      setOnlineGames(result.games);
+    });
+  };
+
+  useEffect(() => {
+    fetchGames();
+    const interval = setInterval(() => {
+      fetchGames();
+    }, refreshGamesTimerMs);
+    return () => clearInterval(interval);
+  }, [GameInstance]);
+
   return (
     <div className="home">
       <div id="background" />
       <img src="images/logo.png" id="logo" />
+
+      {onlineGames === undefined ? (
+        <div>Loading...</div>
+      ) : onlineGames.length > 0 ? (
+        onlineGames.map((game) => (
+          <div key={game.gameId}>
+            {game.users.map((u) => u.playerName).join(",")}
+            <button
+              className="home-button"
+              onClick={() => joinGame(game.gameId, game.users.length > 1)}
+            >
+              Join
+            </button>
+          </div>
+        ))
+      ) : (
+        <div>No Games</div>
+      )}
 
       <button className="home-button" onClick={startGame}>
         Start Game
@@ -46,7 +92,7 @@ function Home() {
         <FontAwesomeIcon icon={faQuestionCircle} />
       </div>
 
-      {gameReady && <Navigate to="/game" replace={true} />}
+      {role && <Navigate to={`/game#${role}`} replace={true} />}
 
       {showAbout && (
         <div className="overlay" onClick={toggleAbout}>

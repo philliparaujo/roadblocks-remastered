@@ -1,5 +1,5 @@
 import { Coord } from "./Coord";
-import { PlayerColor, WallLocations } from "./Types";
+import { PlayerColor, WallLocations, GameInfo } from "./Types";
 
 export interface NewGameResult {
   sessionId: string;
@@ -8,6 +8,10 @@ export interface NewGameResult {
 
 export interface JoinGameResult {
   sessionId: string;
+}
+
+export interface ListGamesResult {
+  games: GameInfo[];
 }
 
 export interface AddEdgeResult {}

@@ -28,6 +28,7 @@ function App() {
         <Route path="/game" element={<Game />} />
         <Route path="/settings" element={<div>SETTINGS</div>} />
         <Route path="/about" element={<div>ABOUT</div>} />
+        <Route path="/*" element={<div>NOT FOUND</div>} />
       </Routes>
     </div>
   );

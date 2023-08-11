@@ -14,6 +14,7 @@ export const errorPubSubRoute = `${pubSubRoute}/error`;
 /* API routes */
 export const newGameRoute = "/newGame";
 export const joinGameRoute = "/joinGame";
+export const listGamesRoute = "/listGames";
 
 export const addEdgeRoute = "/addEdge";
 export const removeEdgeRoute = "/removeEdge";

@@ -21,9 +21,31 @@ import { AlertDisplay } from "./components/UI/AlertDisplay";
 import ResetTurnButton from "./components/UI/ResetTurnButton";
 import Dice2 from "./components/UI/Dice2";
 import { Link } from "react-router-dom";
+import { UserRole } from "@roadblocks/types";
 
-function Game() {
+interface GameProps {}
+
+const Game: React.FC<GameProps> = () => {
   const [inProgress, setInProgress] = useState<boolean | undefined>(undefined);
+  const [role, setRole] = useState<UserRole | undefined>(undefined);
+
+  useEffect(() => {
+    switch (window.location.hash) {
+      case "#red":
+        setRole("red");
+        break;
+      case "#blue":
+        setRole("blue");
+        break;
+      case "#watcher":
+        setRole("watcher");
+        break;
+      default:
+        console.error("Role not found in URL");
+        setRole(undefined);
+    }
+  }, [window.location]);
+
   useEffect(() => {
     GameInstance.gameInProgress()
       .then((result) => {
@@ -38,6 +60,14 @@ function Game() {
     <div>Loading...</div>
   ) : inProgress ? (
     <div className="game">
+      {role === "red" ? (
+        <div>RED</div>
+      ) : role === "blue" ? (
+        <div>BLUE</div>
+      ) : (
+        <div>WATCHER</div>
+      )}
+
       <div id="background" />
       <Link to="/home">
         <button>Home</button>
@@ -80,6 +110,6 @@ function Game() {
   ) : (
     <Navigate to="/" replace={true} />
   );
-}
+};
 
 export default Game;

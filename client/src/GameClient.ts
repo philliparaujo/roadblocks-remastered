@@ -38,6 +38,8 @@ import {
   rollDiceRoute,
   ResetTurnResult,
   resetTurnRoute,
+  ListGamesResult,
+  listGamesRoute,
 } from "@roadblocks/types";
 import { logResults } from "./logger";
 import {
@@ -59,6 +61,7 @@ export interface GameControl {
   joinGame: (gameId: string, playerName: string) => Promise<void>;
   addEdge: (coord: Coord) => Promise<EdgeResult>;
   removeEdge: (coord: Coord) => Promise<EdgeResult>;
+  listGames: () => Promise<ListGamesResult>;
 }
 
 export class GameClient implements Game, GameControl {
@@ -98,6 +101,9 @@ export class GameClient implements Game, GameControl {
         this.startSubscribers(results.sessionId);
       }
     );
+
+  listGames = (): Promise<ListGamesResult> =>
+    myGet<ListGamesResult>(listGamesRoute, {});
 
   addEdge = (coord: Coord): Promise<EdgeResult> =>
     this.sessionPost<EdgeResult>(addEdgeRoute, { coord }).then(() => {
