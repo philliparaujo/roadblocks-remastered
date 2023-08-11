@@ -6,6 +6,7 @@ import { PlayerLocation } from "@roadblocks/types";
 import Corner from "./Corner";
 import Edge, { EdgeType } from "./Edge";
 import { Coord } from "@roadblocks/types";
+import "./UiBoard.css";
 
 export interface UIBoardProps {
   height?: number;

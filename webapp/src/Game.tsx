@@ -1,6 +1,5 @@
 import { GameInstance } from "@roadblocks/client";
 import "./Game.css";
-import NavBar from "./NavBar";
 import UIBoard from "./components/Board/UIBoard";
 import Dice from "./components/UI/Dice";
 import LockWallsButton from "./components/UI/LockWallsButton";
@@ -21,6 +20,7 @@ import { AlertProvider } from "./components/UI/AlertContext";
 import { AlertDisplay } from "./components/UI/AlertDisplay";
 import ResetTurnButton from "./components/UI/ResetTurnButton";
 import Dice2 from "./components/UI/Dice2";
+import { Link } from "react-router-dom";
 
 function Game() {
   const [inProgress, setInProgress] = useState<boolean | undefined>(undefined);
@@ -34,17 +34,17 @@ function Game() {
       });
   }, [GameInstance]);
 
-  const links = [{ name: "Home", url: "/home" }];
-
   return inProgress === undefined ? (
     <div>Loading...</div>
   ) : inProgress ? (
-    <>
-      <NavBar links={links} />
+    <div className="game">
+      <div id="background" />
+      <Link to="/home">
+        <button>Home</button>
+      </Link>
 
       <div className="Game">
         <div className="game-column">
-          <h2>Game</h2>
           <UIBoard debug={false} />
         </div>
         <div className="actions-column">
@@ -76,7 +76,7 @@ function Game() {
         <WinGameAlert />
         <ErrorAlert />
       </AlertProvider>
-    </>
+    </div>
   ) : (
     <Navigate to="/" replace={true} />
   );

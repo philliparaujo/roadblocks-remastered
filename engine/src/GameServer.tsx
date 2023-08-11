@@ -225,19 +225,28 @@ export class GameServerImpl implements GameServer {
   }
 
   addEdge = (coord: Coord): Promise<EdgeResult> => {
-    if (this.state.gameOver) return Promise.reject("Game over");
+    if (this.state.gameOver) {
+      this.errorSubscriptions.notify(new ErrorEvent("Game already over!"));
+      return Promise.reject("Game over");
+    }
     if (!this.state.diceRolled) return Promise.reject("Dice not rolled");
     return this.handleEdgeAction(coord, true);
   };
 
   removeEdge = (coord: Coord): Promise<EdgeResult> => {
-    if (this.state.gameOver) return Promise.reject("Game over");
+    if (this.state.gameOver) {
+      this.errorSubscriptions.notify(new ErrorEvent("Game already over!"));
+      return Promise.reject("Game over");
+    }
     if (!this.state.diceRolled) return Promise.reject("Dice not rolled");
     return this.handleEdgeAction(coord, false);
   };
 
   lockWalls = (): Promise<LockWallResult> => {
-    if (this.state.gameOver) return Promise.reject("Game over");
+    if (this.state.gameOver) {
+      this.errorSubscriptions.notify(new ErrorEvent("Game already over!"));
+      return Promise.reject("Game over");
+    }
     if (!this.state.diceRolled) return Promise.reject("Dice not rolled");
     this.canEndTurn().then((canI) => {
       if (!canI) return Promise.reject("Too many wall movements (probably)");
@@ -258,7 +267,10 @@ export class GameServerImpl implements GameServer {
   };
 
   switchTurn = (): Promise<EndTurnResult> => {
-    if (this.state.gameOver) return Promise.reject("Game over");
+    if (this.state.gameOver) {
+      this.errorSubscriptions.notify(new ErrorEvent("Game already over!"));
+      return Promise.reject("Game over");
+    }
     this.canEndTurn().then((canI) => {
       if (!canI) return Promise.reject("Too many wall or player movements");
     });
@@ -295,7 +307,10 @@ export class GameServerImpl implements GameServer {
   };
 
   setPlayerLocation = (coord: Coord): Promise<PlayerMovedResult> => {
-    if (this.state.gameOver) return Promise.reject("Game over");
+    if (this.state.gameOver) {
+      this.errorSubscriptions.notify(new ErrorEvent("Game already over!"));
+      return Promise.reject("Game over");
+    }
     if (!this.state.diceRolled) return Promise.reject("Dice not rolled");
 
     if (this.state.phase !== "movingPlayer") {
@@ -340,7 +355,10 @@ export class GameServerImpl implements GameServer {
   };
 
   rollDice = (): Promise<DiceRollResult> => {
-    if (this.state.gameOver) return Promise.reject("Game over");
+    if (this.state.gameOver) {
+      this.errorSubscriptions.notify(new ErrorEvent("Game already over!"));
+      return Promise.reject("Game over");
+    }
 
     if (this.state.diceRolled) {
       this.errorSubscriptions.notify(new ErrorEvent("Dice already rolled!"));

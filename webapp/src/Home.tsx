@@ -1,16 +1,10 @@
 import { GameInstance } from "@roadblocks/client";
-import NavBar from "./NavBar";
 import { useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 
 function Home() {
   const [gameReady, setGameReady] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
-
-  const links = [
-    { name: "Settings", url: "/settings" },
-    { name: "About", url: "/about" },
-  ];
 
   const startGame = () => {
     GameInstance.newGame("John")
@@ -23,13 +17,23 @@ function Home() {
   };
 
   return (
-    <>
-      <NavBar links={links} />
+    <div className="home">
+      <div id="background" />
+      <img src="images/logo.png" id="logo" />
+
       <button onClick={startGame}>Start Game</button>
+
+      <Link to={"/settings"}>
+        <button>Settings</button>
+      </Link>
+
+      <Link to={"/about"}>
+        <button>About</button>
+      </Link>
 
       {gameReady && <Navigate to="/game" replace={true} />}
       {error && <div>{error}</div>}
-    </>
+    </div>
   );
 }
 
