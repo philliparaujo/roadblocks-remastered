@@ -14,3 +14,18 @@
 .actions-column {
   padding-left: 40px;
 }
+
+.game #background {
+  background-image: url("images/background.jpg");
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  filter: brightness(1.4);
+  opacity: 0.1;
+}

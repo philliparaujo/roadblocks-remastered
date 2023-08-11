@@ -4,6 +4,7 @@ import { Link, Navigate } from "react-router-dom";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faQuestionCircle, faTimes } from "@fortawesome/free-solid-svg-icons";
+import "./Home.css";
 
 function Home() {
   const [gameReady, setGameReady] = useState<boolean>(false);
@@ -29,10 +30,12 @@ function Home() {
       <div id="background" />
       <img src="images/logo.png" id="logo" />
 
-      <button onClick={startGame}>Start Game</button>
+      <button className="home-button" onClick={startGame}>
+        Start Game
+      </button>
 
       <Link to={"/settings"}>
-        <button>Settings</button>
+        <button className="home-button">Settings</button>
       </Link>
 
       {/* <Link to={"/about"}>

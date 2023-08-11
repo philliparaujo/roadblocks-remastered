@@ -1,0 +1,160 @@
+.home {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Centers items horizontally */
+  justify-content: center; /* Centers items vertically */
+  height: 100vh; /* Takes the full viewport height */
+  position: relative;
+}
+
+#background {
+  background-image: url("images/background.jpg");
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  filter: brightness(1.2);
+  opacity: 0.4;
+}
+
+.home-button {
+  padding: 1rem 4rem;
+  margin: 0.5rem;
+  font-size: 2rem;
+  border: none; /* remove any default browser styling */
+  border-radius: 1rem;
+  background: linear-gradient(
+    90deg,
+    hsl(240, 37%, 28%) 0%,
+    hsl(0, 52%, 32%) 100%
+  );
+  color: white;
+  cursor: pointer; /* change mouse cursor when hovering over the button */
+  transition: all 0.3s ease; /* smoothen the hover effect changes */
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2); /* slight shadow for a lift effect */
+  position: relative; /* to create an overlay effect on hover */
+  overflow: hidden; /* to ensure the overlay stays within the button */
+}
+
+.home-button:hover {
+  background: linear-gradient(
+    0deg,
+    hsl(240, 37%, 35%) 0%,
+    hsl(0, 52%, 39%) 100%
+  );
+  transform: translateY(-3px); /* lift button up a bit */
+  box-shadow: 0px 6px 8px rgba(0, 0, 0, 0.3); /* enhance shadow for a lift effect */
+}
+
+/* Optional: If you want a subtle overlay effect on hover */
+.home-button::before {
+  content: "";
+  background: rgba(255, 255, 255, 0.1); /* subtle white overlay */
+  position: absolute;
+  top: 0;
+  left: -120%;
+  width: 100%;
+  height: 100%;
+  transform: skewX(-45deg); /* skewed overlay for a dynamic effect */
+  transition: all 0.5s ease;
+}
+
+.home-button:hover::before {
+  left: 100%;
+}
+
+#logo {
+  width: 600px;
+  margin: 2rem;
+}
+
+.about-icon {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  cursor: pointer;
+  font-size: 36px; /* adjust size of the icon */
+  z-index: 1000; /* ensure it's above other content */
+}
+
+.about-popup {
+  width: 70%; /* making it 70% of the screen width */
+  max-width: 600px; /* Optional: a max width so it doesn't get too wide on large screens */
+  background-color: #ddd; /* white background */
+  border-radius: 15px; /* rounded corners */
+  padding: 25px; /* spacing inside the popup */
+  padding-left: 35px;
+  padding-right: 35px;
+  position: relative; /* to position the close button absolutely within this popup */
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); /* shadow for a pop effect */
+  opacity: 0.95;
+  display: flex; /* makes sure content is vertically centered */
+  justify-content: center; /* centers content horizontally */
+  align-items: center; /* centers content vertically */
+  max-height: 70vh;
+  height: auto; /* lets it adapt to content */
+  overflow-y: auto; /* in case content is too much for the popup */
+}
+
+.about-container {
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 20px;
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.about-header,
+.how-to-play-header {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 16px;
+  border-bottom: 2px solid #333;
+  padding-bottom: 10px;
+}
+
+.description {
+  font-size: 18px;
+  margin-bottom: 24px;
+  line-height: 1.3;
+  color: #666;
+}
+
+.how-to-play-list {
+  font-size: 18px;
+  margin-bottom: 20px;
+  color: #444;
+}
+
+.how-to-play-list li {
+  margin-bottom: 12px;
+  line-height: 1.3;
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.7); /* semi-transparent black */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 998; /* make sure this is below the popup and above other content */
+}
+
+.popup-close {
+  cursor: pointer;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 24px; /* adjust size of the x icon */
+  z-index: 1001; /* ensure it's above the popup */
+}
