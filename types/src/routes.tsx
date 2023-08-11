@@ -4,11 +4,12 @@ const pubSubRoute = "/pubsub";
 export const diceRollPubSubRoute = `${pubSubRoute}/dicerolls`;
 export const playerMovedPubSubRoute = `${pubSubRoute}/playermoved`;
 export const switchTurnPubSubRoute = `${pubSubRoute}/turnended`;
-export const wlalToggledPubSubRoute = `${pubSubRoute}/walltoggled`;
+export const wallToggledPubSubRoute = `${pubSubRoute}/walltoggled`;
 export const lockWallPubSubRoute = `${pubSubRoute}/lockwall`;
 export const winGamePubSubRoute = `${pubSubRoute}/wingame`;
 export const startGamePubSubRoute = `${pubSubRoute}/startgame`;
 export const numWallChangesPubSubRoute = `${pubSubRoute}/numwallschanged`;
+export const errorPubSubRoute = `${pubSubRoute}/error`;
 
 /* API routes */
 export const newGameRoute = "/newGame";
@@ -29,3 +30,4 @@ export const switchTurnRoute = "/switchTurn";
 export const setPlayerLocationRoute = "/setPlayerLocation";
 export const rollDiceRoute = "/rollDice";
 export const resetTurnRoute = "/resetTurn";
+export const errorRoute = "/error";

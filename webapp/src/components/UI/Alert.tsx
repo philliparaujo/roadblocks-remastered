@@ -132,3 +132,11 @@ export const SwitchTurnAlert: React.FC<AlertProps> = ({
     />
   );
 };
+
+export const ErrorAlert: React.FC<AlertProps> = ({ game = GameInstance }) => (
+  <GameAlert
+    subscription={game.errorEventSubscription()}
+    messageBuilder={(e: ErrorEvent) => `⚠ ${e.message} ⚠`}
+    classBuilder={() => "error"}
+  />
+);

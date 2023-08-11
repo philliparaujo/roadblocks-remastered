@@ -32,6 +32,10 @@
   background-color: rgb(128, 128, 255);
 }
 
+.custom-alert.error {
+  background-color: rgb(128, 0, 0);
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;

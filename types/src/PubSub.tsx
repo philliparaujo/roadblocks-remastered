@@ -98,3 +98,12 @@ export class WinGameEvent extends BaseEvent implements TimedEvent {
     this.winner = winner;
   }
 }
+
+export class ErrorEvent extends BaseEvent implements TimedEvent {
+  message: string;
+
+  constructor(message: string) {
+    super();
+    this.message = message;
+  }
+}

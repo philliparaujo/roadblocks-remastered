@@ -1,5 +1,9 @@
 import { GameClient as Game, GameInstance } from "@roadblocks/client";
-import { PlayerColor, randomDiceValue } from "@roadblocks/types";
+import {
+  PlayerColor,
+  randomDiceValue,
+  DiceRollResult,
+} from "@roadblocks/types";
 import React, { useEffect, useRef, useState } from "react";
 import { rollDurationMs } from "./Dice";
 
@@ -142,7 +146,7 @@ const Dice2: React.FC<DiceProps> = ({ game = GameInstance }) => {
     if (!disabled) {
       game
         .rollDice()
-        .then((result) => {
+        .then((result: DiceRollResult) => {
           console.log("DICE ROLLED A ", result.diceValue);
         })
         .catch((err) => console.error("already rolled dice"));

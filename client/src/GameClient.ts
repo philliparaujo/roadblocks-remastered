@@ -42,6 +42,7 @@ import {
 import { logResults } from "./logger";
 import {
   DiceRollSubscriberClient,
+  ErrorSubscriberClient,
   LockWallSubscriberClient,
   NumWallChangesSubscriberClient,
   PlayerMovedSubscriberClient,
@@ -69,6 +70,7 @@ export class GameClient implements Game, GameControl {
   winGameSubscriptions = new WinGameSubscriberClient();
   startGameSubscriptions = new StartGameSubscriberClient();
   numWallChangesSubscriptions = new NumWallChangesSubscriberClient();
+  errorSubscriptions = new ErrorSubscriberClient();
 
   sessionId: string | undefined;
   gameId: string | undefined;
@@ -216,6 +218,8 @@ export class GameClient implements Game, GameControl {
   numWallChangesEventSubscription = (): NumWallChangesSubscriberClient =>
     this.numWallChangesSubscriptions;
 
+  errorEventSubscription = (): ErrorSubscriberClient => this.errorSubscriptions;
+
   startSubscribers = (sessionId: string): void => {
     this.wallToggledSubscriptions.start(sessionId);
     this.playerMovedSubscriptions.start(sessionId);
@@ -225,6 +229,7 @@ export class GameClient implements Game, GameControl {
     this.switchTurnSubscriptions.start(sessionId);
     this.winGameSubscriptions.start(sessionId);
     this.startGameSubscriptions.start(sessionId);
+    this.errorSubscriptions.start(sessionId);
   };
 
   // TODO: implement stop subscribers and call it sometime when game ends

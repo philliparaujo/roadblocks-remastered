@@ -1,5 +1,6 @@
 import {
   DiceRollEvent,
+  ErrorEvent,
   LockWallEvent,
   NumWallChangesEvent,
   PlayerMovedEvent,
@@ -49,3 +50,4 @@ export class StartGameSubscriberServer extends SubscriberServer<StartGameEvent> 
 export class SwitchTurnSubscriberServer extends SubscriberServer<SwitchTurnEvent> {}
 export class WallToggledSubscriberServer extends SubscriberServer<WallToggledEvent> {}
 export class WinGameSubscriberServer extends SubscriberServer<WinGameEvent> {}
+export class ErrorSubscriberServer extends SubscriberServer<ErrorEvent> {}

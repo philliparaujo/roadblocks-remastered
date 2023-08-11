@@ -29,11 +29,5 @@ module.exports = {
       path.resolve(__dirname, "."),
       "node_modules",
     ],
-    // alias: {
-    //   "@roadblocks/types": path.resolve(
-    //     __dirname,
-    //     "node_modules/@roadblocks/types"
-    //   ),
-    // },
   },
 };

@@ -5,7 +5,6 @@ specifiers:
   '@babel/preset-env': ^7.22.7
   '@babel/preset-react': ^7.22.5
   '@roadblocks/client': link:../client
-  '@roadblocks/engine': link:../engine
   '@roadblocks/types': link:../types
   '@storybook/addon-actions': ^7.0.26
   '@storybook/addon-essentials': ^7.0.26
@@ -67,7 +66,6 @@ devDependencies:
   '@babel/preset-env': 7.22.9_@babel+core@7.22.9
   '@babel/preset-react': 7.22.5_@babel+core@7.22.9
   '@roadblocks/client': link:../client
-  '@roadblocks/engine': link:../engine
   '@roadblocks/types': link:../types
   '@storybook/addon-actions': 7.1.1_biqbaboplfbrettd7655fr4n2y
   '@storybook/addon-essentials': 7.1.1_biqbaboplfbrettd7655fr4n2y

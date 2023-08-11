@@ -15,13 +15,16 @@ import {
   startGamePubSubRoute,
   switchTurnPubSubRoute,
   winGamePubSubRoute,
-  wlalToggledPubSubRoute,
+  wallToggledPubSubRoute,
+  ErrorEvent,
+  errorPubSubRoute,
 } from "@roadblocks/types";
 import { myGet, serviceURL } from "./GameClient";
 
 const fetchIntervalMs = 1000;
 
 export type DiceRollEventCallback = (callback: DiceRollEvent) => void;
+export type ErrorEventCallback = (callback: ErrorEvent) => void;
 export type LockWallEventCallback = (callback: LockWallEvent) => void;
 export type NumWallChangesEventCallback = (
   callback: NumWallChangesEvent
@@ -70,7 +73,7 @@ export class SubscriberClient<T extends TimedEvent> {
         new Date(this.lastSeenEvent).toISOString()
       );
 
-      console.log("Checking PubSub events", this.route);
+      // console.log("Checking PubSub events", this.route);
       myGet<T[]>(url, { sessionId }).then((events) => {
         events.forEach((event) => {
           {
@@ -143,11 +146,17 @@ export class SwitchTurnSubscriberClient extends SubscriberClient<SwitchTurnEvent
 }
 export class WallToggledSubscriberClient extends SubscriberClient<WallToggledEvent> {
   constructor() {
-    super(wlalToggledPubSubRoute);
+    super(wallToggledPubSubRoute);
   }
 }
 export class WinGameSubscriberClient extends SubscriberClient<WinGameEvent> {
   constructor() {
     super(winGamePubSubRoute);
+  }
+}
+
+export class ErrorSubscriberClient extends SubscriberClient<ErrorEvent> {
+  constructor() {
+    super(errorPubSubRoute);
   }
 }

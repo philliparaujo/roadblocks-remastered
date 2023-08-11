@@ -40,10 +40,12 @@ import {
   isValidMove,
   isVerticalEdge,
   randomDiceValue,
+  ErrorEvent,
 } from "@roadblocks/types";
 import { PathfinderImpl } from "./Pathfinder";
 import {
   DiceRollSubscriberServer,
+  ErrorSubscriberServer,
   LockWallSubscriberServer,
   NumWallChangesSubscriberServer,
   PlayerMovedSubscriberServer,
@@ -103,6 +105,7 @@ export interface GameServer {
   winGameSubscriptions: WinGameSubscriberServer;
   startGameSubscriptions: StartGameSubscriberServer;
   numWallChangesSubscriptions: NumWallChangesSubscriberServer;
+  errorSubscriptions: ErrorSubscriberServer;
 }
 
 // export interface GameSubscriptions {}
@@ -152,6 +155,7 @@ export class GameServerImpl implements GameServer {
   winGameSubscriptions: WinGameSubscriberServer;
   startGameSubscriptions: StartGameSubscriberServer;
   numWallChangesSubscriptions: NumWallChangesSubscriberServer;
+  errorSubscriptions: ErrorSubscriberServer;
 
   fakeToggle: boolean = false;
 
@@ -199,6 +203,7 @@ export class GameServerImpl implements GameServer {
     this.winGameSubscriptions = new WinGameSubscriberServer();
     this.startGameSubscriptions = new StartGameSubscriberServer();
     this.numWallChangesSubscriptions = new NumWallChangesSubscriberServer();
+    this.errorSubscriptions = new ErrorSubscriberServer();
 
     this.startGameSubscriptions.notify(new StartGameEvent(this.state.turn));
   }
@@ -309,6 +314,9 @@ export class GameServerImpl implements GameServer {
         2 * this.state.height + 1
       )
     ) {
+      this.errorSubscriptions.notify(
+        new ErrorEvent("Not an adjacent movement!")
+      );
       return Promise.reject("NOT ADJACENT CELL");
     }
 
@@ -335,6 +343,7 @@ export class GameServerImpl implements GameServer {
     if (this.state.gameOver) return Promise.reject("Game over");
 
     if (this.state.diceRolled) {
+      this.errorSubscriptions.notify(new ErrorEvent("Dice already rolled!"));
       return Promise.reject("Dice already rolled");
     }
 
@@ -359,14 +368,20 @@ export class GameServerImpl implements GameServer {
     if (!isEdge(coord)) return Promise.reject("INVALID COORD");
 
     const numWalls = this.state.wallLocations[this.state.turn].length;
-    if (placing && numWalls >= 6) return Promise.reject("Too many walls");
+    if (placing && numWalls >= 6) {
+      this.errorSubscriptions.notify(new ErrorEvent("Too many walls!"));
+      return Promise.reject("Too many walls");
+    }
 
     const isVertical = isVerticalEdge(coord);
     const isCorrectTurn = isVertical
       ? this.state.turn === "red"
       : this.state.turn === "blue";
 
-    if (!isCorrectTurn) return Promise.reject("WRONG TURN");
+    if (!isCorrectTurn) {
+      this.errorSubscriptions.notify(new ErrorEvent("Wrong edge color!"));
+      return Promise.reject("WRONG TURN");
+    }
 
     if (placing) {
       this.state.wallLocations[this.state.turn].push(coord);

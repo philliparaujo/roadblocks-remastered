@@ -11,6 +11,7 @@ import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import {
   DiceRollAlert,
+  ErrorAlert,
   LockWallsAlert,
   StartGameAlert,
   SwitchTurnAlert,
@@ -73,6 +74,7 @@ function Game() {
         <LockWallsAlert />
         <SwitchTurnAlert />
         <WinGameAlert />
+        <ErrorAlert />
       </AlertProvider>
     </>
   ) : (

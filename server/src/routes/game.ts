@@ -53,7 +53,10 @@ import {
   switchTurnPubSubRoute,
   switchTurnRoute,
   winGamePubSubRoute,
-  wlalToggledPubSubRoute,
+  wallToggledPubSubRoute,
+  errorRoute,
+  ErrorEvent,
+  errorPubSubRoute,
 } from "@roadblocks/types";
 import express from "express";
 import SessionManager from "../SessionManager";
@@ -131,10 +134,10 @@ function myPost<T>(
       sessionManager
         .get(sessionId)
         .then((game) => callback(game, body))
-        .then((result) => safeSend<T>(result, res))
+        .then((result: T) => safeSend<T>(result, res))
         .catch((err) => {
-          console.error(err);
-          res.sendStatus(400);
+          console.error("ERROR: " + err);
+          res.sendStatus(401);
         });
     } catch (e) {
       console.error(e);
@@ -185,7 +188,7 @@ function registerPubSub<T extends TimedEvent>(
         .then((game) => {
           subscribeGetter(game)
             .get(lastTsNumber)
-            .then((events) => {
+            .then((events: T[]) => {
               safeSend<T[]>(events, res);
             });
         })
@@ -201,45 +204,35 @@ function registerPubSub<T extends TimedEvent>(
 
 myPost<AddEdgeResult>(
   addEdgeRoute,
-  (game, body) =>
-    game.addEdge(body.coord as Coord).then(() => ({ coord: body.coord })),
+  (game, body) => game.addEdge(body.coord as Coord),
   router
 );
 
 myPost<RemoveEdgeResult>(
   removeEdgeRoute,
-  (game, body) =>
-    game.removeEdge(body.coord as Coord).then(() => ({ coord: body.coord })),
+  (game, body) => game.removeEdge(body.coord as Coord),
   router
 );
 
 myPost<LockWallResult>(
   lockWallsRoute,
-  (game, body) => game.lockWalls().then(() => ({ locked: true })),
+  (game, body) => game.lockWalls(),
   router
 );
 
 myPost<EndTurnResult>(
   switchTurnRoute,
-  (game, body) => game.switchTurn().then(() => ({})),
+  (game, body) => game.switchTurn(),
   router
 );
 
 myPost<PlayerMovedResult>(
   setPlayerLocationRoute,
-  (game, body) =>
-    game
-      .setPlayerLocation(body.coord as Coord)
-      .then(() => ({ coord: body.coord })),
+  (game, body) => game.setPlayerLocation(body.coord as Coord),
   router
 );
 
-myPost<DiceRollResult>(
-  rollDiceRoute,
-  (game, body) =>
-    game.rollDice().then((result) => ({ diceValue: result.diceValue })),
-  router
-);
+myPost<DiceRollResult>(rollDiceRoute, (game, body) => game.rollDice(), router);
 
 myPost<ResetTurnResult>(
   resetTurnRoute,
@@ -299,7 +292,7 @@ registerPubSub<SwitchTurnEvent>(
   router
 );
 registerPubSub<WallToggledEvent>(
-  wlalToggledPubSubRoute,
+  wallToggledPubSubRoute,
   (game: GameServer) => game.wallToggledSubscriptions,
   router
 );
@@ -321,6 +314,11 @@ registerPubSub<StartGameEvent>(
 registerPubSub<NumWallChangesEvent>(
   numWallChangesPubSubRoute,
   (game: GameServer) => game.numWallChangesSubscriptions,
+  router
+);
+registerPubSub<ErrorEvent>(
+  errorPubSubRoute,
+  (game: GameServer) => game.errorSubscriptions,
   router
 );
 
