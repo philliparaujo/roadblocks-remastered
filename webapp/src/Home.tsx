@@ -1,7 +1,9 @@
+import { faCircleArrowLeft } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { GameInstance, reset } from "@roadblocks/client";
+import { GameInfo, UserRole } from "@roadblocks/types";
 import { useEffect, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
-import { GameInfo, UserRole } from "@roadblocks/types";
 import "./Home.css";
 import {
   AboutIcon,
@@ -19,6 +21,7 @@ function Home() {
   const [playerName, setPlayerName] = useState<string>(
     `Guest${generateRandom7DigitNumber()}`
   );
+  const [hasConfirmed, setHasConfirmed] = useState(false);
   const [error, setError] = useState<string>("");
 
   const [onlineGames, setOnlineGames] = useState<GameInfo[]>();
@@ -77,78 +80,99 @@ function Home() {
       <div id="background" />
       <img src="images/logo.png" id="logo" />
 
-      <div className="player-name-container">
-        <label className="player-name-label" htmlFor="playerName">
-          Player Name
-        </label>
-        <input
-          type="text"
-          id="playerName"
-          value={playerName}
-          onChange={(e) => setPlayerName(e.target.value)}
-          className="player-name-input"
-        />
-      </div>
+      {!hasConfirmed && (
+        <>
+          <div className="player-name-container">
+            <label className="player-name-label" htmlFor="playerName">
+              Player Name
+            </label>
+            <input
+              type="text"
+              id="playerName"
+              value={playerName}
+              onChange={(e) => setPlayerName(e.target.value)}
+              className="player-name-input"
+            />
+            <button
+              className="home-button"
+              onClick={() => setHasConfirmed(true)}
+            >
+              Confirm
+            </button>
+          </div>
+        </>
+      )}
 
-      <label className="game-list-label" htmlFor="playerName">
-        Games
-      </label>
-      <div className="game-list">
-        {onlineGames === undefined ? (
-          <div>Loading...</div>
-        ) : onlineGames.length > 0 ? (
-          onlineGames.map((game) => (
-            <div className="game" key={game.gameId}>
-              <div className="names">
-                <div className="redPlayer">{game.users[0].playerName}</div>
-                <div>{game.users.length > 1 && "vs."}</div>
-                <div className="bluePlayer">
-                  {game.users.length > 1 && game.users[1].playerName}
+      {hasConfirmed && (
+        <>
+          <div className="back-button" onClick={() => setHasConfirmed(false)}>
+            <FontAwesomeIcon icon={faCircleArrowLeft} />
+            <span className="tooltip-text">Back</span>
+          </div>
+
+          <label className="game-list-label" htmlFor="playerName">
+            Games
+          </label>
+          <div className="game-list">
+            {onlineGames === undefined ? (
+              <div>Loading...</div>
+            ) : onlineGames.length > 0 ? (
+              onlineGames.map((game) => (
+                <div className="game" key={game.gameId}>
+                  <div className="names">
+                    <div className="redPlayer">{game.users[0].playerName}</div>
+                    <div>{game.users.length > 1 && "vs."}</div>
+                    <div className="bluePlayer">
+                      {game.users.length > 1 && game.users[1].playerName}
+                    </div>
+                  </div>
+
+                  {game.users.length > 2 && (
+                    <div className="watchers">
+                      {game.users.length - 2} <span className="eye">👁</span>
+                    </div>
+                  )}
+
+                  <div className="action">
+                    <button
+                      className={`home-button ${
+                        game.users.length < 2 ? "join-button" : "watch-button"
+                      }`}
+                      onClick={() =>
+                        joinGame(game.gameId, game.users.length > 1)
+                      }
+                    >
+                      {game.users.length < 2 ? "Join" : "Watch"}
+                    </button>
+                  </div>
                 </div>
-              </div>
+              ))
+            ) : (
+              <div>No Games</div>
+            )}
+          </div>
 
-              {game.users.length > 2 && (
-                <div className="watchers">
-                  {game.users.length - 2} <span className="eye">👁</span>
-                </div>
-              )}
+          <div>
+            <button className="home-button" onClick={startGame}>
+              Create Game
+            </button>
+          </div>
 
-              <div className="action">
-                <button
-                  className={`home-button ${
-                    game.users.length < 2 ? "join-button" : "watch-button"
-                  }`}
-                  onClick={() => joinGame(game.gameId, game.users.length > 1)}
-                >
-                  {game.users.length < 2 ? "Join" : "Watch"}
-                </button>
-              </div>
-            </div>
-          ))
-        ) : (
-          <div>No Games</div>
-        )}
-      </div>
+          <Link to={"/howtoplay"}>
+            <button className="home-button">How To Play</button>
+          </Link>
 
-      <div>
-        <button className="home-button" onClick={startGame}>
-          Create Game
-        </button>
-      </div>
+          {role && <Navigate to={`/game#${role}`} replace={true} />}
 
-      <Link to={"/howtoplay"}>
-        <button className="home-button">How To Play</button>
-      </Link>
+          <AboutIcon toggle={toggleAbout} />
+          <SettingsIcon toggle={toggleSettings} />
 
-      {role && <Navigate to={`/game#${role}`} replace={true} />}
+          <AboutPopup show={showAbout} toggle={toggleAbout} />
+          <SettingsPopup show={showSettings} toggle={toggleSettings} />
 
-      <AboutIcon toggle={toggleAbout} />
-      <SettingsIcon toggle={toggleSettings} />
-
-      <AboutPopup show={showAbout} toggle={toggleAbout} />
-      <SettingsPopup show={showSettings} toggle={toggleSettings} />
-
-      {error && <div>{error}</div>}
+          {error && <div>{error}</div>}
+        </>
+      )}
     </div>
   );
 }
