@@ -39,18 +39,22 @@ const Game: React.FC<GameProps> = () => {
   const [redPlayer, setRedPlayer] = useState<string>();
   const [bluePlayer, setBluePlayer] = useState<string>();
 
-  const [showAbout, setShowAbout] = useState(false);
+  const [showAbout, setShowAbout] = useState<boolean>(false);
   const toggleAbout = () => {
     setShowAbout(!showAbout);
   };
 
-  const [showSettings, setShowSettings] = useState(false);
+  const [showSettings, setShowSettings] = useState<boolean>(false);
   const toggleSettings = () => {
     setShowSettings(!showSettings);
   };
 
+  const [showAlerts, setShowAlerts] = useState<boolean>(false);
+  const alertDisabledForMs = 1000;
+
   useEffect(() => {
     const fetchGame = async () => {
+      console.log("fetching game");
       const games = (await GameInstance.listGames()).games;
       const myGame = games.find((game) => game.gameId === GameInstance.gameId);
       if (!myGame || !myGame.users) {
@@ -61,8 +65,26 @@ const Game: React.FC<GameProps> = () => {
       if (myGame.users.length >= 2) setBluePlayer(myGame.users[1].playerName);
     };
 
-    fetchGame();
-  }, [GameInstance]);
+    let intervalId: NodeJS.Timeout;
+
+    if (!bluePlayer) {
+      fetchGame();
+      intervalId = setInterval(fetchGame, alertDisabledForMs);
+    }
+
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [GameInstance, bluePlayer]);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setShowAlerts(true);
+    }, alertDisabledForMs);
+    return () => clearTimeout(timeout);
+  }, []);
 
   useEffect(() => {
     switch (window.location.hash) {
@@ -118,8 +140,10 @@ const Game: React.FC<GameProps> = () => {
 
       {role === "watcher" ? (
         <div className="role-label">SPECTATING</div>
+      ) : role === turn ? (
+        <div className="role-label">YOUR TURN</div>
       ) : (
-        <div></div>
+        <div className="role-label">OPPONENT'S TURN</div>
       )}
 
       <Link to="/home" className="back-button">
@@ -168,18 +192,16 @@ const Game: React.FC<GameProps> = () => {
         </div>
       </div>
 
-      {role !== "watcher" && (
-        <AlertProvider>
-          <AlertDisplay />
+      <AlertProvider>
+        {showAlerts && <AlertDisplay />}
 
-          <StartGameAlert />
-          <DiceRollAlert />
-          <LockWallsAlert />
-          <SwitchTurnAlert />
-          <WinGameAlert />
-          <ErrorAlert />
-        </AlertProvider>
-      )}
+        <StartGameAlert />
+        <DiceRollAlert />
+        <LockWallsAlert />
+        <SwitchTurnAlert />
+        <WinGameAlert />
+        <ErrorAlert />
+      </AlertProvider>
 
       <AboutIcon toggle={toggleAbout} />
       <SettingsIcon toggle={toggleSettings} />
