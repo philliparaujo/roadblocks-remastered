@@ -49,15 +49,14 @@
 
 .fullscreen-cover {
   position: fixed;
-  top: 100px;
-  right: 100px;
-  bottom: 100px;
-  left: 100px;
-  z-index: 9999; /* high value to ensure it's on top of other elements */
-  background-color: transparent; /* this makes it invisible */
+  top: 70px;
+  right: 0;
+  bottom: 70px;
+  left: 0;
+  z-index: 500; /* high value to ensure it's on top of other elements */
+  background-color: transparent;
   pointer-events: all; /* ensures it intercepts mouse events */
 }
-
 .role-label {
   position: fixed;
   left: 0;
