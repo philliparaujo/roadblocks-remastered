@@ -1,10 +1,26 @@
+* {
+  box-sizing: border-box;
+  /* padding: 0;
+  margin: 0; */
+}
+
 .home {
   display: flex;
+  padding: 2rem;
   flex-direction: column;
   align-items: center; /* Centers items horizontally */
   justify-content: center; /* Centers items vertically */
   height: 100vh; /* Takes the full viewport height */
   position: relative;
+
+  --home-button-background-1: hsl(332, 41%, 40%) 0%;
+  --home-button-background-2: hsl(0, 52%, 32%) 100%;
+
+  --join-button-background-1: hsl(179, 46%, 30%) 0%;
+  --join-button-background-2: hsl(218, 52%, 32%) 100%;
+
+  --watch-button-background-1: hsl(36, 13%, 44%) 0%;
+  --watch-button-background-2: hsl(300, 9%, 38%) 100%;
 }
 
 #background {
@@ -19,7 +35,22 @@
   height: 100vh;
   z-index: -1;
   filter: brightness(1.2);
-  opacity: 0.4;
+  opacity: 0.8;
+}
+
+#background:after {
+  content: "";
+  background-image: radial-gradient(
+    circle at center,
+    rgba(255, 255, 255, 0.4) 70%,
+    transparent
+  );
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none; /* Ensures the gradient doesn't interfere with user interactions */
 }
 
 .home-button {
@@ -30,8 +61,8 @@
   border-radius: 1rem;
   background: linear-gradient(
     90deg,
-    hsl(240, 37%, 28%) 0%,
-    hsl(0, 52%, 32%) 100%
+    var(--home-button-background-1),
+    var(--home-button-background-2)
   );
   color: white;
   cursor: pointer; /* change mouse cursor when hovering over the button */
@@ -41,17 +72,6 @@
   overflow: hidden; /* to ensure the overlay stays within the button */
 }
 
-.home-button:hover {
-  background: linear-gradient(
-    0deg,
-    hsl(240, 37%, 35%) 0%,
-    hsl(0, 52%, 39%) 100%
-  );
-  transform: translateY(-3px); /* lift button up a bit */
-  box-shadow: 0px 6px 8px rgba(0, 0, 0, 0.3); /* enhance shadow for a lift effect */
-}
-
-/* Optional: If you want a subtle overlay effect on hover */
 .home-button::before {
   content: "";
   background: rgba(255, 255, 255, 0.1); /* subtle white overlay */
@@ -68,9 +88,37 @@
   left: 100%;
 }
 
+.home-button:hover {
+  transform: translateY(-3px); /* lift button up a bit */
+  box-shadow: 0px 6px 8px rgba(0, 0, 0, 0.3); /* enhance shadow for a lift effect */
+}
+
+.join-button {
+  padding: 0.75rem 1.5rem !important;
+  font-size: 1rem !important;
+  width: 6rem;
+  border-radius: 0.7rem !important;
+  background: linear-gradient(
+    90deg,
+    var(--join-button-background-1),
+    var(--join-button-background-2)
+  ) !important;
+}
+
+.watch-button {
+  padding: 0.75rem 1.5rem !important;
+  font-size: 1rem !important;
+  width: 6rem;
+  border-radius: 0.7rem !important;
+  background: linear-gradient(
+    90deg,
+    var(--watch-button-background-1),
+    var(--watch-button-background-2)
+  ) !important;
+}
+
 #logo {
-  width: 600px;
-  margin: 2rem;
+  width: 500px;
 }
 
 .about-icon {
@@ -78,8 +126,14 @@
   bottom: 20px;
   right: 20px;
   cursor: pointer;
-  font-size: 36px; /* adjust size of the icon */
+  font-size: 50px; /* adjust size of the icon */
   z-index: 1000; /* ensure it's above other content */
+  transition: all 0.3s ease;
+}
+
+.about-icon:hover {
+  transform: translateY(-3px);
+  filter: brightness(1.5);
 }
 
 .about-popup {
@@ -157,4 +211,99 @@
   right: 10px;
   font-size: 24px; /* adjust size of the x icon */
   z-index: 1001; /* ensure it's above the popup */
+}
+
+.player-name-container {
+  display: flex;
+  flex-direction: column;
+  margin: 10px 0;
+  gap: 0.25rem;
+  /* align-items: baseline; */
+}
+
+.player-name-input {
+  padding: 5px;
+  font-size: 20px; /* or any other size you prefer */
+  border: 1px solid #bbb;
+  border-radius: 8px;
+}
+
+.player-name-label {
+  font-size: 20px; /* or any other size you prefer */
+  font-weight: 500;
+}
+
+.game-list-label {
+  font-size: 20px; /* or any other size you prefer */
+  font-weight: 500;
+  width: 40rem;
+}
+
+.game-list {
+  display: flex;
+  flex-direction: column;
+  width: 100%; /* or whatever width you desire */
+  max-width: 40rem;
+  background-color: white;
+  border: 2px solid gray;
+  border-radius: 6px;
+  align-content: center;
+  overflow-y: auto;
+}
+
+.game-list .game {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between; /* or any other alignment you prefer */
+  border-bottom: 1px solid #e0e0e0; /* Optional: to create a separation between rows */
+  font-size: 1.2rem;
+  align-items: center;
+  padding: 0 0.6rem;
+}
+
+.game-list .names {
+  flex: 1; /* This makes each cell take equal width */
+  padding: 8px; /* padding for aesthetics */
+  gap: 0.75rem;
+  display: flex;
+}
+
+.game-list .watchers {
+  display: flex;
+  align-items: center;
+}
+
+.game-list .eye {
+  font-size: 1.8rem;
+}
+
+.game-list .action {
+}
+
+.game-list .red {
+  color: red;
+  font-weight: 500;
+}
+
+.game-list .blue {
+  color: blue;
+  font-weight: 500;
+}
+
+.game-list::-webkit-scrollbar {
+  width: 10px; /* width of the entire scrollbar */
+}
+
+.game-list::-webkit-scrollbar-track {
+  background: #f1f1f1; /* color of the tracking area */
+  border-radius: 10px;
+}
+
+.game-list::-webkit-scrollbar-thumb {
+  background: #888; /* color of the scroll thumb */
+  border-radius: 10px;
+}
+
+.game-list::-webkit-scrollbar-thumb:hover {
+  background: #777; /* color of the scroll thumb on hover */
 }

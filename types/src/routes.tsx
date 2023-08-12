@@ -1,5 +1,7 @@
+const baseApi = "/api";
+
 /* PubSub routes */
-const pubSubRoute = "/pubsub";
+const pubSubRoute = `${baseApi}/pubsub`;
 
 export const diceRollPubSubRoute = `${pubSubRoute}/dicerolls`;
 export const playerMovedPubSubRoute = `${pubSubRoute}/playermoved`;
@@ -12,23 +14,23 @@ export const numWallChangesPubSubRoute = `${pubSubRoute}/numwallschanged`;
 export const errorPubSubRoute = `${pubSubRoute}/error`;
 
 /* API routes */
-export const newGameRoute = "/newGame";
-export const joinGameRoute = "/joinGame";
-export const listGamesRoute = "/listGames";
+export const newGameRoute = `${baseApi}/newGame`;
+export const joinGameRoute = `${baseApi}/joinGame`;
+export const listGamesRoute = `${baseApi}/listGames`;
 
-export const addEdgeRoute = "/addEdge";
-export const removeEdgeRoute = "/removeEdge";
-export const getWidthRoute = "/width";
-export const getHeightRoute = "/height";
-export const getCellLocationRoute = "/cellLocation";
-export const getWallLocationRoute = "/wallLocations";
-export const getDiceRoute = "/dice";
-export const getTurnRoute = "/turn";
-export const canEndTurnRoute = "/canEndTurn";
-export const pathExistsRoute = "/pathExists";
-export const lockWallsRoute = "/lockWalls";
-export const switchTurnRoute = "/switchTurn";
-export const setPlayerLocationRoute = "/setPlayerLocation";
-export const rollDiceRoute = "/rollDice";
-export const resetTurnRoute = "/resetTurn";
-export const errorRoute = "/error";
+export const addEdgeRoute = `${baseApi}/addEdge`;
+export const removeEdgeRoute = `${baseApi}/removeEdge`;
+export const getWidthRoute = `${baseApi}/width`;
+export const getHeightRoute = `${baseApi}/height`;
+export const getCellLocationRoute = `${baseApi}/cellLocation`;
+export const getWallLocationRoute = `${baseApi}/wallLocations`;
+export const getDiceRoute = `${baseApi}/dice`;
+export const getTurnRoute = `${baseApi}/turn`;
+export const canEndTurnRoute = `${baseApi}/canEndTurn`;
+export const pathExistsRoute = `${baseApi}/pathExists`;
+export const lockWallsRoute = `${baseApi}/lockWalls`;
+export const switchTurnRoute = `${baseApi}/switchTurn`;
+export const setPlayerLocationRoute = `${baseApi}/setPlayerLocation`;
+export const rollDiceRoute = `${baseApi}/rollDice`;
+export const resetTurnRoute = `${baseApi}/resetTurn`;
+export const errorRoute = `${baseApi}/error`;

@@ -54,7 +54,7 @@ import {
   WinGameSubscriberClient,
 } from "./PubSubClient";
 
-export const serviceURL = "http://localhost:5000";
+export const serviceURL = process.env.SERVER_URL;
 
 export interface GameControl {
   newGame: (playerName: string) => Promise<void>;
@@ -78,9 +78,13 @@ export class GameClient implements Game, GameControl {
   sessionId: string | undefined;
   gameId: string | undefined;
 
+  id: number = Math.floor(Math.random() * 100000000);
+
   constructor() {
     this.sessionId = undefined;
     this.gameId = undefined;
+
+    console.log("created game instance", this.id);
   }
 
   gameInProgress = (): Promise<boolean> =>
@@ -238,6 +242,18 @@ export class GameClient implements Game, GameControl {
     this.errorSubscriptions.start(sessionId);
   };
 
+  stopSubscribers = (): void => {
+    this.wallToggledSubscriptions.stop();
+    this.playerMovedSubscriptions.stop();
+    this.diceRollSubscriptions.stop();
+    this.numWallChangesSubscriptions.stop();
+    this.lockWallSubscriptions.stop();
+    this.switchTurnSubscriptions.stop();
+    this.winGameSubscriptions.stop();
+    this.startGameSubscriptions.stop();
+    this.errorSubscriptions.stop();
+  };
+
   // TODO: implement stop subscribers and call it sometime when game ends
 
   // Perform a post to a specific session on the server side
@@ -299,4 +315,10 @@ export function myGet<T>(
   // .then(logResults(url.toString()));
 }
 
-export const GameInstance = new GameClient();
+export var GameInstance = new GameClient();
+
+export function reset() {
+  console.log("resetting instance");
+  GameInstance.stopSubscribers();
+  GameInstance = new GameClient();
+}

@@ -1,4 +1,4 @@
-import { GameInstance } from "@roadblocks/client";
+import { GameInstance, reset } from "@roadblocks/client";
 import { useEffect, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 
@@ -8,7 +8,14 @@ import { GameInfo, UserRole } from "@roadblocks/types";
 import "./Home.css";
 
 function Home() {
+  const generateRandom7DigitNumber = () => {
+    return Math.floor(1000000 + Math.random() * 9000000);
+  };
+
   const [role, setRole] = useState<UserRole | undefined>();
+  const [playerName, setPlayerName] = useState<string>(
+    `Guest${generateRandom7DigitNumber()}`
+  );
   const [error, setError] = useState<string>("");
 
   const [onlineGames, setOnlineGames] = useState<GameInfo[]>();
@@ -20,7 +27,7 @@ function Home() {
   };
 
   const startGame = () => {
-    GameInstance.newGame("John")
+    GameInstance.newGame(playerName)
       .then(() => {
         setRole("red");
       })
@@ -30,7 +37,7 @@ function Home() {
   };
 
   const joinGame = (gameId: string, watcher: boolean) => {
-    GameInstance.joinGame(gameId, "Jill")
+    GameInstance.joinGame(gameId, playerName)
       .then(() => {
         setRole(watcher ? "watcher" : "blue");
       })
@@ -53,32 +60,73 @@ function Home() {
     return () => clearInterval(interval);
   }, [GameInstance]);
 
+  useEffect(() => {
+    reset();
+  }, []);
+
   return (
     <div className="home">
       <div id="background" />
       <img src="images/logo.png" id="logo" />
 
-      {onlineGames === undefined ? (
-        <div>Loading...</div>
-      ) : onlineGames.length > 0 ? (
-        onlineGames.map((game) => (
-          <div key={game.gameId}>
-            {game.users.map((u) => u.playerName).join(",")}
-            <button
-              className="home-button"
-              onClick={() => joinGame(game.gameId, game.users.length > 1)}
-            >
-              Join
-            </button>
-          </div>
-        ))
-      ) : (
-        <div>No Games</div>
-      )}
+      <div className="player-name-container">
+        <label className="player-name-label" htmlFor="playerName">
+          Player Name
+        </label>
+        <input
+          type="text"
+          id="playerName"
+          value={playerName}
+          onChange={(e) => setPlayerName(e.target.value)}
+          className="player-name-input"
+        />
+      </div>
 
-      <button className="home-button" onClick={startGame}>
-        Start Game
-      </button>
+      <label className="game-list-label" htmlFor="playerName">
+        Games
+      </label>
+      <div className="game-list">
+        {onlineGames === undefined ? (
+          <div>Loading...</div>
+        ) : onlineGames.length > 0 ? (
+          onlineGames.map((game) => (
+            <div className="game" key={game.gameId}>
+              <div className="names">
+                <div className="red">{game.users[0].playerName}</div>
+                <div>{game.users.length > 1 && "vs."}</div>
+                <div className="blue">
+                  {game.users.length > 1 && game.users[1].playerName}
+                </div>
+              </div>
+
+              {game.users.length > 2 && (
+                <div className="watchers">
+                  {game.users.length - 2} <span className="eye">👁</span>
+                </div>
+              )}
+
+              <div className="action">
+                <button
+                  className={`home-button ${
+                    game.users.length < 2 ? "join-button" : "watch-button"
+                  }`}
+                  onClick={() => joinGame(game.gameId, game.users.length > 1)}
+                >
+                  {game.users.length < 2 ? "Join" : "Watch"}
+                </button>
+              </div>
+            </div>
+          ))
+        ) : (
+          <div>No Games</div>
+        )}
+      </div>
+
+      <div>
+        <button className="home-button" onClick={startGame}>
+          Create Game
+        </button>
+      </div>
 
       <Link to={"/settings"}>
         <button className="home-button">Settings</button>

@@ -60,6 +60,8 @@ const Game: React.FC<GameProps> = () => {
     <div>Loading...</div>
   ) : inProgress ? (
     <div className="game">
+      <div id="background" />
+
       {role === "red" ? (
         <div>RED</div>
       ) : role === "blue" ? (
@@ -68,11 +70,11 @@ const Game: React.FC<GameProps> = () => {
         <div>WATCHER</div>
       )}
 
-      <div id="background" />
       <Link to="/home">
         <button>Home</button>
       </Link>
 
+      {/* <img src="images/logo.png" id="logo" /> */}
       <div className="Game">
         <div className="game-column">
           <UIBoard debug={false} />

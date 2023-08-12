@@ -2,29 +2,29 @@
   transition: background-color 0.2s, box-shadow 0.2s;
 }
 
-.horizontal {
+.edge.horizontal {
   width: 80px;
   height: 12px;
 }
 
-.vertical {
+.edge.vertical {
   width: 12px;
   height: 80px;
 }
 
-.gray {
+.edge.gray {
   background-color: #eee;
 }
 
-.red {
+.edge.red {
   background-color: red;
 }
 
-.lightred {
+.edge.lightred {
   background-color: rgb(239, 210, 210);
 }
 
-.lightred-pending {
+.edge.lightred-pending {
   background-image: linear-gradient(
     45deg,
     rgba(255, 255, 255, 0.5) 25%,
@@ -39,15 +39,15 @@
   background-color: rgb(239, 210, 210);
 }
 
-.blue {
+.edge.blue {
   background-color: blue;
 }
 
-.lightblue {
+.edge.lightblue {
   background-color: rgb(198, 198, 249);
 }
 
-.lightblue-pending {
+.edge.lightblue-pending {
   background-image: linear-gradient(
     45deg,
     rgba(255, 255, 255, 0.5) 25%,
@@ -62,7 +62,7 @@
   background-color: rgb(198, 198, 249);
 }
 
-.black {
+.edge.black {
   background-color: black;
   cursor: not-allowed;
 }
@@ -71,10 +71,10 @@
   box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.2);
 }
 
-.vertical:not(.disabled):not(.black):hover {
+.edge.vertical:not(.disabled):not(.black):hover {
   background-color: rgb(239, 210, 210);
 }
-.horizontal:not(.disabled):not(.black):hover {
+.edge.horizontal:not(.disabled):not(.black):hover {
   background-color: rgb(198, 198, 249);
 }
 
