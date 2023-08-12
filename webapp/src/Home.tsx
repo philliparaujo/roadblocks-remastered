@@ -92,9 +92,9 @@ function Home() {
           onlineGames.map((game) => (
             <div className="game" key={game.gameId}>
               <div className="names">
-                <div className="red">{game.users[0].playerName}</div>
+                <div className="redPlayer">{game.users[0].playerName}</div>
                 <div>{game.users.length > 1 && "vs."}</div>
-                <div className="blue">
+                <div className="bluePlayer">
                   {game.users.length > 1 && game.users[1].playerName}
                 </div>
               </div>

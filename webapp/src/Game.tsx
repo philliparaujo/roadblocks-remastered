@@ -21,7 +21,7 @@ import { AlertDisplay } from "./components/UI/AlertDisplay";
 import ResetTurnButton from "./components/UI/ResetTurnButton";
 import Dice2 from "./components/UI/Dice2";
 import { Link } from "react-router-dom";
-import { UserRole } from "@roadblocks/types";
+import { PlayerColor, UserRole } from "@roadblocks/types";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleArrowLeft } from "@fortawesome/free-solid-svg-icons";
 
@@ -30,6 +30,25 @@ interface GameProps {}
 const Game: React.FC<GameProps> = () => {
   const [inProgress, setInProgress] = useState<boolean | undefined>(undefined);
   const [role, setRole] = useState<UserRole | undefined>(undefined);
+  const [turn, setTurn] = useState<PlayerColor>("red");
+
+  const [redPlayer, setRedPlayer] = useState<string>();
+  const [bluePlayer, setBluePlayer] = useState<string>();
+
+  useEffect(() => {
+    const fetchGame = async () => {
+      const games = (await GameInstance.listGames()).games;
+      const myGame = games.find((game) => game.gameId === GameInstance.gameId);
+      if (!myGame || !myGame.users) {
+        return;
+      }
+
+      if (myGame.users.length >= 1) setRedPlayer(myGame.users[0].playerName);
+      if (myGame.users.length >= 2) setBluePlayer(myGame.users[1].playerName);
+    };
+
+    fetchGame();
+  }, [GameInstance]);
 
   useEffect(() => {
     switch (window.location.hash) {
@@ -49,6 +68,15 @@ const Game: React.FC<GameProps> = () => {
   }, [window.location]);
 
   useEffect(() => {
+    const unsubscribe = GameInstance.switchTurnEventSubscription().subscribe(
+      (e) => {
+        setTurn(e.turn);
+      }
+    );
+    return () => unsubscribe();
+  }, [GameInstance]);
+
+  useEffect(() => {
     GameInstance.gameInProgress()
       .then((result) => {
         setInProgress(result);
@@ -64,12 +92,20 @@ const Game: React.FC<GameProps> = () => {
     <div className="game">
       <div id="background" />
 
-      {role === "red" ? (
-        <div>RED</div>
-      ) : role === "blue" ? (
-        <div>BLUE</div>
+      {role === "red" && turn !== "red" ? (
+        <div className="fullscreen-cover"></div>
+      ) : role === "blue" && turn !== "blue" ? (
+        <div className="fullscreen-cover"></div>
+      ) : role === "watcher" ? (
+        <div className="fullscreen-cover"></div>
       ) : (
-        <div>WATCHER</div>
+        <div></div>
+      )}
+
+      {role === "watcher" ? (
+        <div className="role-label">SPECTATING</div>
+      ) : (
+        <div></div>
       )}
 
       <Link to="/home" className="back-button">
@@ -83,6 +119,23 @@ const Game: React.FC<GameProps> = () => {
           <UIBoard debug={false} />
         </div>
         <div className="actions-column">
+          <div
+            style={{
+              alignSelf: "center",
+              textAlign: "center",
+              paddingBottom: 50,
+              fontSize: 28,
+            }}
+          >
+            {redPlayer && bluePlayer ? (
+              <>
+                <span className="redPlayer">{redPlayer}</span> vs.{" "}
+                <span className="bluePlayer">{bluePlayer}</span>
+              </>
+            ) : (
+              <span className="redPlayer">{redPlayer}</span>
+            )}
+          </div>
           <Dice2 />
           <div>
             <LockWallsButton />
@@ -101,16 +154,18 @@ const Game: React.FC<GameProps> = () => {
         </div>
       </div>
 
-      <AlertProvider>
-        <AlertDisplay />
+      {role !== "watcher" && (
+        <AlertProvider>
+          <AlertDisplay />
 
-        <StartGameAlert />
-        <DiceRollAlert />
-        <LockWallsAlert />
-        <SwitchTurnAlert />
-        <WinGameAlert />
-        <ErrorAlert />
-      </AlertProvider>
+          <StartGameAlert />
+          <DiceRollAlert />
+          <LockWallsAlert />
+          <SwitchTurnAlert />
+          <WinGameAlert />
+          <ErrorAlert />
+        </AlertProvider>
+      )}
     </div>
   ) : (
     <Navigate to="/" replace={true} />

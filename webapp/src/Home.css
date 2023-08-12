@@ -43,7 +43,7 @@
   content: "";
   background-image: radial-gradient(
     circle at center,
-    rgba(255, 255, 255, 0.4) 70%,
+    rgba(255, 255, 255, 0.25) 70%,
     transparent
   );
   position: absolute;
@@ -258,12 +258,12 @@
   font-size: 1.8rem;
 }
 
-.game-list .red {
+.game-list .redPlayer {
   color: red;
   font-weight: 500;
 }
 
-.game-list .blue {
+.game-list .bluePlayer {
   color: blue;
   font-weight: 500;
 }
