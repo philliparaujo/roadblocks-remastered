@@ -1,4 +1,4 @@
-import { black, blue, bold, dim, green, red, white } from "./Colors";
+import { black, blue, bold, dim, green, red, white, yellow } from "./Colors";
 import { Coord } from "./Coord";
 import { PlayerColor } from "./Types";
 import { isCell, isCorner, isEdge } from "./Utils";
@@ -203,7 +203,7 @@ export class BoardImpl implements Board {
       if (colNumber % 2 === 1) {
         if (isEdge(coord)) {
           if (this.items[rowNumber][colNumber] === "#") {
-            row.push(black(bold(firstLoopChar)));
+            row.push(yellow(bold(firstLoopChar)));
           } else if (this.items[rowNumber][colNumber] === "-") {
             row.push(blue(bold(firstLoopChar)));
           } else {
@@ -226,7 +226,7 @@ export class BoardImpl implements Board {
       } else {
         if (isEdge(coord)) {
           if (this.items[rowNumber][colNumber] === "#") {
-            row.push(black(bold(secondLoopChar)));
+            row.push(yellow(bold(secondLoopChar)));
           } else if (this.items[rowNumber][colNumber] === "|") {
             row.push(red(bold(secondLoopChar)));
           } else {

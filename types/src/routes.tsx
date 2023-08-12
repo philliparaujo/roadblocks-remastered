@@ -1,4 +1,4 @@
-const baseApi = "/api";
+const baseApi = "/api/v1";
 
 /* PubSub routes */
 const pubSubRoute = `${baseApi}/pubsub`;

@@ -1,0 +1,108 @@
+.howToPlay {
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* Horizontal centering */
+  align-items: center; /* Vertical centering */
+  width: 100vw;
+  height: 100vh;
+  max-width: 70vw;
+  margin: 0 auto; /* This centers the box horizontally */
+}
+
+.howToPlay #background {
+  background-image: url("images/background.jpg");
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  filter: brightness(1);
+  opacity: 1;
+}
+
+.howToPlay #background:after {
+  content: "";
+  background-image: linear-gradient(
+    rgba(255, 255, 255, 0.9) 0%,
+    rgba(255, 255, 255, 9.9) 100%
+  );
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none; /* Ensures the gradient doesn't interfere with user interactions */
+}
+
+.howToPlay .about-header,
+.how-to-play-header {
+  font-size: 48px;
+  font-weight: bold;
+  border-bottom: 2px solid #333;
+  padding-bottom: 10px;
+  text-align: center;
+}
+
+.howToPlay .how-to-play-list {
+  font-size: 24px;
+  margin-bottom: 20px;
+  color: #444;
+  text-align: center;
+  padding-left: 0; /* Remove the default padding for lists */
+}
+
+.howToPlay .how-to-play-list li {
+  margin-bottom: 12px;
+  line-height: 1.3;
+  list-style-position: inside; /* Makes bullets and numbers appear closer to the text */
+}
+
+.howToPlay .description {
+  font-size: 28px;
+  margin-bottom: 24px;
+  line-height: 1.3;
+  color: #666;
+  text-align: center;
+}
+
+.back-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  font-size: 40px; /* adjust size of the icon */
+  z-index: 1000; /* ensure it's above other content */
+  transition: all 0.3s ease;
+}
+
+.back-button:hover {
+  transform: translateY(-3px);
+  opacity: 0.7;
+}
+
+.back-button:hover .tooltip-text {
+  display: block;
+}
+
+.tooltip-text {
+  display: none;
+  position: absolute;
+  padding: 4px 8px;
+  top: 100%; /* make it appear just below the button */
+  left: calc(50% + 0.5rem);
+  transform: translateX(-50%);
+  background-color: #333;
+  color: #fff;
+  border-radius: 4px;
+  font-size: 12px; /* adjust as required */
+  white-space: nowrap;
+  z-index: 1;
+}

@@ -1,5 +1,6 @@
 import {
   DiceRollEvent,
+  ErrorEvent,
   LockWallEvent,
   NumWallChangesEvent,
   PlayerMovedEvent,
@@ -9,17 +10,16 @@ import {
   WallToggledEvent,
   WinGameEvent,
   diceRollPubSubRoute,
+  errorPubSubRoute,
   lockWallPubSubRoute,
   numWallChangesPubSubRoute,
   playerMovedPubSubRoute,
   startGamePubSubRoute,
   switchTurnPubSubRoute,
-  winGamePubSubRoute,
   wallToggledPubSubRoute,
-  ErrorEvent,
-  errorPubSubRoute,
+  winGamePubSubRoute,
 } from "@roadblocks/types";
-import { myGet, serviceURL } from "./GameClient";
+import { buildUrl, myGet } from "./GameClient";
 
 const fetchIntervalMs = 1000;
 
@@ -65,8 +65,7 @@ export class SubscriberClient<T extends TimedEvent> {
   start: (sessionId: string) => void = (sessionId) => {
     console.log("starting PubSub client", this.route);
     this.timer = setInterval(() => {
-      const url = new URL(serviceURL);
-      url.pathname = this.route;
+      const url = buildUrl(this.route);
       // url.searchParams.set("sessionId", sessionId);
       url.searchParams.set(
         "lastEventTime",

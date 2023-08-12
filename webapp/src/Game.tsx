@@ -22,6 +22,8 @@ import ResetTurnButton from "./components/UI/ResetTurnButton";
 import Dice2 from "./components/UI/Dice2";
 import { Link } from "react-router-dom";
 import { UserRole } from "@roadblocks/types";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCircleArrowLeft } from "@fortawesome/free-solid-svg-icons";
 
 interface GameProps {}
 
@@ -70,8 +72,9 @@ const Game: React.FC<GameProps> = () => {
         <div>WATCHER</div>
       )}
 
-      <Link to="/home">
-        <button>Home</button>
+      <Link to="/home" className="back-button">
+        <FontAwesomeIcon icon={faCircleArrowLeft} />
+        <span className="tooltip-text">Quit Game</span>
       </Link>
 
       {/* <img src="images/logo.png" id="logo" /> */}

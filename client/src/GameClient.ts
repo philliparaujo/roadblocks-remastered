@@ -54,7 +54,10 @@ import {
   WinGameSubscriberClient,
 } from "./PubSubClient";
 
-export const serviceURL = process.env.SERVER_URL;
+export var serviceURL: string;
+export function setServiceURL(url: string) {
+  serviceURL = url;
+}
 
 export interface GameControl {
   newGame: (playerName: string) => Promise<void>;
@@ -273,8 +276,15 @@ export class GameClient implements Game, GameControl {
   }
 }
 
+export function buildUrl(urlExtension: string | URL): URL {
+  if (serviceURL === "") {
+    return new URL(urlExtension, window.location.toString());
+  }
+  return new URL(urlExtension, serviceURL);
+}
+
 function myPost<T>(action: string, body: any): Promise<T> {
-  const url: URL = new URL(action, serviceURL);
+  const url: URL = buildUrl(action);
 
   console.log("trying", action);
   return fetch(url, {
@@ -298,7 +308,7 @@ export function myGet<T>(
   urlExtension: string | URL,
   params: { [key: string]: string } = {}
 ): Promise<T> {
-  const url: URL = new URL(urlExtension, serviceURL);
+  const url: URL = buildUrl(urlExtension);
 
   for (const [key, value] of Object.entries(params)) {
     url.searchParams.set(key, value);

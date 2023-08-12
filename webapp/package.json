@@ -24,7 +24,8 @@
     "build": "webpack build --mode production",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "test": "jest"
+    "test": "jest",
+    "publish:home": "pnpm run build && scp -r dist/* playground:/var/www/vhost/roadblocks/"
   },
   "eslintConfig": {
     "extends": [

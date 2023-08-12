@@ -28,6 +28,9 @@ export class PathfinderImpl {
     end: Coord,
     board: Board
   ): Coord[] | null => {
+    console.log("finding path from", start, "to", end);
+    board.dump(console.log);
+
     const heuristic = (a: Coord, b: Coord) =>
       Math.abs(a.row - b.row) + Math.abs(a.col - b.col);
 
@@ -58,6 +61,7 @@ export class PathfinderImpl {
         }
 
         path.reverse();
+        console.log("found path from", start, "to", end, ":", path);
         return path;
       }
 

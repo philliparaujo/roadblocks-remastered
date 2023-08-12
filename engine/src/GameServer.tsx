@@ -118,15 +118,15 @@ type OverridesForTesting = {
   rollDurationMs?: number;
 };
 
-const initialPlayerLocations = {
+const initialPlayerLocations = () => ({
   red: { row: 7, col: 1 },
   blue: { row: 1, col: 7 },
-};
-const initialEndLocations = {
+});
+const initialEndLocations = () => ({
   red: { row: 7, col: 13 },
   blue: { row: 13, col: 7 },
-};
-const initialWallLocations = {
+});
+const initialWallLocations = () => ({
   red: [],
   blue: [],
   locked: [
@@ -142,9 +142,23 @@ const initialWallLocations = {
     { row: 7, col: 12 },
     { row: 9, col: 10 },
     { row: 12, col: 13 },
+
+    { col: 1, row: 10 },
+    { col: 2, row: 1 },
+    { col: 2, row: 7 },
+    { col: 2, row: 11 },
+    { col: 3, row: 12 },
+    { col: 4, row: 5 },
+    { col: 4, row: 9 },
+    { col: 4, row: 13 },
+    { col: 6, row: 7 },
+    { col: 7, row: 12 },
+    { col: 9, row: 10 },
+    { col: 12, row: 13 },
   ],
-};
-const standardDice = [1, 2, 3, 4, 5, 6];
+});
+const standardDice = () => [1, 2, 3, 4, 5, 6];
+// const standardDice = () => [1, 1, 1, 1, 1, 1];
 
 export class GameServerImpl implements GameServer {
   playerMovedSubscriptions: PlayerMovedSubscriberServer;
@@ -173,27 +187,22 @@ export class GameServerImpl implements GameServer {
       width: width,
       height: height,
       id: id++,
-      playerLocations: initialPlayerLocations,
-      oldPlayerLocations: { ...initialPlayerLocations },
-      endLocations: initialEndLocations,
-      wallLocations: initialWallLocations,
-      oldWallLocations: {
-        red: [...initialWallLocations.red],
-        blue: [...initialWallLocations.blue],
-        locked: [...initialWallLocations.locked],
-      },
+      playerLocations: initialPlayerLocations(),
+      oldPlayerLocations: initialPlayerLocations(),
+      endLocations: initialEndLocations(),
+      wallLocations: initialWallLocations(),
+      oldWallLocations: initialWallLocations(),
       oldBoard: board.copy(),
       currentBoard: board,
       movements: 0,
       diceRolls: {
-        red: standardDice,
-        blue: standardDice,
+        red: standardDice(),
+        blue: standardDice(),
       },
       rollDurationMs: 1,
     };
     // console.log("Created game object", this.state.id);
     // this.generateRandomWallLocations(this.state.width, this.state.height);
-    this.mirrorLockedWallLocations();
 
     this.playerMovedSubscriptions = new PlayerMovedSubscriberServer();
     this.switchTurnSubscriptions = new SwitchTurnSubscriberServer();
@@ -549,14 +558,6 @@ export class GameServerImpl implements GameServer {
     }
   };
 
-  private mirrorLockedWallLocations = (): void => {
-    const wallLocationCopy: Coord[] = [...this.state.wallLocations.locked];
-    for (const coord of this.state.wallLocations.locked) {
-      wallLocationCopy.push({ row: coord.col, col: coord.row });
-    }
-    this.state.wallLocations.locked = wallLocationCopy;
-  };
-
   private winGame = (): void => {
     this.state.gameOver = true;
     this.winGameSubscriptions.notify(new WinGameEvent(this.state.turn));
@@ -606,23 +607,23 @@ export class GameServerImpl implements GameServer {
 function initFromGame(width: number, height: number): Board {
   const board: Board = new BoardImpl(width, height);
 
-  const redPlayerCoord: Coord = initialPlayerLocations.red;
+  const redPlayerCoord: Coord = initialPlayerLocations().red;
   const redplayer: RedPlayer = "r";
   board.addToCell(redPlayerCoord, redplayer);
 
-  const bluePlayerCoord: Coord = initialPlayerLocations.blue;
+  const bluePlayerCoord: Coord = initialPlayerLocations().blue;
   const blueplayer: BluePlayer = "b";
   board.addToCell(bluePlayerCoord, blueplayer);
 
-  const redEndCoord: Coord = initialEndLocations.red;
+  const redEndCoord: Coord = initialEndLocations().red;
   const redend: RedEnd = "R";
   board.addToCell(redEndCoord, redend);
 
-  const blueEndCoord: Coord = initialEndLocations.blue;
+  const blueEndCoord: Coord = initialEndLocations().blue;
   const blueend: BlueEnd = "B";
   board.addToCell(blueEndCoord, blueend);
 
-  const wallLocations: WallLocations = initialWallLocations;
+  const wallLocations: WallLocations = initialWallLocations();
   for (const wall of wallLocations.locked) {
     board.set(wall, "#");
   }
@@ -633,5 +634,6 @@ function initFromGame(width: number, height: number): Board {
     board.set(blueWall, "-");
   }
 
+  board.dump(console.log);
   return board;
 }

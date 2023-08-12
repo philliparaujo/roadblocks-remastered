@@ -5,6 +5,7 @@ import { GameInstance } from "@roadblocks/client";
 import { Routes, Route, Router, Link } from "react-router-dom";
 import Game from "./Game";
 import Home from "./Home";
+import HowToPlay from "./HowToPlay";
 
 function App() {
   useEffect(() => {
@@ -27,7 +28,7 @@ function App() {
         <Route path="/home" element={<Home />} />
         <Route path="/game" element={<Game />} />
         <Route path="/settings" element={<div>SETTINGS</div>} />
-        <Route path="/about" element={<div>ABOUT</div>} />
+        <Route path="/howtoplay" element={<HowToPlay />} />
         <Route path="/*" element={<div>NOT FOUND</div>} />
       </Routes>
     </div>

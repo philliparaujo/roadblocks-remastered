@@ -4,7 +4,7 @@ const CopyWebpackPlugin = require("copy-webpack-plugin");
 const webpack = require("webpack");
 
 const localDevServer = "http://localhost:5000";
-const productionServer = "http://playground/roadblocks";
+const productionServer = "";
 
 module.exports = (env, argv) => {
   return {
@@ -45,6 +45,9 @@ module.exports = (env, argv) => {
       new webpack.DefinePlugin({
         "process.env.SERVER_URL": JSON.stringify(
           argv.mode === "development" ? localDevServer : productionServer
+        ),
+        "process.env.BUILD_NUMBER": JSON.stringify(
+          new Date().getTime() % 10000000
         ),
       }),
     ],
