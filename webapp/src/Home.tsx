@@ -1,15 +1,14 @@
 import { GameInstance, reset } from "@roadblocks/client";
 import { useEffect, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
-
-import {
-  faQuestionCircle,
-  faTimes,
-  faGear,
-} from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { GameInfo, UserRole } from "@roadblocks/types";
 import "./Home.css";
+import {
+  AboutIcon,
+  AboutPopup,
+  SettingsIcon,
+  SettingsPopup,
+} from "./components/UI/Popup";
 
 function Home() {
   const generateRandom7DigitNumber = () => {
@@ -137,59 +136,17 @@ function Home() {
         </button>
       </div>
 
-      {/* <Link to={"/settings"}>
-        <button className="home-button">Settings</button>
-      </Link> */}
-
       <Link to={"/howtoplay"}>
         <button className="home-button">How To Play</button>
       </Link>
 
-      <div className="about-icon" onClick={toggleAbout}>
-        <FontAwesomeIcon icon={faQuestionCircle} />
-      </div>
-
-      <div className="settings-icon" onClick={toggleSettings}>
-        <FontAwesomeIcon icon={faGear} />
-      </div>
-
       {role && <Navigate to={`/game#${role}`} replace={true} />}
 
-      {showAbout && (
-        <div className="popup-overlay" onClick={toggleAbout}>
-          <div className="popup" onClick={(e) => e.stopPropagation()}>
-            {" "}
-            {/* Prevents the popup from closing when clicked on */}
-            <div className="popup-close" onClick={toggleAbout}>
-              <FontAwesomeIcon icon={faTimes} />
-            </div>
-            <div className="popup-container">
-              <h1 className="popup-header">About</h1>
-              <p>Version {process.env.BUILD_NUMBER}</p>
-              <p className="description">
-                Roadblocks is a strategic, turn-based board game. Players must
-                navigate their pieces to the finish while blocking their
-                opponents with walls. Do you have what it takes to outmaneuver
-                your foes and claim victory?
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
+      <AboutIcon toggle={toggleAbout} />
+      <SettingsIcon toggle={toggleSettings} />
 
-      {showSettings && (
-        <div className="popup-overlay" onClick={toggleSettings}>
-          <div className="popup" onClick={(e) => e.stopPropagation()}>
-            <div className="popup-close" onClick={toggleSettings}>
-              <FontAwesomeIcon icon={faTimes} />
-            </div>
-            <div className="popup-container">
-              <h1 className="popup-header">Settings</h1>
-              <p>TBD: Add music & settings</p>
-            </div>
-          </div>
-        </div>
-      )}
+      <AboutPopup show={showAbout} toggle={toggleAbout} />
+      <SettingsPopup show={showSettings} toggle={toggleSettings} />
 
       {error && <div>{error}</div>}
     </div>

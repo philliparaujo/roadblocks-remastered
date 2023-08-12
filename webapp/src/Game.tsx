@@ -1,13 +1,11 @@
+import { faCircleArrowLeft } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { GameInstance } from "@roadblocks/client";
+import { PlayerColor, UserRole } from "@roadblocks/types";
+import { useEffect, useState } from "react";
+import { Link, Navigate } from "react-router-dom";
 import "./Game.css";
 import UIBoard from "./components/Board/UIBoard";
-import Dice from "./components/UI/Dice";
-import LockWallsButton from "./components/UI/LockWallsButton";
-import PlayerRectangles from "./components/UI/PlayerRectangles";
-import SwitchTurnButton from "./components/UI/SwitchTurnButton";
-import WallRectangles from "./components/UI/WallRectangles";
-import { useEffect, useState } from "react";
-import { Navigate } from "react-router-dom";
 import {
   DiceRollAlert,
   ErrorAlert,
@@ -18,12 +16,18 @@ import {
 } from "./components/UI/Alert";
 import { AlertProvider } from "./components/UI/AlertContext";
 import { AlertDisplay } from "./components/UI/AlertDisplay";
-import ResetTurnButton from "./components/UI/ResetTurnButton";
 import Dice2 from "./components/UI/Dice2";
-import { Link } from "react-router-dom";
-import { PlayerColor, UserRole } from "@roadblocks/types";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCircleArrowLeft } from "@fortawesome/free-solid-svg-icons";
+import LockWallsButton from "./components/UI/LockWallsButton";
+import PlayerRectangles from "./components/UI/PlayerRectangles";
+import {
+  AboutIcon,
+  AboutPopup,
+  SettingsIcon,
+  SettingsPopup,
+} from "./components/UI/Popup";
+import ResetTurnButton from "./components/UI/ResetTurnButton";
+import SwitchTurnButton from "./components/UI/SwitchTurnButton";
+import WallRectangles from "./components/UI/WallRectangles";
 
 interface GameProps {}
 
@@ -34,6 +38,16 @@ const Game: React.FC<GameProps> = () => {
 
   const [redPlayer, setRedPlayer] = useState<string>();
   const [bluePlayer, setBluePlayer] = useState<string>();
+
+  const [showAbout, setShowAbout] = useState(false);
+  const toggleAbout = () => {
+    setShowAbout(!showAbout);
+  };
+
+  const [showSettings, setShowSettings] = useState(false);
+  const toggleSettings = () => {
+    setShowSettings(!showSettings);
+  };
 
   useEffect(() => {
     const fetchGame = async () => {
@@ -166,6 +180,12 @@ const Game: React.FC<GameProps> = () => {
           <ErrorAlert />
         </AlertProvider>
       )}
+
+      <AboutIcon toggle={toggleAbout} />
+      <SettingsIcon toggle={toggleSettings} />
+
+      <AboutPopup show={showAbout} toggle={toggleAbout} />
+      <SettingsPopup show={showSettings} toggle={toggleSettings} />
     </div>
   ) : (
     <Navigate to="/" replace={true} />
