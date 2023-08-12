@@ -2,7 +2,11 @@ import { GameInstance, reset } from "@roadblocks/client";
 import { useEffect, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 
-import { faQuestionCircle, faTimes } from "@fortawesome/free-solid-svg-icons";
+import {
+  faQuestionCircle,
+  faTimes,
+  faGear,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { GameInfo, UserRole } from "@roadblocks/types";
 import "./Home.css";
@@ -24,6 +28,11 @@ function Home() {
   const [showAbout, setShowAbout] = useState(false);
   const toggleAbout = () => {
     setShowAbout(!showAbout);
+  };
+
+  const [showSettings, setShowSettings] = useState(false);
+  const toggleSettings = () => {
+    setShowSettings(!showSettings);
   };
 
   const startGame = () => {
@@ -128,9 +137,9 @@ function Home() {
         </button>
       </div>
 
-      <Link to={"/settings"}>
+      {/* <Link to={"/settings"}>
         <button className="home-button">Settings</button>
-      </Link>
+      </Link> */}
 
       <Link to={"/howtoplay"}>
         <button className="home-button">How To Play</button>
@@ -140,18 +149,22 @@ function Home() {
         <FontAwesomeIcon icon={faQuestionCircle} />
       </div>
 
+      <div className="settings-icon" onClick={toggleSettings}>
+        <FontAwesomeIcon icon={faGear} />
+      </div>
+
       {role && <Navigate to={`/game#${role}`} replace={true} />}
 
       {showAbout && (
-        <div className="overlay" onClick={toggleAbout}>
-          <div className="about-popup" onClick={(e) => e.stopPropagation()}>
+        <div className="popup-overlay" onClick={toggleAbout}>
+          <div className="popup" onClick={(e) => e.stopPropagation()}>
             {" "}
             {/* Prevents the popup from closing when clicked on */}
             <div className="popup-close" onClick={toggleAbout}>
               <FontAwesomeIcon icon={faTimes} />
             </div>
-            <div className="about-container">
-              <h1 className="about-header">About</h1>
+            <div className="popup-container">
+              <h1 className="popup-header">About</h1>
               <p>Version {process.env.BUILD_NUMBER}</p>
               <p className="description">
                 Roadblocks is a strategic, turn-based board game. Players must
@@ -159,6 +172,20 @@ function Home() {
                 opponents with walls. Do you have what it takes to outmaneuver
                 your foes and claim victory?
               </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showSettings && (
+        <div className="popup-overlay" onClick={toggleSettings}>
+          <div className="popup" onClick={(e) => e.stopPropagation()}>
+            <div className="popup-close" onClick={toggleSettings}>
+              <FontAwesomeIcon icon={faTimes} />
+            </div>
+            <div className="popup-container">
+              <h1 className="popup-header">Settings</h1>
+              <p>TBD: Add music & settings</p>
             </div>
           </div>
         </div>
