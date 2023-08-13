@@ -13,26 +13,35 @@ import {
 } from "./components/UI/Popup";
 
 function Home() {
-  const generateRandom7DigitNumber = () => {
-    return Math.floor(1000000 + Math.random() * 9000000);
+  const randomGuestName = () => {
+    const random7DigitNumber: number = Math.floor(
+      1000000 + Math.random() * 9000000
+    );
+    return `Guest${random7DigitNumber}`;
   };
 
   const [role, setRole] = useState<UserRole | undefined>();
-  const [playerName, setPlayerName] = useState<string>(
-    `Guest${generateRandom7DigitNumber()}`
+
+  const storedPlayerName = localStorage.getItem("playerName");
+  const initialPlayerName = storedPlayerName
+    ? storedPlayerName
+    : randomGuestName();
+  const [playerName, setPlayerName] = useState<string>(initialPlayerName);
+
+  const [hasConfirmed, setHasConfirmed] = useState<boolean>(
+    storedPlayerName ? true : false
   );
-  const [hasConfirmed, setHasConfirmed] = useState(false);
   const [error, setError] = useState<string>("");
 
   const [onlineGames, setOnlineGames] = useState<GameInfo[]>();
   const refreshGamesTimerMs = 1000;
 
-  const [showAbout, setShowAbout] = useState(false);
+  const [showAbout, setShowAbout] = useState<boolean>(false);
   const toggleAbout = () => {
     setShowAbout(!showAbout);
   };
 
-  const [showSettings, setShowSettings] = useState(false);
+  const [showSettings, setShowSettings] = useState<boolean>(false);
   const toggleSettings = () => {
     setShowSettings(!showSettings);
   };
@@ -74,6 +83,10 @@ function Home() {
   useEffect(() => {
     reset();
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem("playerName", playerName);
+  }, [playerName]);
 
   return (
     <div className="home">
@@ -148,7 +161,7 @@ function Home() {
                 </div>
               ))
             ) : (
-              <div>No Games</div>
+              <div className="noGames">No Games</div>
             )}
           </div>
 

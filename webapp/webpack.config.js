@@ -12,6 +12,9 @@ module.exports = (env, argv) => {
     output: {
       filename: "bundle.js",
       path: path.resolve(__dirname, "dist"),
+      clean: {
+        keep: /.git/,
+      },
     },
     module: {
       rules: [
@@ -40,6 +43,9 @@ module.exports = (env, argv) => {
         patterns: [
           { from: "src/assets/background.jpg", to: "images" },
           { from: "src/assets/logo.png", to: "images" },
+          { from: "src/assets/Frame 1.png", to: "images" },
+          { from: "src/assets/Frame 2.png", to: "images" },
+          { from: "src/assets/Frame 3.png", to: "images" },
         ],
       }),
       new webpack.DefinePlugin({

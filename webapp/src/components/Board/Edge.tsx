@@ -23,6 +23,7 @@ export interface EdgeProps {
   type?: EdgeType;
   debug?: boolean;
   game: Game;
+  toggle?: Toggle;
 }
 
 /* Determine fill of edge based on given parameters */
@@ -81,8 +82,9 @@ const Edge: React.FC<EdgeProps> = ({
   type = "normal",
   debug = false,
   game = GameInstance,
+  toggle = "off",
 }) => {
-  const [toggled, setToggled] = useState<Toggle>("off");
+  const [toggled, setToggled] = useState<Toggle>(toggle);
   const toggledRef = useRef<Toggle>("off");
   const [startedOn, setStartedOn] = useState<boolean>(toggled === "on");
   const [fill, setFill] = useState<EdgeColor>(

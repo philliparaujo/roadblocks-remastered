@@ -188,7 +188,15 @@
   border: 2px solid gray;
   border-radius: 6px;
   align-content: center;
+  justify-content: center;
   overflow-y: auto;
+  min-height: 60px;
+}
+
+.game-list .noGames {
+  font-size: 1.2rem;
+  align-self: center;
+  color: gray;
 }
 
 .game-list .game {

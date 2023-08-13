@@ -3,10 +3,7 @@
   flex-direction: column;
   justify-content: center; /* Horizontal centering */
   align-items: center; /* Vertical centering */
-  width: 100vw;
-  height: 100vh;
-  max-width: 70vw;
-  margin: 0 auto; /* This centers the box horizontally */
+  margin: 0 3rem; /* This centers the box horizontally */
 }
 
 .howToPlay #background {
@@ -44,14 +41,12 @@
   font-weight: bold;
   border-bottom: 2px solid #333;
   padding-bottom: 10px;
-  text-align: center;
 }
 
 .howToPlay .how-to-play-list {
   font-size: 24px;
   margin-bottom: 20px;
   color: #444;
-  text-align: center;
   padding-left: 0; /* Remove the default padding for lists */
 }
 
@@ -63,10 +58,9 @@
 
 .howToPlay .description {
   font-size: 28px;
-  margin-bottom: 24px;
+  margin-bottom: 0px;
   line-height: 1.3;
   color: #666;
-  text-align: center;
 }
 
 .back-button {
@@ -105,4 +99,8 @@
   font-size: 12px; /* adjust as required */
   white-space: nowrap;
   z-index: 1;
+}
+
+.frame {
+  height: 20rem;
 }

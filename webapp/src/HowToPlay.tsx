@@ -3,8 +3,26 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleArrowLeft } from "@fortawesome/free-solid-svg-icons";
 
 import "./HowToPlay.css";
+import { useEffect, useState } from "react";
+
+const swapImageTimerMs = 4000;
+
+const images = [
+  "images/Frame 1.png",
+  "images/Frame 2.png",
+  "images/Frame 3.png",
+];
 
 function HowToPlay() {
+  const [imageToShow, setImageToShow] = useState<number>(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setImageToShow((oldImageToShow) => (oldImageToShow + 1) % images.length);
+    }, swapImageTimerMs);
+    return () => clearInterval(timer);
+  }, []);
+
   return (
     <div className="howToPlay">
       <div id="background" />
@@ -16,19 +34,32 @@ function HowToPlay() {
 
       <h2 className="how-to-play-header">How to Play</h2>
 
-      <p className="description">Every turn, you and your opponent will...</p>
-      <ol className="how-to-play-list">
-        <li>
-          <b>Roll a dice</b> to determine movement
-        </li>
-        <li>
-          <b>Add and remove walls</b> to block your opponent
-        </li>
-        <li>
-          <b>Move your piece</b> closer to the finish
-        </li>
-      </ol>
+      <div style={{ display: "flex", gap: 40 }}>
+        <div>
+          <p className="description">
+            Every turn, you and your opponent will...
+          </p>
+          <ol className="how-to-play-list">
+            <li>
+              <b>Roll a dice</b> to determine movement
+            </li>
+            <li>
+              <b>Add and remove walls</b> to block your opponent
+            </li>
+            <li>
+              <b>Move your piece</b> closer to the finish
+            </li>
+          </ol>
+        </div>
 
+        <div className="frame-container">
+          {images
+            .filter((image, index) => index === imageToShow)
+            .map((img) => (
+              <img key={img} src={img} className="frame" />
+            ))}
+        </div>
+      </div>
       <p className="description">Rules:</p>
       <ul className="how-to-play-list">
         <li>

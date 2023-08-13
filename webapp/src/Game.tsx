@@ -28,6 +28,7 @@ import {
 import ResetTurnButton from "./components/UI/ResetTurnButton";
 import SwitchTurnButton from "./components/UI/SwitchTurnButton";
 import WallRectangles from "./components/UI/WallRectangles";
+import Edge from "./components/Board/Edge";
 
 interface GameProps {}
 
@@ -51,6 +52,10 @@ const Game: React.FC<GameProps> = () => {
 
   const [showAlerts, setShowAlerts] = useState<boolean>(false);
   const alertDisabledForMs = 1000;
+
+  const [numWallsLeft, setNumWallsLeft] = useState<number>(6);
+
+  const [edgesLeft, setEdgesLeft] = useState<JSX.Element[]>();
 
   useEffect(() => {
     const fetchGame = async () => {
@@ -113,6 +118,16 @@ const Game: React.FC<GameProps> = () => {
   }, [GameInstance]);
 
   useEffect(() => {
+    const unsubscribe =
+      GameInstance.numWallChangesEventSubscription().subscribe((e) => {
+        GameInstance.getWallLocations().then((allWalls) => {
+          setNumWallsLeft(6 - allWalls[turn].length);
+        });
+      });
+    return () => unsubscribe();
+  }, [GameInstance, turn]);
+
+  useEffect(() => {
     GameInstance.gameInProgress()
       .then((result) => {
         setInProgress(result);
@@ -121,6 +136,20 @@ const Game: React.FC<GameProps> = () => {
         setInProgress(undefined);
       });
   }, [GameInstance]);
+
+  useEffect(() => {
+    const edges = Array.from({ length: 6 }).map((_, index) => (
+      <Edge
+        key={`${index}-${numWallsLeft}`} // <-- add numWallsLeft to the key
+        coord={{ row: 0, col: 0 }}
+        orientation={turn === "red" ? "vertical" : "horizontal"}
+        game={GameInstance}
+        type={"disabled"}
+        toggle={index < numWallsLeft ? "on" : "off"}
+      />
+    ));
+    setEdgesLeft(edges);
+  }, [numWallsLeft, turn]);
 
   return inProgress === undefined ? (
     <div>Loading...</div>
@@ -159,8 +188,6 @@ const Game: React.FC<GameProps> = () => {
         <div className="actions-column">
           <div
             style={{
-              alignSelf: "center",
-              textAlign: "center",
               paddingBottom: 50,
               fontSize: 28,
             }}
@@ -181,13 +208,28 @@ const Game: React.FC<GameProps> = () => {
             <ResetTurnButton />
           </div>
           <hr />
-          <div>
-            <h3>Wall Moves:</h3>
-            <WallRectangles />
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              minWidth: 390,
+              paddingBottom: 30,
+            }}
+          >
+            <div>
+              <h3>Wall Moves:</h3>
+              <WallRectangles />
+            </div>
+            <div>
+              <h3>Player Moves:</h3>
+              <PlayerRectangles />
+            </div>
           </div>
-          <div>
-            <h3>Player Moves:</h3>
-            <PlayerRectangles />
+          <div
+            className="walls-container"
+            id={turn === "blue" ? "blue-walls-container" : ""}
+          >
+            {edgesLeft}
           </div>
         </div>
       </div>
