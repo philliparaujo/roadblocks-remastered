@@ -60,6 +60,7 @@ import {
   listGamesRoute,
   ListGamesResult,
   versionRoute,
+  quitRoute,
 } from "@roadblocks/types";
 import express from "express";
 import SessionManager from "../SessionManager";
@@ -145,6 +146,26 @@ router.get(listGamesRoute, (req, res) => {
 router.get(versionRoute, (req, res) => {
   try {
     res.send(BUILD_NUMBER);
+  } catch (e) {
+    console.error(e);
+    res.sendStatus(500);
+  }
+});
+
+router.get(quitRoute, (req, res) => {
+  try {
+    const password = req.query.password;
+
+    if (process.env.QUIT_PASSWORD === "" || !process.env.QUIT_PASSWORD) {
+      res.sendStatus(500);
+      return;
+    }
+
+    if (password === process.env.QUIT_PASSWORD) {
+      process.exit(1);
+    } else {
+      res.sendStatus(401);
+    }
   } catch (e) {
     console.error(e);
     res.sendStatus(500);

@@ -17,6 +17,8 @@ export const errorPubSubRoute = `${pubSubRoute}/error`;
 export const newGameRoute = `${baseApi}/newGame`;
 export const joinGameRoute = `${baseApi}/joinGame`;
 export const listGamesRoute = `${baseApi}/listGames`;
+export const versionRoute = `${baseApi}/version`;
+export const quitRoute = `${baseApi}/quit`;
 
 export const addEdgeRoute = `${baseApi}/addEdge`;
 export const removeEdgeRoute = `${baseApi}/removeEdge`;
