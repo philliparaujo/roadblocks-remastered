@@ -1,0 +1,4 @@
+[submodule "webapp/dist"]
+	path = webapp/dist
+	url = git@github.com:philliparaujo/roadblocks-remastered.git
+	branch = release/webapp
