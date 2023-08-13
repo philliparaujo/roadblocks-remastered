@@ -22295,7 +22295,7 @@ var require_routes = __commonJS({
   "../types/dist/routes.jsx"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.errorRoute = exports.resetTurnRoute = exports.rollDiceRoute = exports.setPlayerLocationRoute = exports.switchTurnRoute = exports.lockWallsRoute = exports.pathExistsRoute = exports.canEndTurnRoute = exports.getTurnRoute = exports.getDiceRoute = exports.getWallLocationRoute = exports.getCellLocationRoute = exports.getHeightRoute = exports.getWidthRoute = exports.removeEdgeRoute = exports.addEdgeRoute = exports.versionRoute = exports.listGamesRoute = exports.joinGameRoute = exports.newGameRoute = exports.errorPubSubRoute = exports.numWallChangesPubSubRoute = exports.startGamePubSubRoute = exports.winGamePubSubRoute = exports.lockWallPubSubRoute = exports.wallToggledPubSubRoute = exports.switchTurnPubSubRoute = exports.playerMovedPubSubRoute = exports.diceRollPubSubRoute = void 0;
+    exports.errorRoute = exports.resetTurnRoute = exports.rollDiceRoute = exports.setPlayerLocationRoute = exports.switchTurnRoute = exports.lockWallsRoute = exports.pathExistsRoute = exports.canEndTurnRoute = exports.getTurnRoute = exports.getDiceRoute = exports.getWallLocationRoute = exports.getCellLocationRoute = exports.getHeightRoute = exports.getWidthRoute = exports.removeEdgeRoute = exports.addEdgeRoute = exports.quitRoute = exports.versionRoute = exports.listGamesRoute = exports.joinGameRoute = exports.newGameRoute = exports.errorPubSubRoute = exports.numWallChangesPubSubRoute = exports.startGamePubSubRoute = exports.winGamePubSubRoute = exports.lockWallPubSubRoute = exports.wallToggledPubSubRoute = exports.switchTurnPubSubRoute = exports.playerMovedPubSubRoute = exports.diceRollPubSubRoute = void 0;
     var baseApi = "/api/v1";
     var pubSubRoute = `${baseApi}/pubsub`;
     exports.diceRollPubSubRoute = `${pubSubRoute}/dicerolls`;
@@ -22311,6 +22311,7 @@ var require_routes = __commonJS({
     exports.joinGameRoute = `${baseApi}/joinGame`;
     exports.listGamesRoute = `${baseApi}/listGames`;
     exports.versionRoute = `${baseApi}/version`;
+    exports.quitRoute = `${baseApi}/quit`;
     exports.addEdgeRoute = `${baseApi}/addEdge`;
     exports.removeEdgeRoute = `${baseApi}/removeEdge`;
     exports.getWidthRoute = `${baseApi}/width`;
@@ -24611,6 +24612,23 @@ router.get(import_types.listGamesRoute, (req, res) => {
 router.get(import_types.versionRoute, (req, res) => {
   try {
     res.send(BUILD_NUMBER);
+  } catch (e) {
+    console.error(e);
+    res.sendStatus(500);
+  }
+});
+router.get(import_types.quitRoute, (req, res) => {
+  try {
+    const password = req.query.password;
+    if (process.env.QUIT_PASSWORD === "" || !process.env.QUIT_PASSWORD) {
+      res.sendStatus(500);
+      return;
+    }
+    if (password === process.env.QUIT_PASSWORD) {
+      process.exit(1);
+    } else {
+      res.sendStatus(401);
+    }
   } catch (e) {
     console.error(e);
     res.sendStatus(500);
