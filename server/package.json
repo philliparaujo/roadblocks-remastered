@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon dist/index.js",
+    "start": "nodemon dist/index.js --exitcrash",
     "dev": "pnpm run build --watch",
     "build": "pnpm run version && esbuild src/index.ts --platform=node --bundle --outfile=dist/index.js",
     "test": "jest",
