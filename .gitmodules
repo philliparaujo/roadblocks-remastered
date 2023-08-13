@@ -2,3 +2,7 @@
 	path = webapp/dist
 	url = git@github.com:philliparaujo/roadblocks-remastered.git
 	branch = release/webapp
+[submodule "server/dist"]
+	path = server/dist
+	url = git@github.com:philliparaujo/roadblocks-remastered.git
+	branch = release/server

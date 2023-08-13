@@ -2,3 +2,4 @@ node_modules/
 dist/
 
 !webapp/dist
+!server/dist
