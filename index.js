@@ -24550,7 +24550,7 @@ var SessionManagerImpl = class {
 var SessionManager_default = SessionManagerImpl;
 
 // src/version.ts
-var BUILD_NUMBER = "20230813. 05708".replace(" ", "0");
+var BUILD_NUMBER = "20230813. 11811".replace(" ", "0");
 
 // src/routes/game.ts
 var router = import_express.default.Router();
