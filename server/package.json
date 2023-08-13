@@ -5,11 +5,11 @@
   "main": "index.js",
   "scripts": {
     "start": "nodemon dist/index.js",
-    "dev": "pnpm run clean && pnpm run build --watch",
-    "build": "pnpm run clean && esbuild src/index.ts --platform=node --bundle --outfile=dist/index.js",
+    "dev": "pnpm run build --watch",
+    "build": "pnpm run version && esbuild src/index.ts --platform=node --bundle --outfile=dist/index.js",
     "test": "jest",
-    "clean": "rimraf dist",
-    "publish:server": "pnpm run build && scp -r dist/* playground:/home/phillip/roadblocks-server/"
+    "publish:server": "pnpm run build && cd dist && git add . && git commit -m \"Build %DATE% %TIME%\" && git push",
+    "version": "echo export const BUILD_NUMBER = \"%DATE:~10,4%%DATE:~4,2%%DATE:~7,2%.%TIME:~0,2%%TIME:~3,2%%TIME:~6,2%\".replace(\" \", \"0\"); > src/version.ts"
   },
   "author": "",
   "license": "ISC",
@@ -33,7 +33,6 @@
     "esbuild": "^0.18.18",
     "jest": "^29.6.2",
     "nodemon": "^3.0.1",
-    "rimraf": "^5.0.1",
     "supertest": "^6.3.3",
     "ts-jest": "^29.1.1",
     "ts-node": "^10.9.1"

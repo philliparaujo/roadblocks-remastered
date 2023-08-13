@@ -59,9 +59,11 @@ import {
   errorPubSubRoute,
   listGamesRoute,
   ListGamesResult,
+  versionRoute,
 } from "@roadblocks/types";
 import express from "express";
 import SessionManager from "../SessionManager";
+import { BUILD_NUMBER } from "../version";
 
 const router: express.Router = express.Router();
 const sessionManager = new SessionManager();
@@ -134,6 +136,15 @@ router.get(listGamesRoute, (req, res) => {
         console.error(err);
         res.sendStatus(400);
       });
+  } catch (e) {
+    console.error(e);
+    res.sendStatus(500);
+  }
+});
+
+router.get(versionRoute, (req, res) => {
+  try {
+    res.send(BUILD_NUMBER);
   } catch (e) {
     console.error(e);
     res.sendStatus(500);
