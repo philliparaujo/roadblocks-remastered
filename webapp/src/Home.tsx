@@ -28,9 +28,8 @@ function Home() {
     : randomGuestName();
   const [playerName, setPlayerName] = useState<string>(initialPlayerName);
 
-  const [hasConfirmed, setHasConfirmed] = useState<boolean>(
-    storedPlayerName ? true : false
-  );
+  const [game, setGame] = useState<GameInfo>();
+  const [hasConfirmed, setHasConfirmed] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
 
   const [onlineGames, setOnlineGames] = useState<GameInfo[]>();
@@ -46,25 +45,23 @@ function Home() {
     setShowSettings(!showSettings);
   };
 
-  const startGame = () => {
+  const startGame = () =>
     GameInstance.newGame(playerName)
-      .then(() => {
-        setRole("red");
-      })
       .catch((err) => {
         setError(err);
+      })
+      .then(() => {
+        setHasConfirmed(true);
       });
-  };
 
-  const joinGame = (gameId: string, watcher: boolean) => {
+  const joinGame = (gameId: string) =>
     GameInstance.joinGame(gameId, playerName)
-      .then(() => {
-        setRole(watcher ? "watcher" : "blue");
-      })
       .catch((err) => {
         setError(err);
+      })
+      .then(() => {
+        setHasConfirmed(true);
       });
-  };
 
   const fetchGames = () => {
     GameInstance.listGames().then((result) => {
@@ -81,6 +78,7 @@ function Home() {
   }, [GameInstance]);
 
   useEffect(() => {
+    console.log("Resetting game engine");
     reset();
   }, []);
 
@@ -93,36 +91,8 @@ function Home() {
       <div id="background" />
       <img src="images/logo.png" id="logo" />
 
-      {!hasConfirmed && (
+      {!hasConfirmed && !role && (
         <>
-          <div className="player-name-container">
-            <label className="player-name-label" htmlFor="playerName">
-              Player Name
-            </label>
-            <input
-              type="text"
-              id="playerName"
-              value={playerName}
-              onChange={(e) => setPlayerName(e.target.value)}
-              className="player-name-input"
-            />
-            <button
-              className="home-button"
-              onClick={() => setHasConfirmed(true)}
-            >
-              Confirm
-            </button>
-          </div>
-        </>
-      )}
-
-      {hasConfirmed && (
-        <>
-          <div className="back-button" onClick={() => setHasConfirmed(false)}>
-            <FontAwesomeIcon icon={faCircleArrowLeft} />
-            <span className="tooltip-text">Back</span>
-          </div>
-
           <label className="game-list-label" htmlFor="playerName">
             Games
           </label>
@@ -151,9 +121,10 @@ function Home() {
                       className={`home-button ${
                         game.users.length < 2 ? "join-button" : "watch-button"
                       }`}
-                      onClick={() =>
-                        joinGame(game.gameId, game.users.length > 1)
-                      }
+                      onClick={() => {
+                        setGame(game);
+                        setRole(game.users.length < 2 ? "blue" : "watcher");
+                      }}
                     >
                       {game.users.length < 2 ? "Join" : "Watch"}
                     </button>
@@ -166,7 +137,7 @@ function Home() {
           </div>
 
           <div>
-            <button className="home-button" onClick={startGame}>
+            <button className="home-button" onClick={() => setRole("red")}>
               Create Game
             </button>
           </div>
@@ -174,8 +145,6 @@ function Home() {
           <Link to={"/howtoplay"}>
             <button className="home-button">How To Play</button>
           </Link>
-
-          {role && <Navigate to={`/game#${role}`} replace={true} />}
 
           <AboutIcon toggle={toggleAbout} />
           <SettingsIcon toggle={toggleSettings} />
@@ -186,6 +155,46 @@ function Home() {
           {error && <div>{error}</div>}
         </>
       )}
+
+      {!hasConfirmed && role && (
+        <>
+          <div className="back-button" onClick={() => setRole(undefined)}>
+            <FontAwesomeIcon icon={faCircleArrowLeft} />
+            <span className="tooltip-text">Back</span>
+          </div>
+
+          <div className="player-name-container">
+            <label className="player-name-label" htmlFor="playerName">
+              Player Name
+            </label>
+            <input
+              type="text"
+              id="playerName"
+              value={playerName}
+              onChange={(e) => setPlayerName(e.target.value)}
+              className="player-name-input"
+            />
+            <button
+              className="home-button"
+              onClick={() => {
+                switch (role) {
+                  case "red":
+                    startGame();
+                    break;
+                  case "blue":
+                  case "watcher":
+                    if (game) joinGame(game.gameId);
+                    break;
+                }
+              }}
+            >
+              Confirm
+            </button>
+          </div>
+        </>
+      )}
+
+      {hasConfirmed && <Navigate to={`/game#${role}`} replace={true} />}
     </div>
   );
 }
