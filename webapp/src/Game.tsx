@@ -3,8 +3,9 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { GameInstance } from "@roadblocks/client";
 import { PlayerColor, UserRole } from "@roadblocks/types";
 import { useEffect, useState } from "react";
-import { Link, Navigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import "./Game.css";
+import Edge from "./components/Board/Edge";
 import UIBoard from "./components/Board/UIBoard";
 import {
   DiceRollAlert,
@@ -28,12 +29,14 @@ import {
 import ResetTurnButton from "./components/UI/ResetTurnButton";
 import SwitchTurnButton from "./components/UI/SwitchTurnButton";
 import WallRectangles from "./components/UI/WallRectangles";
-import Edge from "./components/Board/Edge";
 
 interface GameProps {}
 
 const Game: React.FC<GameProps> = () => {
-  const [inProgress, setInProgress] = useState<boolean | undefined>(undefined);
+  const navigate = useNavigate();
+
+  const [loading, setLoading] = useState<boolean>(true);
+
   const [role, setRole] = useState<UserRole | undefined>(undefined);
   const [turn, setTurn] = useState<PlayerColor>("red");
 
@@ -129,18 +132,19 @@ const Game: React.FC<GameProps> = () => {
 
   useEffect(() => {
     GameInstance.gameInProgress()
-      .then((result) => {
-        setInProgress(result);
+      .then((inProgress) => {
+        inProgress ? setLoading(false) : navigate("/");
       })
       .catch((err) => {
-        setInProgress(undefined);
+        console.error(err);
+        navigate("/");
       });
   }, [GameInstance]);
 
   useEffect(() => {
     const edges = Array.from({ length: 6 }).map((_, index) => (
       <Edge
-        key={`${index}-${numWallsLeft}`} // <-- add numWallsLeft to the key
+        key={`${index}-${numWallsLeft}`}
         coord={{ row: 0, col: 0 }}
         orientation={turn === "red" ? "vertical" : "horizontal"}
         game={GameInstance}
@@ -151,20 +155,16 @@ const Game: React.FC<GameProps> = () => {
     setEdgesLeft(edges);
   }, [numWallsLeft, turn]);
 
-  return inProgress === undefined ? (
+  return loading ? (
     <div>Loading...</div>
-  ) : inProgress ? (
+  ) : (
     <div className="game">
       <div id="background" />
 
-      {role === "red" && turn !== "red" ? (
-        <div className="fullscreen-cover"></div>
-      ) : role === "blue" && turn !== "blue" ? (
-        <div className="fullscreen-cover"></div>
-      ) : role === "watcher" ? (
+      {role === "watcher" || role !== turn ? (
         <div className="fullscreen-cover"></div>
       ) : (
-        <div></div>
+        <div className="role-label">YOUR TURN</div>
       )}
 
       {role === "watcher" ? (
@@ -251,8 +251,6 @@ const Game: React.FC<GameProps> = () => {
       <AboutPopup show={showAbout} toggle={toggleAbout} />
       <SettingsPopup show={showSettings} toggle={toggleSettings} />
     </div>
-  ) : (
-    <Navigate to="/" replace={true} />
   );
 };
 

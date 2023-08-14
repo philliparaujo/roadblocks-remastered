@@ -1,11 +1,11 @@
 import { useEffect } from "react";
-import { GameInstance } from "@roadblocks/client";
 // import { NPCImpl } from "./NPC/NPC.tsx.OFF";
 // import { GameClient } from "../../client/src/GameClient";
-import { Routes, Route, Router, Link } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import Game from "./Game";
 import Home from "./Home";
 import HowToPlay from "./HowToPlay";
+import NameSelect from "./NameSelect";
 
 function App() {
   useEffect(() => {
@@ -26,6 +26,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/home" element={<Home />} />
+        <Route path="/nameSelect" element={<NameSelect />} />
         <Route path="/game" element={<Game />} />
         <Route path="/settings" element={<div>SETTINGS</div>} />
         <Route path="/howtoplay" element={<HowToPlay />} />
