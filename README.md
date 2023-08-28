@@ -47,14 +47,14 @@ For each connection (marked with `A --> B`), the following steps are taken:
 
 Run `scripts\build.cmd` to compile all libraries and run development versions of the **Webapp** and **Server**.
 
-`pnpm build` runs development versions for **Webapp** and **Server**, and compiles to tsc for the other libraries (**Client**, **Engine**, **Types**).
+`pnpm build` runs development versions for **Webapp** and **Server** and compiles to tsc for the other libraries (**Client**, **Engine**, **Types**).
 `pnpm start` runs production versions for **Webapp** and **Server**.
 
 ## Publishing Changes
 
 Both the server and webapp are accessible at `https://roadblocks.lunenetworks.com/`.
 
-To update changes, the server periodically pulls from the follinwg branches:
+To update changes, the server periodically pulls from the following branches:
 
 - `release/server`: server running with ExpressJS that responds with `/api/<version>/...`
 - `release/webapp`: main React Typescript app with browser interface
